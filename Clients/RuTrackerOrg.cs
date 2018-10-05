@@ -166,16 +166,16 @@ namespace TLO.local
 
     public int[][] GetTopicsStatus(int forumID)
     {
-      Dictionary<int, int[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/static/pvc/f/{0}", (object) forumID)))["result"].ToObject<Dictionary<int, int[]>>();
+      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/static/pvc/f/{0}", (object) forumID)))["result"].ToObject<Dictionary<int, Int64[]>>();
       int[][] numArray1 = new int[dictionary.Count][];
       int index = 0;
-      foreach (KeyValuePair<int, int[]> keyValuePair in dictionary)
+      foreach (KeyValuePair<int, Int64[]> keyValuePair in dictionary)
       {
-        int[] numArray2 = keyValuePair.Value;
+        Int64[] numArray2 = keyValuePair.Value;
         numArray1[index] = new int[2]
         {
           keyValuePair.Key,
-          numArray2.Length > 1 ? numArray2[1] : -1
+          numArray2.Length > 1 ? (int)numArray2[1] : -1
         };
         ++index;
       }
