@@ -495,7 +495,7 @@ label_18:;
             {
               '\r',
               '\n'
-            }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("form_token : '"))).FirstOrDefault<string>();
+            }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("form_token: '"))).FirstOrDefault<string>();
             if (!string.IsNullOrWhiteSpace(str))
               str = str.Split(new char[1]{ '\'' }, StringSplitOptions.RemoveEmptyEntries)[1];
             string s = string.Format("form_token={0}", (object) str);
@@ -637,17 +637,14 @@ label_18:;
       if (((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=').Length < 3)
         throw new ArgumentException("Не корректно указан адрес отправки отчета: " + url);
       string str1 = ((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=')[2];
-      string[] strArray = this.DownloadWebPage(string.Format("http://rutracker.org/forum/posting.php?mode=editpost&p={0}", (object) str1)).Split(new char[2]
+      string[] strArray = this.DownloadWebPage(string.Format("https://rutracker.org/forum/posting.php?mode=editpost&p={0}", (object) str1)).Split(new char[2]
       {
         '\r',
         '\n'
       }, StringSplitOptions.RemoveEmptyEntries);
       Thread.Sleep(1000);
       string.Format("align=-1&codeColor=black&codeSize=12&codeUrl2=&decflag=2&f=1584&fontFace=-1&form_token=c2a9bace5d7f3900e2bddbf5f0f0f94a&message=&mode=editpost&p=59972538&submit_mode=submit&t=3985106");
-      string str2 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("name=\"f\" value=\""))).FirstOrDefault<string>();
-      if (string.IsNullOrWhiteSpace(str2))
-        throw new ArgumentException("Параметр 'f' не найден на странице");
-      string str3 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("form_token : '"))).FirstOrDefault<string>();
+      string str3 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("form_token: '"))).FirstOrDefault<string>();
       if (string.IsNullOrWhiteSpace(str3))
         throw new ArgumentException("Параметр 'form_token' не найден на странице");
       string str4 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("name=\"t\" value=\""))).FirstOrDefault<string>();
@@ -657,25 +654,22 @@ label_18:;
         throw new ArgumentException("Массив с параметром 't' меньше предполагаемого: " + str4);
       if (str3.Split('\'').Length < 2)
         throw new ArgumentException("Массив с параметром 'form_token' меньше предполагаемого: " + str3);
-      if (str2.Split('"').Length < 6)
-        throw new ArgumentException("Массив с параметром 'f' меньше предполагаемого: " + str2);
       string str5 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("name=\"subject\" "))).FirstOrDefault<string>();
       if (!string.IsNullOrWhiteSpace(str5))
       {
         if (str5.Split('"').Length < 12)
           throw new ArgumentException("Массив с параметром 'subject' меньше предполагаемого: " + str5);
       }
-      string format = "mode=editpost&f={4}&t={0}&p={1}&fontFace=-1&codeColor=black&codeSize=12&align=-1&codeUrl2&submit_mode=submit&decflag=2&form_token={3}{5}&message={2}";
-      object[] objArray = new object[6]
+      string format = "mode=editpost&t={0}&p={1}&submit_mode=submit&form_token={3}{4}&message={2}";
+      object[] objArray = new object[5]
       {
         (object) str4.Split('"')[5],
         (object) str1,
         (object) HttpUtility.UrlEncode(message, Encoding.GetEncoding(1251)),
         (object) str3.Split('\'')[1],
-        (object) str2.Split('"')[5],
         null
       };
-      int index1 = 5;
+      int index1 = 4;
       string str6;
       if (!string.IsNullOrWhiteSpace(str5))
         str6 = string.Format("&subject={0}", (object) HttpUtility.UrlEncode(str5.Split('"')[11], Encoding.GetEncoding(1251)));
@@ -688,8 +682,8 @@ label_18:;
         try
         {
           if (this._webClient == null)
-            this.DownloadWebPage(string.Format("http://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1));
-          this._webClient.UploadData(string.Format("http://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1), "POST", Encoding.GetEncoding(1251).GetBytes(s));
+            this.DownloadWebPage(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1));
+          this._webClient.UploadData(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1), "POST", Encoding.GetEncoding(1251).GetBytes(s));
           break;
         }
         catch (Exception ex)
@@ -700,40 +694,6 @@ label_18:;
         }
       }
       Thread.Sleep(1000);
-    }
-
-    public int GetUserIdByName(string name)
-    {
-        try
-        {
-            foreach (string str in ((IEnumerable<string>)((IEnumerable<string>)this.DownloadWebPage("https://rutracker.org/forum/profile.php?mode=viewprofile&u={0}", (object)name).Split(new char[2]
-        {
-          '\r',
-          '\n'
-        })).Where<string>((Func<string, bool>)(x => x.Contains("user_id"))).ToArray<string>()).Where<string>((Func<string, bool>)(x => x.Contains(":"))))
-            {
-                try
-                {
-                    return int.Parse(str.Split(new char[4]
-            {
-              ' ',
-              ':',
-              '}',
-              '\t'
-            }, StringSplitOptions.RemoveEmptyEntries)[1]);
-                }
-                catch (Exception ex)
-                {
-                    this._logger.Trace(str + "\t" + ex.Message);
-                }
-            }
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            this._logger.Error("Не удалось скачать страницу профиля: " + ex.Message);
-            return -1;
-        }
     }
 
     public void ReadKeeperInfo()
@@ -757,7 +717,11 @@ label_18:;
           "<b>",
           "</b>"
         }, StringSplitOptions.RemoveEmptyEntries)[3];
-            this._keeperid = this.GetUserIdByName(this._userName);
+            this._keeperid = int.Parse(str.Split(new string[2]
+        {
+          "<b>",
+          "</b>"
+        }, StringSplitOptions.RemoveEmptyEntries)[5]);
         }
         catch
         {

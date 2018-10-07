@@ -51,7 +51,7 @@ namespace TLO.local
           if (category.CreateSubFolder != 0)
           {
             if (category.CreateSubFolder != 1)
-              throw new Exception("Не поддарживается указаный метод создания подкаталога");
+              throw new Exception("Не поддерживается указаный метод создания подкаталога");
             ITorrentClient torrentClient2 = torrentClient1;
             string folder = category.Folder;
             topicId = topic.TopicID;
@@ -90,7 +90,7 @@ namespace TLO.local
           if (category.IsSaveWebPage)
           {
             Thread.Sleep(500);
-            byte[] buffer2 = Logic.Current.DownloadWebPages(string.Format("http://rutracker.org/forum/viewtopic.php?t={0}", (object) topic.TopicID));
+            byte[] buffer2 = Logic.Current.DownloadWebPages(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}", (object) topic.TopicID));
             if (!Directory.Exists(category.FolderSavePageForum))
               Directory.CreateDirectory(category.FolderSavePageForum);
             using (FileStream fileStream = File.Create(Path.Combine(category.FolderSavePageForum, string.Format("[rutracker.org].t{0}.html", (object) topic.TopicID))))
@@ -298,7 +298,7 @@ namespace TLO.local
       {
         Logic.logger.Error(ex.Message);
         Logic.logger.Debug<Exception>(ex);
-        int num2 = (int) MessageBox.Show("Поизошла ошибка скачивании торрент-файлов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+        int num2 = (int) MessageBox.Show("Произошла ошибка при скачивании торрент-файлов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
       }
     }
 
@@ -360,7 +360,7 @@ namespace TLO.local
                   else
                   {
                     if (category.CreateSubFolder != 2)
-                      throw new Exception("Не поддарживается указаный метод создания подкаталога");
+                      throw new Exception("Не поддерживается указаный метод создания подкаталога");
                     DialogResult result = DialogResult.None;
                     tuple.Item1.Invoke((MethodInvoker)delegate
                     {
@@ -404,7 +404,7 @@ namespace TLO.local
                   if (category.IsSaveWebPage)
                   {
                     Thread.Sleep(500);
-                    byte[] buffer = Logic.Current.DownloadWebPages(string.Format("http://rutracker.org/forum/viewtopic.php?t={0}", (object) t.TopicID));
+                    byte[] buffer = Logic.Current.DownloadWebPages(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}", (object) t.TopicID));
                     if (!Directory.Exists(category.FolderSavePageForum))
                       Directory.CreateDirectory(category.FolderSavePageForum);
                     using (FileStream fileStream = File.Create(Path.Combine(category.FolderSavePageForum, string.Format("[rutracker.org].t{0}.html", (object) t.TopicID))))
@@ -604,7 +604,7 @@ namespace TLO.local
       {
         Logic.logger.Error("Произошла ошибка при обновлении списка хранимого из торрент-клиента: " + ex.Message);
         Logic.logger.Debug<Exception>(ex);
-        int num2 = (int) MessageBox.Show("Поизошла ошибка при отправке отчетов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+        int num2 = (int) MessageBox.Show("Произошла ошибка при отправке отчетов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
       }
     }
 
@@ -637,7 +637,7 @@ namespace TLO.local
       {
         Logic.logger.Error(ex.Message);
         Logic.logger.Debug<Exception>(ex);
-        int num2 = (int) MessageBox.Show("Поизошла ошибка при отправке отчетов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+        int num2 = (int) MessageBox.Show("Произошла ошибка при отправке отчетов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
       }
     }
 
@@ -674,7 +674,7 @@ namespace TLO.local
           }
           catch (Exception ex)
           {
-            Logic.logger.Error("Ошибка при обнновлении топиков: " + ex.Message);
+            Logic.logger.Error("Ошибка при обновлении топиков: " + ex.Message);
             Logic.logger.Debug<Exception>(ex);
           }
           ClientLocalDB.Current.SaveUsers(RuTrackerOrg.Current.GetUsers(ClientLocalDB.Current.GetNoUsers()));
@@ -1056,7 +1056,7 @@ namespace TLO.local
           }
           empty2 = string.Empty;
 label_7:
-          stringBuilder1.AppendFormat("{0}{1}{2} - {3} шт. ({4:0.00} GB)\r\n", string.IsNullOrWhiteSpace(empty2) ? (object) "" : (object) string.Format("[url=http://rutracker.org/forum/viewtopic.php?p={0}#{0}]", (object) empty2), (object) category.FullName, string.IsNullOrWhiteSpace(empty2) ? (object) "" : (object) "[/url]", (object) tuple.Item3, (object) tuple.Item4);
+          stringBuilder1.AppendFormat("{0}{1}{2} - {3} шт. ({4:0.00} GB)\r\n", string.IsNullOrWhiteSpace(empty2) ? (object) "" : (object) string.Format("[url=https://rutracker.org/forum/viewtopic.php?p={0}#{0}]", (object) empty2), (object) category.FullName, string.IsNullOrWhiteSpace(empty2) ? (object) "" : (object) "[/url]", (object) tuple.Item3, (object) tuple.Item4);
         }
       }
       reports2.Add(0, new Dictionary<int, string>());
