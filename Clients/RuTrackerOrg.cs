@@ -231,7 +231,9 @@ namespace TLO.local
       }
       foreach (IEnumerable<int> values in intListArray)
       {
-        foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/get_user_name?by=user_id&val={0}", (object) HttpUtility.UrlEncode(string.Join<int>(",", values)))))["result"].ToObject<Dictionary<int, string>>())
+        var url = string.Format("http://api.rutracker.org/v1/get_user_name?by=user_id&val={0}", (object) HttpUtility.UrlEncode(string.Join<int>(",", values)));
+        var getUserNameResult = this.DownloadArchivePage(url);
+        foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(getUserNameResult)["result"].ToObject<Dictionary<int, string>>())
           userInfoList.Add(new UserInfo()
           {
             UserID = keyValuePair.Key,

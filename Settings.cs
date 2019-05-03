@@ -87,6 +87,7 @@ namespace TLO.local
             this.HostRuTrackerOrg = settings.HostRuTrackerOrg;
             this.SetLogger(settings.LogLevel.HasValue ? settings.LogLevel.Value : 0);
             this._LastWriteTime = File.GetLastWriteTime(this.FileSettings);
+            this.LoadDBInMemory = settings.LoadDBInMemory;
           }
         }
       }
@@ -151,7 +152,7 @@ namespace TLO.local
       {
         ColoredConsoleTarget coloredConsoleTarget = new ColoredConsoleTarget();
         loggingConfiguration.AddTarget("console", (Target) coloredConsoleTarget);
-        coloredConsoleTarget.Layout = (Layout) "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${message}";
+        coloredConsoleTarget.Layout = (Layout) "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${message}\t${file}:${line}";
         LoggingRule loggingRule = new LoggingRule("*", NLog.LogLevel.Debug, (Target) coloredConsoleTarget);
         loggingConfiguration.LoggingRules.Add(loggingRule);
       }
@@ -206,5 +207,7 @@ namespace TLO.local
 
     [XmlElement]
     public string HostRuTrackerOrg { get; set; }
+    
+    public bool? LoadDBInMemory { get; set; }
   }
 }

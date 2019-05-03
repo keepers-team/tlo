@@ -49,17 +49,7 @@ namespace TLO.local
         flag = true;
       try
       {
-        ClientLocalDB._logger.Info("Загрзка базы в память...");
-        using (SQLiteConnection sqLiteConnection = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) this.FileDatabase)))
-        {
-          sqLiteConnection.Open();
-          this._conn = new SQLiteConnection(string.Format("Data Source=:memory:;Version=3;", (object) this.FileDatabase));
-          this._conn.Open();
-          sqLiteConnection.BackupDatabase(this._conn, "main", "main", -1, (SQLiteBackupCallback) null, -1);
-          this.UpdateDataBase();
-          sqLiteConnection.Close();
-        }
-        ClientLocalDB._logger.Info("Загрзка базы в память завершена.");
+        _conn = new DBConnectionCreator().Connection;
       }
       catch
       {
@@ -72,6 +62,11 @@ namespace TLO.local
 
     public void SaveToDatabase()
     {
+      if (!DBConnectionCreator.InMemory())
+      {
+        // не нужно пересохранять в БД если, она не хранится в памяти.
+        return;
+      }
       try
       {
         if (File.Exists(this.FileDatabase + ".tmp"))
@@ -79,7 +74,7 @@ namespace TLO.local
         using (SQLiteConnection destination = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) (this.FileDatabase + ".tmp"))))
         {
           destination.Open();
-          this._conn.BackupDatabase(destination, "main", "main", -1, (SQLiteBackupCallback) null, -1);
+          this._conn.BackupDatabase(destination, "main", "main", -1, null, -1);
           destination.Close();
         }
       }
@@ -87,21 +82,21 @@ namespace TLO.local
       {
         ClientLocalDB._logger.Error(ex.Message + "\r\n" + ex.StackTrace);
       }
+      _conn?.Close();
       if (!File.Exists(this.FileDatabase + ".tmp"))
         return;
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
       File.Move(this.FileDatabase + ".tmp", this.FileDatabase);
+      this._conn = new DBConnectionCreator().Connection;
     }
 
     private void CreateDatabase()
     {
-      if (this._conn != null)
-        this._conn.Close();
+      _conn?.Close();
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
-      this._conn = new SQLiteConnection(string.Format("Data Source=:memory:;Version=3;", (object) this.FileDatabase));
-      this._conn.Open();
+      _conn = new DBConnectionCreator().Connection;
       using (SQLiteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nCREATE TABLE Category(CategoryID INTEGER PRIMARY KEY ASC, ParentID INTEGER, OrderID INT, Name TEXT NOT NULL, FullName TEXT NOT NULL, IsEnable BIT, CountSeeders int, \r\n    TorrentClientUID TEXT, Folder TEXT, AutoDownloads INT, LastUpdateTopics DATETIME, LastUpdateStatus DATETIME, Label TEXT, ReportTopicID INT);\r\nCREATE TABLE Topic (TopicID INT PRIMARY KEY ASC, CategoryID INT, Name TEXT, Hash TEXT, Size INTEGER, Seeders INT, AvgSeeders DECIMAL(18,4), Status INT, IsActive BIT, IsDeleted BIT, IsKeep BIT, IsKeepers BIT, IsBlackList BIT, IsDownload BIT, RegTime DATETIME, PosterID INT);\r\nCREATE INDEX IX_Topic__Hash ON Topic (Hash);\r\nCREATE TABLE TopicStatusHystory (TopicID INT NOT NULL, Date DateTime NOT NULL, Seeders INT, PRIMARY KEY(TopicID ASC, Date ASC));\r\nCREATE TABLE TorrentClient(UID NVARCHAR(50) PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL, Type VARCHAR(50) NOT NULL, ServerName NVARCHAR(50) NOT NULL, ServerPort INT NOT NULL, UserName NVARCHAR(50), UserPassword NVARCHAR(50), LastReadHash DATETIME);\r\nCREATE TABLE Report(CategoryID INT NOT NULL, ReportNo INT NOT NULL, URL TEXT, Report TEXT, PRIMARY KEY(CategoryID ASC, ReportNo ASC));\r\nCREATE TABLE Keeper (KeeperName nvarchar(100) not null, CategoryID int not null, Count INT NOT NULL, Size DECIMAL(18,4) NOT NULL, PRIMARY KEY(KeeperName ASC, CategoryID ASC));\r\nCREATE TABLE KeeperToTopic(KeeperName NVARCHAR(50) NOT NULL, CategoryID INT NULL, TopicID INT NOT NULL, PRIMARY KEY(KeeperName ASC, TopicID ASC));\r\nCREATE TABLE User (UserID INT PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL);\r\n";
@@ -135,8 +130,10 @@ namespace TLO.local
 
     public void UpdateDataBase()
     {
-        using (this._conn.CreateCommand())
-            ;
+      using (_conn.CreateCommand())
+      {
+        
+      }
     }
 
     public IEnumerable<UserInfo> GetUsers()
@@ -191,7 +188,13 @@ namespace TLO.local
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
           while (sqLiteDataReader.Read())
-            intList.Add(sqLiteDataReader.GetInt32(0));
+          {
+            var posterId = sqLiteDataReader.GetInt32(0);
+            if (posterId > 0)
+            {
+              intList.Add(posterId);
+            }
+          }
         }
       }
       return intList.ToArray();
