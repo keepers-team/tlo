@@ -90,7 +90,7 @@ namespace TLO.local
           if (category.IsSaveWebPage)
           {
             Thread.Sleep(500);
-            byte[] buffer2 = Logic.Current.DownloadWebPages(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}", (object) topic.TopicID));
+            byte[] buffer2 = Logic.Current.DownloadWebPages(string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) topic.TopicID, Settings.Current.HostRuTrackerOrg));
             if (!Directory.Exists(category.FolderSavePageForum))
               Directory.CreateDirectory(category.FolderSavePageForum);
             using (FileStream fileStream = File.Create(Path.Combine(category.FolderSavePageForum, string.Format("[rutracker.org].t{0}.html", (object) topic.TopicID))))
@@ -404,7 +404,7 @@ namespace TLO.local
                   if (category.IsSaveWebPage)
                   {
                     Thread.Sleep(500);
-                    byte[] buffer = Logic.Current.DownloadWebPages(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}", (object) t.TopicID));
+                    byte[] buffer = Logic.Current.DownloadWebPages(string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) t.TopicID, Settings.Current.HostRuTrackerOrg));
                     if (!Directory.Exists(category.FolderSavePageForum))
                       Directory.CreateDirectory(category.FolderSavePageForum);
                     using (FileStream fileStream = File.Create(Path.Combine(category.FolderSavePageForum, string.Format("[rutracker.org].t{0}.html", (object) t.TopicID))))

@@ -481,7 +481,7 @@ namespace TLO.local
           int? nullable = this._dgvReportDownloads.Rows[e.RowIndex].Cells[0].Value as int?;
           if (!nullable.HasValue)
             return;
-          Process.Start(string.Format("http://rutracker.org/forum/viewtopic.php?t={0}", (object) nullable.Value));
+          Process.Start(string.Format("http://{1}/forum/viewtopic.php?t={0}", (object) nullable.Value, Settings.Current.HostRuTrackerOrg));
         }
         catch
         {
@@ -532,7 +532,7 @@ namespace TLO.local
             }, StringSplitOptions.RemoveEmptyEntries)).FirstOrDefault<string>();
           if (!string.IsNullOrWhiteSpace(str2))
             str1 = str1 + " " + str2;
-          Process.Start(string.Format("http://rutracker.org/forum/tracker.php?f={0}&nm={1}", (object) topicInfo.CategoryID, (object) str1));
+          Process.Start(string.Format("http://{2}/forum/tracker.php?f={0}&nm={1}", (object) topicInfo.CategoryID, (object) str1, Settings.Current.HostRuTrackerOrg));
         }
         catch
         {
