@@ -9,11 +9,13 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Windows.Forms;
 
 namespace TLO.local
 {
@@ -58,7 +60,8 @@ namespace TLO.local
     public IEnumerable<Category> GetCategories()
     {
       List<Category> source = new List<Category>();
-      JObject jobject1 = (JsonConvert.DeserializeObject(this.DownloadArchivePage("http://api.rutracker.org/v1/static/cat_forum_tree")) as JObject)["result"].ToObject<JObject>();
+      var downloadArchivePage = this.DownloadArchivePage("http://api.rutracker.org/v1/static/cat_forum_tree");
+      JObject jobject1 = (JsonConvert.DeserializeObject(downloadArchivePage) as JObject)["result"].ToObject<JObject>();
       jobject1["c"].ToObject<JObject>();
       source.AddRange((IEnumerable<Category>) jobject1["c"].ToObject<Dictionary<string, object>>().Select<KeyValuePair<string, object>, Category>((Func<KeyValuePair<string, object>, Category>) (x => new Category()
       {
@@ -79,6 +82,10 @@ namespace TLO.local
         ++num;
         dictionary[key1].OrderID = num;
         dictionary[key1].FullName = dictionary[key1].Name;
+        if (!(keyValuePair1.Value is JObject) || !keyValuePair1.Value.Any())
+        {
+          continue;
+        }
         foreach (KeyValuePair<string, JToken> keyValuePair2 in keyValuePair1.Value.ToObject<JObject>())
         {
           int key2 = int.Parse(keyValuePair2.Key);

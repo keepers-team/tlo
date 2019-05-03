@@ -175,7 +175,6 @@
     <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Resources\hdd.ico" />
     <None Include="TLO.local_TemporaryKey.pfx" />
