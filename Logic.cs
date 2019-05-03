@@ -698,13 +698,13 @@ namespace TLO.local
       try
       {
         ClientLocalDB.Current.ClearKeepers();
-        int[] categories = ClientLocalDB.Current.GetCategoriesEnable().Select<Category, int>((Func<Category, int>) (x => x.CategoryID)).OrderBy<int, int>((Func<int, int>) (x => x)).ToArray<int>();
-        var array = ClientLocalDB.Current.GetReports(new int?()).Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>((Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x =>
+        int[] categories = ClientLocalDB.Current.GetCategoriesEnable().Select(x => x.CategoryID).OrderBy(x => x).ToArray<int>();
+        var array = ClientLocalDB.Current.GetReports(new int?()).Where(x =>
         {
           if (x.Key.Item2 == 0 && x.Key.Item1 != 0 && !string.IsNullOrWhiteSpace(x.Value.Item1))
-            return ((IEnumerable<int>) categories).Any<int>((Func<int, bool>) (z => z == x.Key.Item1));
+            return categories.Any<int>((Func<int, bool>) (z => z == x.Key.Item1));
           return false;
-        })).Select(x =>
+        }).Select(x =>
         {
           string[] strArray = x.Value.Item1.Split('=');
           if (strArray.Length == 3)
@@ -1093,7 +1093,7 @@ label_7:
           foreach (Tuple<int, string, int, Decimal> tuple2 in (IEnumerable<Tuple<int, string, int, Decimal>>) source.OrderBy<Tuple<int, string, int, Decimal>, string>((Func<Tuple<int, string, int, Decimal>, string>) (x => x.Item2)))
           {
             ++num;
-            stringBuilder1.AppendFormat("[b]Хранитель {0}:[/b] [url=profile.php?mode=viewprofile&u={4}][color=darkgreen][b]{1}[/b][/color][/url] - {2} шт. ({3:0.00} GB)\r\n", (object) num, (object) tuple2.Item2.Replace("<wbr>", ""), (object) tuple2.Item3, (object) tuple2.Item4, (object) HttpUtility.UrlEncode(tuple2.Item2.Replace("<wbr>", "")));
+            stringBuilder1.AppendFormat("[b]Хранитель {0}:[/b] [url=profile.php?mode=viewprofile&u={4}][color=darkgreen][b]{1}[/b][/color][/url] - {2} шт. ({3:0.00} GB)\r\n", (object) num, (object) tuple2.Item2.Replace("<wbr>", ""), (object) tuple2.Item3, (object) tuple2.Item4, (object) HttpUtility.UrlEncode(tuple2.Item2.Replace("<wbr>", "").Trim()));
           }
           reports2.Add(category.CategoryID, new Dictionary<int, string>());
           reports2[category.CategoryID].Add(0, stringBuilder1.ToString());

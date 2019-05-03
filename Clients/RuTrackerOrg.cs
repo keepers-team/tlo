@@ -324,39 +324,45 @@ label_13:;
 
     public Dictionary<string, Tuple<int, List<int>>> GetKeeps(int topicid, int categoryId)
     {
-      Dictionary<string, Tuple<int, List<int>>> dictionary = new Dictionary<string, Tuple<int, List<int>>>();
-      string empty = string.Empty;
-      int num = 0;
-      List<int> intList = new List<int>();
+      Dictionary<string, Tuple<int, List<int>>> dictionary;
+      dictionary = new Dictionary<string, Tuple<int, List<int>>>();
+      var empty = string.Empty;
+      var num = 0;
       string str1;
       do
       {
         empty = string.Empty;
-        str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}{1}", (object) topicid, num == 0 ? (object) "" : (object) ("&start=" + num.ToString())));
+        str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}{1}",
+          (object) topicid, num == 0 ? (object) "" : (object) ("&start=" + num.ToString())));
         if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         {
           Thread.Sleep(500);
-          str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?p={0}", (object) topicid));
+          str1 = this.DownloadWebPage(
+            $"https://rutracker.org/forum/viewtopic.php?p={(object) topicid}");
           if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
             return dictionary;
-          string s = ((IEnumerable<string>) string.Join("\r\n", ((IEnumerable<string>) str1.Split(new char[2]
-          {
-            '\r',
-            '\n'
-          })).Where<string>((Func<string, bool>) (x => x.Contains("id=\"topic-title\"")))).Split(new char[4]
-          {
-            '"',
-            '<',
-            '>',
-            ' '
-          }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("https://rutracker.org/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x.Replace("https://rutracker.org/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
+          var s = ((IEnumerable<string>) string.Join("\r\n", ((IEnumerable<string>) str1.Split(new char[2]
+            {
+              '\r',
+              '\n'
+            })).Where<string>((Func<string, bool>) (x => x.Contains("id=\"topic-title\"")))).Split(new char[4]
+            {
+              '"',
+              '<',
+              '>',
+              ' '
+            }, StringSplitOptions.RemoveEmptyEntries))
+            .Where<string>((Func<string, bool>) (x => x.Contains("https://rutracker.org/forum/viewtopic.php?t=")))
+            .Select<string, string>((Func<string, string>) (x =>
+              x.Replace("https://rutracker.org/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
           if (!string.IsNullOrWhiteSpace(s))
           {
             topicid = int.Parse(s);
             goto label_18;
           }
         }
-        string[] array = ((IEnumerable<string>) str1.Split(new char[2]
+
+        var array = ((IEnumerable<string>) str1.Split(new char[2]
         {
           '\r',
           '\n'
@@ -368,34 +374,35 @@ label_13:;
             return !x.Contains("<div");
           return false;
         })).ToArray<string>();
-        string key = string.Empty;
-        foreach (string str2 in array)
+        var keeperName = string.Empty;
+        foreach (var str2 in array)
         {
           if (str2.Contains("\t\t<a href=\"#\" onclick=\"return false;\">"))
           {
-            key = str2.Replace("\t\t<a href=\"#\" onclick=\"return false;\">", "").Replace("</a>", "");
+            keeperName = str2.Replace("\t\t<a href=\"#\" onclick=\"return false;\">", "").Replace("</a>", "").Replace("<wbr>", "").Trim();
           }
           else
           {
-            if (!dictionary.ContainsKey(key))
-              dictionary.Add(key, new Tuple<int, List<int>>(categoryId, new List<int>()));
-            string str3 = ((IEnumerable<string>) str2.Split(new char[6]
-            {
-              '"',
-              '<',
-              '>',
-              ' ',
-              '#',
-              '&'
-            }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("viewtopic.php?t="))).FirstOrDefault<string>();
+            if (!dictionary.ContainsKey(keeperName))
+              dictionary.Add(keeperName, new Tuple<int, List<int>>(categoryId, new List<int>()));
+            var str3 = ((IEnumerable<string>) str2.Split(new char[6]
+              {
+                '"',
+                '<',
+                '>',
+                ' ',
+                '#',
+                '&'
+              }, StringSplitOptions.RemoveEmptyEntries))
+              .Where<string>((Func<string, bool>) (x => x.Contains("viewtopic.php?t="))).FirstOrDefault<string>();
             if (!string.IsNullOrWhiteSpace(str3))
             {
-              string[] strArray = str3.Split('=');
+              var strArray = str3.Split('=');
               if (strArray.Length >= 2)
               {
                 try
                 {
-                  dictionary[key].Item2.Add(int.Parse(strArray[1]));
+                  dictionary[keeperName].Item2.Add(int.Parse(strArray[1]));
                 }
                 catch (Exception ex)
                 {
@@ -405,10 +412,11 @@ label_13:;
             }
           }
         }
+
         num += 30;
-label_18:;
-      }
-      while (str1.Contains("\">След.</a></b></p>") || num == 0);
+        label_18: ;
+      } while (str1.Contains("\">След.</a></b></p>") || num == 0);
+
       return dictionary;
     }
 
@@ -540,9 +548,8 @@ label_18:;
       page = page.Replace("rutracker.org", Settings.Current.HostRuTrackerOrg);
       for (int index = 0; index < 20; ++index)
       {
-        byte[] numArray = new byte[0];
         string empty = string.Empty;
-        TLOWebClient tloWebClient = (TLOWebClient) null;
+        TLOWebClient tloWebClient = null;
         try
         {
           if (this._webClient == null)
@@ -558,6 +565,7 @@ label_18:;
         }
         catch (Exception ex)
         {
+          _logger.Warn(ex.Message);
         }
         if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(this._userName) && !string.IsNullOrWhiteSpace(this._userPass))
         {
@@ -572,8 +580,9 @@ label_18:;
         {
           bytes = this._webClient.DownloadData(page);
         }
-        catch
+        catch(Exception e)
         {
+          _logger.Warn(e.Message);
           Thread.Sleep(index * 1000);
           continue;
         }

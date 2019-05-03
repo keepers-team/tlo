@@ -764,7 +764,7 @@ namespace TLO.local
             {
               command.Parameters.Clear();
               command.CommandText = "INSERT OR REPLACE INTO KeeperToTopic(KeeperName, CategoryID, TopicID)\r\n" + string.Join("UNION ", source.Select<int, string>((Func<int, string>) (x => string.Format("SELECT @KeeperName, {2}, {1}\r\n", (object) dt.Key, (object) x, (object) dt.Value.Item1))));
-              command.Parameters.AddWithValue("@KeeperName", (object) dt.Key);
+              command.Parameters.AddWithValue("@KeeperName", (object) dt.Key.Replace("<wbr>", "").Trim());
               command.ExecuteNonQuery();
             }
           }
@@ -791,7 +791,7 @@ namespace TLO.local
             return;
           foreach (Tuple<int, int, Decimal> tuple in data)
           {
-            command.Parameters[0].Value = (object) keepName;
+            command.Parameters[0].Value = (object) keepName.Replace("<wbr>", "").Trim();
             command.Parameters[1].Value = (object) tuple.Item1;
             command.Parameters[2].Value = (object) tuple.Item2;
             command.Parameters[3].Value = (object) Math.Round(tuple.Item3, 2);
@@ -1071,7 +1071,7 @@ namespace TLO.local
               stringBuilder1.AppendLine("[/spoiler]");
             }
             reports.Add(c, new Dictionary<int, string>());
-            reports[c].Add(0, stringBuilder1.ToString().Replace("<wbr>", ""));
+            reports[c].Add(0, stringBuilder1.ToString().Replace("<wbr>", "").Trim());
           }
           this.SaveReports(reports);
         }
