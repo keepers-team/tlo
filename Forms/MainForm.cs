@@ -190,7 +190,7 @@ namespace TLO.local
         else if (sender == this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem)
           this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwCreateReportsTorrentClients), "Построение сводного отчета по торрент-клиентам...", sender);
         else if (sender == this.LoadListKeepersToolStripMenuItem)
-          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновлении данных о хранителях...", sender);
+          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновление данных о хранителях...", sender);
         else if (sender == this.ExitToolStripMenuItem)
         {
           this.IsClose = true;
@@ -198,7 +198,7 @@ namespace TLO.local
         }
         else if (sender == this.DevlToolStripMenuItem)
         {
-          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновлении данных о хранителях...", sender);
+          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновление данных о хранителях...", sender);
           try
           {
             RuTrackerOrg ruTrackerOrg = new RuTrackerOrg(Settings.Current.KeeperName, Settings.Current.KeeperPass);
@@ -249,7 +249,7 @@ namespace TLO.local
             if (lastUpdateTopics < dateTime2)
             {
               this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategories), "Полное обновление информации о топиках (раздачах) по всем категориям...", (object) ClientLocalDB.Current.GetCategoriesEnable());
-              this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновлении данных о хранителях...", sender);
+              this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories), "Обновление данных о хранителях...", sender);
               Settings current = Settings.Current;
               now = DateTime.Now;
               DateTime date = now.Date;
@@ -431,14 +431,14 @@ namespace TLO.local
         if (sender == this._llUpdateCountSeedersByCategory)
           Logic.UpdateSeedersByCategory(current);
         else if (sender == this._llUpdateTopicsByCategory)
-          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategory), "Обновление списоков по разделу...", (object) current);
+          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategory), "Обновление списков по разделу...", (object) current);
         else if (sender == this._llUpdateDataDromTorrentClient)
           Logic.LoadHashFromClients(current.TorrentClientUID);
         else if (sender == this._llDownloadSelectTopics)
           this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwDownloadTorrentFiles), "Скачиваются выделеные торрент-файлы в каталог...", (object) new Tuple<List<TopicInfo>, MainForm>((this._TopicsSource.DataSource as List<TopicInfo>).Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(), this));
         else if (sender == this._llSelectedTopicsToTorrentClient)
         {
-          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwSendTorrentFileToTorrentClient), "Скачиваются и добавляются в торрент-клиент выделеные раздачи...", (object) new Tuple<MainForm, List<TopicInfo>, Category>(this, (this._TopicsSource.DataSource as List<TopicInfo>).Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(), current));
+          this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwSendTorrentFileToTorrentClient), "Скачиваются и добавляются в торрент-клиент выделенные раздачи...", (object) new Tuple<MainForm, List<TopicInfo>, Category>(this, (this._TopicsSource.DataSource as List<TopicInfo>).Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(), current));
           this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateHashFromTorrentClientsByCategoryUID), "Обновляем список раздач из торрент-клиента...", (object) current);
         }
         else if (sender == this._llSelectedTopicsToBlackList)
@@ -481,7 +481,7 @@ namespace TLO.local
           int? nullable = this._dgvReportDownloads.Rows[e.RowIndex].Cells[0].Value as int?;
           if (!nullable.HasValue)
             return;
-          Process.Start(string.Format("http://{1}/forum/viewtopic.php?t={0}", (object) nullable.Value, Settings.Current.HostRuTrackerOrg));
+          Process.Start(string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) nullable.Value, Settings.Current.HostRuTrackerOrg));
         }
         catch
         {
@@ -532,7 +532,7 @@ namespace TLO.local
             }, StringSplitOptions.RemoveEmptyEntries)).FirstOrDefault<string>();
           if (!string.IsNullOrWhiteSpace(str2))
             str1 = str1 + " " + str2;
-          Process.Start(string.Format("http://{2}/forum/tracker.php?f={0}&nm={1}", (object) topicInfo.CategoryID, (object) str1, Settings.Current.HostRuTrackerOrg));
+          Process.Start(string.Format("https://{2}/forum/tracker.php?f={0}&nm={1}", (object) topicInfo.CategoryID, (object) str1, Settings.Current.HostRuTrackerOrg));
         }
         catch
         {
@@ -568,16 +568,21 @@ namespace TLO.local
           this.backgroundWorkers.Remove(key);
         key.Dispose();
       }
+      if (e.Result != null)
+        this._logger.Info(e.Result);
       if (this.backgroundWorkers.Count > 0)
       {
+        // запуск следующей задачи.
         KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>> keyValuePair = this.backgroundWorkers.OrderBy<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>, DateTime>((Func<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>, DateTime>) (x => x.Value.Item1)).First<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>>();
         keyValuePair.Key.RunWorkerAsync(keyValuePair.Value.Item2);
       }
-      this.SelectionChanged((object) this._CategorySource, (EventArgs) null);
-      if (e.Result != null)
-        this._logger.Info(e.Result);
-      this.WriteReports();
-      ClientLocalDB.Current.SaveToDatabase();
+      else
+      {
+        // записываем окончательные изменения в БД после выполнения последней задачи.
+        this.SelectionChanged((object) this._CategorySource, (EventArgs) null);
+        this.WriteReports();
+        ClientLocalDB.Current.SaveToDatabase();
+      }
       GC.Collect();
     }
 
@@ -1094,7 +1099,7 @@ namespace TLO.local
             // 
             this.ClearKeeperListsToolStripMenuItem.Name = "ClearKeeperListsToolStripMenuItem";
             this.ClearKeeperListsToolStripMenuItem.Size = new System.Drawing.Size(380, 22);
-            this.ClearKeeperListsToolStripMenuItem.Text = "Очистить списки хранителей со свод.значениями";
+            this.ClearKeeperListsToolStripMenuItem.Text = "Очистить списки хранителей со свод. значениями";
             this.ClearKeeperListsToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
             // 
             // ClearDatabaseToolStripMenuItem

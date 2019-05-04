@@ -22,12 +22,12 @@ namespace TLO.local
             {
                 SQLiteConnection tmpConnection = new SQLiteConnection(db);
                 tmpConnection.Open();
-                Connection = new SQLiteConnection(string.Format("Data Source=:memory:;Version=3;", FileDatabase));
+                Connection = new SQLiteConnection("Data Source=:memory:;Version=3;");
                 Connection.Open();
-                _logger.Info("Загрзка базы в память...");
+                _logger.Info("Загрузка базы в память...");
                 tmpConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
                 tmpConnection.Close();
-                _logger.Info("Загрзка базы в память завершена.");
+                _logger.Info("Загрузка базы в память завершена.");
             }
             else
             {

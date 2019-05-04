@@ -454,7 +454,7 @@ namespace TLO.local
       {
         Logic.logger.Error("Произошла ошибка при скачивании и добавлении торрент-файлов в торрент-клиент: " + ex.Message);
         Logic.logger.Debug<Exception>(ex);
-        int num2 = (int) MessageBox.Show("Поизошла ошибка скачивании торрент-файлов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+        int num2 = (int) MessageBox.Show("Поизошла ошибка при скачивании торрент-файлов:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
       }
     }
 
@@ -490,7 +490,7 @@ namespace TLO.local
       {
         Logic.logger.Error("Произошла ошибка при установке пользовательских меток в торрент-клиент: " + ex.Message);
         Logic.logger.Debug<Exception>(ex);
-        int num2 = (int) MessageBox.Show("Поизошла ошибка:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
+        int num2 = (int) MessageBox.Show("Произошла ошибка:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
       }
     }
 
@@ -857,7 +857,7 @@ namespace TLO.local
       }
       catch (Exception ex)
       {
-        Logic.logger.Warn("Произошла критическая ошибка при запуске/остановки раздач");
+        Logic.logger.Warn("Произошла критическая ошибка при запуске/остановке раздач");
         Logic.logger.Debug<Exception>(ex);
       }
       Logic.logger.Info("Завершена задача по запуску/остановке раздач в торрент-клиентах.");

@@ -148,6 +148,7 @@ namespace TLO.local
             if (this._TorrentClientsSource.Count > 0)
                 this._TorrentClientsSource.Position = 0;
             this.forumPages1.LoadSettings();
+            CreatePageAllCategories();
             Settings current = Settings.Current;
             this._appKeeperName.Text = current.KeeperName;
             this._appKeeperPass.Text = current.KeeperPass;
@@ -458,7 +459,7 @@ namespace TLO.local
                         if ((this._CategoriesSource.DataSource as List<Category>).Any<Category>(
                             (Func<Category, bool>) (x => x.CategoryID == dialog.SelectedCategory.CategoryID)))
                         {
-                            int num = (int) MessageBox.Show("Выбрана категория уже присутствует");
+                            int num = (int) MessageBox.Show("Выбранная категория уже присутствует");
                         }
                         else
                         {
@@ -582,7 +583,7 @@ namespace TLO.local
 
         private void CreatePageAllCategories()
         {
-            Control control = this._tpAllCategories.Controls[0];
+            Control control = this.panel2;
             Dictionary<int, Category> dictionary1 = ClientLocalDB.Current.GetCategories()
                 .ToDictionary<Category, int, Category>((Func<Category, int>) (x => x.CategoryID),
                     (Func<Category, Category>) (x => x));
@@ -1442,7 +1443,7 @@ namespace TLO.local
             this.groupBox8.Size = new System.Drawing.Size(653, 485);
             this.groupBox8.TabIndex = 3;
             this.groupBox8.TabStop = false;
-            this.groupBox8.Text = "groupBox8";
+            this.groupBox8.Text = "Настройки отчетов";
             // 
             // label39
             // 
@@ -1691,7 +1692,7 @@ namespace TLO.local
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(560, 13);
             this.label19.TabIndex = 10;
-            this.label19.Text = "Если требуется что бы в отчет попадали все раздачи указанной категории, требуется" +
+            this.label19.Text = "Если требуется чтобы в отчет попадали все раздачи указанной категории, требуется" +
     " указать значение \"-1\"";
             // 
             // groupBox4
@@ -1794,7 +1795,7 @@ namespace TLO.local
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(355, 30);
             this.label12.TabIndex = 7;
-            this.label12.Text = "Операция по обновлению статистики ресурсоемкая при наличие большего кол-ва раздел" +
+            this.label12.Text = "Операция по обновлению статистики ресурсоемкая при наличии большого кол-ва раздел" +
     "ов и продолжается значительное время";
             // 
             // _appIsUpdateStatistics
@@ -1985,7 +1986,6 @@ namespace TLO.local
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1041, 537);
             this.panel2.TabIndex = 0;
-            this.panel2.Visible = false;
             // 
             // SettingsForm
             // 

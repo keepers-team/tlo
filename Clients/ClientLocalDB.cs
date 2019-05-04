@@ -82,9 +82,9 @@ namespace TLO.local
       {
         ClientLocalDB._logger.Error(ex.Message + "\r\n" + ex.StackTrace);
       }
-      _conn?.Close();
       if (!File.Exists(this.FileDatabase + ".tmp"))
         return;
+      _conn?.Close();
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
       File.Move(this.FileDatabase + ".tmp", this.FileDatabase);
