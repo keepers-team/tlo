@@ -133,6 +133,7 @@ namespace TLO.local
     {
       using (var command = _conn.CreateCommand())
       {
+        var updated = false;
         command.CommandText = "PRAGMA user_version";
         var result = (long)command.ExecuteScalar();
         for (var i = 0; i <= 1; i++, result++)
@@ -142,12 +143,18 @@ namespace TLO.local
             case 0:
               command.CommandText = @"CREATE INDEX keepername_topicid_idx ON KeeperToTopic (TopicID, KeeperName)";
               command.ExecuteNonQuery();
+              updated = true;
               continue;
             default:
               command.CommandText = $"PRAGMA user_version={i}";
               command.ExecuteNonQuery();
               break;
           }
+        }
+
+        if (updated)
+        {
+          this.SaveToDatabase();
         }
       }
     }
