@@ -636,8 +636,8 @@ namespace TLO.local
       using (SQLiteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = @"
-SELECT DISTINCT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT),
-(SELECT COUNT(*) FROM KeeperToTopic AS kt WHERE (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)) AS KeepersCount
+SELECT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
+COUNT(kt.TopicID) AS KeepersCount
 FROM Topic AS t    
 LEFT JOIN User AS u ON (t.PosterID = u.UserID)
 LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)
@@ -663,7 +663,7 @@ WHERE
   + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "")
   + (isPoster.HasValue ? string.Format(" AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "")
   + string.Format(" AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1))
-  + " AND IsDeleted = 0 ORDER BY t.Seeders, t.Name";
+  + " AND IsDeleted = 0 GROUP BY t.TopicID HAVING t.TopicID IS NOT NULL ORDER BY t.Seeders, t.Name";
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
         command.Parameters.AddWithValue("@RegTime", (object) regTime);
         command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? (object) "-" : (object) Settings.Current.KeeperName);
