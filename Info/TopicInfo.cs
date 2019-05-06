@@ -141,5 +141,7 @@ namespace TLO.local
     public int PosterID { get; set; }
 
     public bool IsPoster { get; set; }
+    
+    public int? KeeperCount { get; set; }
   }
 }

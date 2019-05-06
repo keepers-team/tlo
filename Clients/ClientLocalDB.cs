@@ -58,6 +58,7 @@ namespace TLO.local
       if (flag)
         this.CreateDatabase();
       this.SaveToDatabase();
+      this.UpdateDataBase();
     }
 
     public void SaveToDatabase()
@@ -130,9 +131,24 @@ namespace TLO.local
 
     public void UpdateDataBase()
     {
-      using (_conn.CreateCommand())
+      using (var command = _conn.CreateCommand())
       {
-        
+        command.CommandText = "PRAGMA user_version";
+        var result = (long)command.ExecuteScalar();
+        for (var i = 0; i <= 1; i++, result++)
+        {
+          switch (result)
+          {
+            case 0:
+              command.CommandText = @"CREATE INDEX keepername_topicid_idx ON KeeperToTopic (TopicID, KeeperName)";
+              command.ExecuteNonQuery();
+              continue;
+            default:
+              command.CommandText = $"PRAGMA user_version={i}";
+              command.ExecuteNonQuery();
+              break;
+          }
+        }
       }
     }
 
@@ -612,7 +628,35 @@ namespace TLO.local
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
       using (SQLiteCommand command = this._conn.CreateCommand())
       {
-        command.CommandText = "\r\nSELECT DISTINCT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT),\r\n    CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT)\r\nFROM \r\n    Topic AS t    \r\n    LEFT JOIN User AS u ON (t.PosterID = u.UserID)\r\n    LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)\r\nWHERE \r\n    t.CategoryID = @CategoryID \r\n    AND t.RegTime < @RegTime\r\n    AND Status NOT IN (7, 4,11,5)\r\n    " + (countSeeders.HasValue ? string.Format("AND Seeders {1} {0}", (object) countSeeders.Value, Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ") : "") + "\r\n    " + (avgCountSeeders.HasValue ? string.Format("AND AvgSeeders {1} {0}", (object) avgCountSeeders.Value, Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ") : "") + "\r\n    " + (isKeep.HasValue ? string.Format("AND IsKeep = {0}", (object) (isKeep.Value ? 1 : 0)) : "") + "\r\n    " + (isKeepers.HasValue ? string.Format("AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}", (object) (isKeepers.Value ? 1 : 0)) : "") + "\r\n    " + (isDownload.HasValue ? string.Format("AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "") + "\r\n    " + (isPoster.HasValue ? string.Format("AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "") + "\r\n    " + string.Format("AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1)) + "\r\n    AND IsDeleted = 0\r\nORDER BY\r\n    t.Seeders, t.Name";
+        command.CommandText = @"
+SELECT DISTINCT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT),
+(SELECT COUNT(*) FROM KeeperToTopic AS kt WHERE (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)) AS KeepersCount
+FROM Topic AS t    
+LEFT JOIN User AS u ON (t.PosterID = u.UserID)
+LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)
+WHERE 
+    t.CategoryID = @CategoryID 
+    AND t.RegTime < @RegTime
+    AND Status NOT IN (7,4,11,5)
+" + (
+    countSeeders.HasValue
+      ? string.Format(" AND Seeders {1} {0}", (object) countSeeders.Value,
+        Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+      : ""
+  )
+  + (avgCountSeeders.HasValue
+    ? string.Format(" AND AvgSeeders {1} {0}", (object) avgCountSeeders.Value,
+      Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+    : "")
+  + (isKeep.HasValue ? string.Format(" AND IsKeep = {0}", (object) (isKeep.Value ? 1 : 0)) : "")
+  + (isKeepers.HasValue
+    ? string.Format(" AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}",
+      (object) (isKeepers.Value ? 1 : 0))
+    : "")
+  + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "")
+  + (isPoster.HasValue ? string.Format(" AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "")
+  + string.Format(" AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1))
+  + " AND IsDeleted = 0 ORDER BY t.Seeders, t.Name";
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
         command.Parameters.AddWithValue("@RegTime", (object) regTime);
         command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? (object) "-" : (object) Settings.Current.KeeperName);
@@ -629,7 +673,7 @@ namespace TLO.local
               Seeders = sqLiteDataReader.GetInt32(5),
               Status = sqLiteDataReader.GetInt32(6),
               IsKeep = sqLiteDataReader.GetBoolean(9),
-              IsKeeper = sqLiteDataReader.GetBoolean(16),
+              KeeperCount = sqLiteDataReader.GetInt32(16),
               IsBlackList = sqLiteDataReader.GetBoolean(11),
               IsDownload = sqLiteDataReader.GetBoolean(12),
               AvgSeeders = sqLiteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(Math.Round(sqLiteDataReader.GetDecimal(13), 3)),
