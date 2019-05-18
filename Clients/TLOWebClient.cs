@@ -75,7 +75,7 @@ namespace TLO.local
           '='
         }, StringSplitOptions.RemoveEmptyEntries);
         this.CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
-        webRequest.Referer = string.Format("https://rutracker.org/forum/viewtopic.php?t={0}", (object) strArray[1]);
+        webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) strArray[1], Settings.Current.HostRuTrackerOrg);
       }
       webRequest.CookieContainer = this.CookieContainer;
       return (WebRequest) webRequest;

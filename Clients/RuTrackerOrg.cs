@@ -9,11 +9,13 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Windows.Forms;
 
 namespace TLO.local
 {
@@ -58,7 +60,8 @@ namespace TLO.local
     public IEnumerable<Category> GetCategories()
     {
       List<Category> source = new List<Category>();
-      JObject jobject1 = (JsonConvert.DeserializeObject(this.DownloadArchivePage("http://api.rutracker.org/v1/static/cat_forum_tree")) as JObject)["result"].ToObject<JObject>();
+      var downloadArchivePage = this.DownloadArchivePage($"http://api.{Settings.Current.HostRuTrackerOrg}/v1/static/cat_forum_tree");
+      JObject jobject1 = (JsonConvert.DeserializeObject(downloadArchivePage) as JObject)["result"].ToObject<JObject>();
       jobject1["c"].ToObject<JObject>();
       source.AddRange((IEnumerable<Category>) jobject1["c"].ToObject<Dictionary<string, object>>().Select<KeyValuePair<string, object>, Category>((Func<KeyValuePair<string, object>, Category>) (x => new Category()
       {
@@ -79,6 +82,10 @@ namespace TLO.local
         ++num;
         dictionary[key1].OrderID = num;
         dictionary[key1].FullName = dictionary[key1].Name;
+        if (!(keyValuePair1.Value is JObject) || !keyValuePair1.Value.Any())
+        {
+          continue;
+        }
         foreach (KeyValuePair<string, JToken> keyValuePair2 in keyValuePair1.Value.ToObject<JObject>())
         {
           int key2 = int.Parse(keyValuePair2.Key);
@@ -116,7 +123,7 @@ namespace TLO.local
         '\n'
       }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x =>
       {
-        if (x.Contains("https://rutracker.org/forum/viewforum.php?f="))
+        if (x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewforum.php?f="))
           return x.Contains("class=\"postLink\"");
         return false;
       })).ToArray<string>();
@@ -129,20 +136,20 @@ namespace TLO.local
         int num1 = 1;
         foreach (string postUrl1 in ((IEnumerable<string>) str2.Split(separator, (StringSplitOptions) num1)).Where<string>((Func<string, bool>) (x =>
         {
-          if (!x.Contains("https://rutracker.org/forum/viewforum.php?f=") && !x.Contains("https://rutracker.org/forum/viewtopic.php?t="))
-            return x.Contains("https://rutracker.org/forum/viewtopic.php?p=");
+          if (!x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewforum.php?f=") && !x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))
+            return x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p=");
           return true;
         })).ToArray<string>())
         {
-          if (postUrl1.Contains("https://rutracker.org/forum/viewforum.php?f="))
-            nullable1 = new int?(int.Parse(postUrl1.Replace("https://rutracker.org/forum/viewforum.php?f=", "")));
+          if (postUrl1.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewforum.php?f="))
+            nullable1 = new int?(int.Parse(postUrl1.Replace($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewforum.php?f=", "")));
           int? nullable2 = nullable1;
           int num2 = 2020;
           if ((nullable2.GetValueOrDefault() == num2 ? (nullable2.HasValue ? 1 : 0) : 0) != 0)
             Console.Write("");
-          if (postUrl1.Contains("https://rutracker.org/forum/viewtopic.php?t=") && postUrl1 != "https://rutracker.org/forum/viewtopic.php?t=")
+          if (postUrl1.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=") && postUrl1 != $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=")
             str1 = postUrl1;
-          if (postUrl1.Contains("https://rutracker.org/forum/viewtopic.php?p="))
+          if (postUrl1.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p="))
             str1 = this.GetTopicUrlByPostUrl(postUrl1);
         }
         if (nullable1.HasValue && !string.IsNullOrWhiteSpace(str1))
@@ -161,12 +168,12 @@ namespace TLO.local
       return ((IEnumerable<string>) str.Split(new char[1]
       {
         '"'
-      }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("https://rutracker.org/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x)).FirstOrDefault<string>();
+      }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x)).FirstOrDefault<string>();
     }
 
     public int[][] GetTopicsStatus(int forumID)
     {
-      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/static/pvc/f/{0}", (object) forumID)))["result"].ToObject<Dictionary<int, Int64[]>>();
+      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.{1}/v1/static/pvc/f/{0}", (object) forumID, Settings.Current.HostRuTrackerOrg)))["result"].ToObject<Dictionary<int, Int64[]>>();
       int[][] numArray1 = new int[dictionary.Count][];
       int index = 0;
       foreach (KeyValuePair<int, Int64[]> keyValuePair in dictionary)
@@ -187,7 +194,7 @@ namespace TLO.local
       if (topics == null || topics.Length == 0 || topics.Length > 100)
         return (List<TopicInfo>) null;
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/get_tor_topic_data?by=topic_id&val={0}", (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
+      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.{0}/v1/get_tor_topic_data?by=topic_id&val={1}", Settings.Current.HostRuTrackerOrg, (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
       {
         TopicInfo topicInfo = new TopicInfo();
         topicInfo.TopicID = keyValuePair.Key;
@@ -224,7 +231,9 @@ namespace TLO.local
       }
       foreach (IEnumerable<int> values in intListArray)
       {
-        foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.rutracker.org/v1/get_user_name?by=user_id&val={0}", (object) HttpUtility.UrlEncode(string.Join<int>(",", values)))))["result"].ToObject<Dictionary<int, string>>())
+        var url = string.Format("http://api.{0}/v1/get_user_name?by=user_id&val={1}", Settings.Current.HostRuTrackerOrg, (object) HttpUtility.UrlEncode(string.Join<int>(",", values)));
+        var getUserNameResult = this.DownloadArchivePage(url);
+        foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(getUserNameResult)["result"].ToObject<Dictionary<int, string>>())
           userInfoList.Add(new UserInfo()
           {
             UserID = keyValuePair.Key,
@@ -244,17 +253,17 @@ namespace TLO.local
       do
       {
         empty = string.Empty;
-        str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}{1}", (object) topicid, num1 == 0 ? (object) "" : (object) ("&start=" + num1.ToString())));
+        str1 = this.DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}", (object) topicid, num1 == 0 ? (object) "" : (object) ("&start=" + num1.ToString()), Settings.Current.HostRuTrackerOrg));
         if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         {
           Thread.Sleep(500);
-          str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?p={0}", (object) topicid));
+          str1 = this.DownloadWebPage(string.Format("https://{0}/forum/viewtopic.php?p={1}", (object) topicid, Settings.Current.HostRuTrackerOrg));
           if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
             return new List<int>();
           string s = ((IEnumerable<string>) str1.Split(new char[1]
           {
             '"'
-          }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("https://rutracker.org/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x.Replace("https://rutracker.org/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
+          }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x.Replace("https://rutracker.org/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
           if (!string.IsNullOrWhiteSpace(s))
           {
             topicid = int.Parse(s);
@@ -286,7 +295,7 @@ label_13:;
     internal Tuple<string, int, List<int>> GetTopicsFromReport(int postId, int categoryId)
     {
       Tuple<string, int, List<int>> tuple = (Tuple<string, int, List<int>>) null;
-      string[] strArray1 = this.DownloadWebPage(string.Format("https://post.rutracker.org/forum/posting.php?mode=quote&p={0}", (object) postId)).Split(new string[2]
+      string[] strArray1 = this.DownloadWebPage(string.Format("https://post.{1}/forum/posting.php?mode=quote&p={0}", (object) postId, Settings.Current.HostRuTrackerOrg)).Split(new string[2]
       {
         "<textarea",
         "</textarea>"
@@ -298,7 +307,7 @@ label_13:;
       int num = 1;
       foreach (string str2 in ((IEnumerable<string>) str1.Split(separator, (StringSplitOptions) num)).Where<string>((Func<string, bool>) (x =>
       {
-        if (!x.Contains("https://rutracker.org/forum/viewtopic.php?t="))
+        if (!x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))
           return x.Contains("quote=");
         return true;
       })).ToArray<string>())
@@ -324,39 +333,45 @@ label_13:;
 
     public Dictionary<string, Tuple<int, List<int>>> GetKeeps(int topicid, int categoryId)
     {
-      Dictionary<string, Tuple<int, List<int>>> dictionary = new Dictionary<string, Tuple<int, List<int>>>();
-      string empty = string.Empty;
-      int num = 0;
-      List<int> intList = new List<int>();
+      Dictionary<string, Tuple<int, List<int>>> dictionary;
+      dictionary = new Dictionary<string, Tuple<int, List<int>>>();
+      var empty = string.Empty;
+      var num = 0;
       string str1;
       do
       {
         empty = string.Empty;
-        str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}{1}", (object) topicid, num == 0 ? (object) "" : (object) ("&start=" + num.ToString())));
+        str1 = this.DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
+          (object) topicid, num == 0 ? (object) "" : (object) ("&start=" + num.ToString()), Settings.Current.HostRuTrackerOrg));
         if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         {
           Thread.Sleep(500);
-          str1 = this.DownloadWebPage(string.Format("https://rutracker.org/forum/viewtopic.php?p={0}", (object) topicid));
+          str1 = this.DownloadWebPage(
+            $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p={(object) topicid}");
           if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
             return dictionary;
-          string s = ((IEnumerable<string>) string.Join("\r\n", ((IEnumerable<string>) str1.Split(new char[2]
-          {
-            '\r',
-            '\n'
-          })).Where<string>((Func<string, bool>) (x => x.Contains("id=\"topic-title\"")))).Split(new char[4]
-          {
-            '"',
-            '<',
-            '>',
-            ' '
-          }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("https://rutracker.org/forum/viewtopic.php?t="))).Select<string, string>((Func<string, string>) (x => x.Replace("https://rutracker.org/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
+          var s = ((IEnumerable<string>) string.Join("\r\n", ((IEnumerable<string>) str1.Split(new char[2]
+            {
+              '\r',
+              '\n'
+            })).Where<string>((Func<string, bool>) (x => x.Contains("id=\"topic-title\"")))).Split(new char[4]
+            {
+              '"',
+              '<',
+              '>',
+              ' '
+            }, StringSplitOptions.RemoveEmptyEntries))
+            .Where<string>((Func<string, bool>) (x => x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=")))
+            .Select<string, string>((Func<string, string>) (x =>
+              x.Replace($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=", ""))).FirstOrDefault<string>();
           if (!string.IsNullOrWhiteSpace(s))
           {
             topicid = int.Parse(s);
             goto label_18;
           }
         }
-        string[] array = ((IEnumerable<string>) str1.Split(new char[2]
+
+        var array = ((IEnumerable<string>) str1.Split(new char[2]
         {
           '\r',
           '\n'
@@ -368,34 +383,35 @@ label_13:;
             return !x.Contains("<div");
           return false;
         })).ToArray<string>();
-        string key = string.Empty;
-        foreach (string str2 in array)
+        var keeperName = string.Empty;
+        foreach (var str2 in array)
         {
           if (str2.Contains("\t\t<a href=\"#\" onclick=\"return false;\">"))
           {
-            key = str2.Replace("\t\t<a href=\"#\" onclick=\"return false;\">", "").Replace("</a>", "");
+            keeperName = str2.Replace("\t\t<a href=\"#\" onclick=\"return false;\">", "").Replace("</a>", "").Replace("<wbr>", "").Trim();
           }
           else
           {
-            if (!dictionary.ContainsKey(key))
-              dictionary.Add(key, new Tuple<int, List<int>>(categoryId, new List<int>()));
-            string str3 = ((IEnumerable<string>) str2.Split(new char[6]
-            {
-              '"',
-              '<',
-              '>',
-              ' ',
-              '#',
-              '&'
-            }, StringSplitOptions.RemoveEmptyEntries)).Where<string>((Func<string, bool>) (x => x.Contains("viewtopic.php?t="))).FirstOrDefault<string>();
+            if (!dictionary.ContainsKey(keeperName))
+              dictionary.Add(keeperName, new Tuple<int, List<int>>(categoryId, new List<int>()));
+            var str3 = ((IEnumerable<string>) str2.Split(new char[6]
+              {
+                '"',
+                '<',
+                '>',
+                ' ',
+                '#',
+                '&'
+              }, StringSplitOptions.RemoveEmptyEntries))
+              .Where<string>((Func<string, bool>) (x => x.Contains("viewtopic.php?t="))).FirstOrDefault<string>();
             if (!string.IsNullOrWhiteSpace(str3))
             {
-              string[] strArray = str3.Split('=');
+              var strArray = str3.Split('=');
               if (strArray.Length >= 2)
               {
                 try
                 {
-                  dictionary[key].Item2.Add(int.Parse(strArray[1]));
+                  dictionary[keeperName].Item2.Add(int.Parse(strArray[1]));
                 }
                 catch (Exception ex)
                 {
@@ -405,10 +421,11 @@ label_13:;
             }
           }
         }
+
         num += 30;
-label_18:;
-      }
-      while (str1.Contains("\">След.</a></b></p>") || num == 0);
+        label_18: ;
+      } while (str1.Contains("\">След.</a></b></p>") || num == 0);
+
       return dictionary;
     }
 
@@ -430,7 +447,6 @@ label_18:;
 
     private string DownloadArchivePage(string page)
     {
-      page = page.Replace("rutracker.org", Settings.Current.HostRuTrackerOrg);
       Exception innerException = (Exception) null;
       for (int index = 0; index < 20; ++index)
       {
@@ -537,12 +553,10 @@ label_18:;
 
     public byte[] DownloadWebPages(string page)
     {
-      page = page.Replace("rutracker.org", Settings.Current.HostRuTrackerOrg);
       for (int index = 0; index < 20; ++index)
       {
-        byte[] numArray = new byte[0];
         string empty = string.Empty;
-        TLOWebClient tloWebClient = (TLOWebClient) null;
+        TLOWebClient tloWebClient = null;
         try
         {
           if (this._webClient == null)
@@ -551,17 +565,18 @@ label_18:;
             if (!string.IsNullOrWhiteSpace(this._userName) && !string.IsNullOrWhiteSpace(this._userPass))
             {
               string s = string.Format("login_username={0}&login_password={1}&login={2}", (object) HttpUtility.UrlEncode(this._userName, Encoding.GetEncoding(1251)), (object) HttpUtility.UrlEncode(this._userPass, Encoding.GetEncoding(1251)), (object) "вход");
-              empty = Encoding.GetEncoding("windows-1251").GetString(tloWebClient.UploadData("https://rutracker.org/forum/login.php".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg), "POST", Encoding.GetEncoding(1251).GetBytes(s)));
+              empty = Encoding.GetEncoding("windows-1251").GetString(tloWebClient.UploadData($"https://{Settings.Current.HostRuTrackerOrg}/forum/login.php".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg), "POST", Encoding.GetEncoding(1251).GetBytes(s)));
             }
             Thread.Sleep(500);
           }
         }
         catch (Exception ex)
         {
+          _logger.Warn(ex.Message);
         }
         if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(this._userName) && !string.IsNullOrWhiteSpace(this._userPass))
         {
-          if (empty.Contains("https://static.rutracker.org/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)))
+          if (empty.Contains($"https://static.{Settings.Current.HostRuTrackerOrg}/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)))
             throw new Exception("При авторизации требуется ввести текст с картинки. Авторизуйтесь на WEB-сайте, а потом повторите попытку");
           if (empty.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
             throw new Exception("Не удалось авторизоваться, проверьте логин и пароль");
@@ -572,15 +587,16 @@ label_18:;
         {
           bytes = this._webClient.DownloadData(page);
         }
-        catch
+        catch(Exception e)
         {
+          _logger.Warn(e.Message);
           Thread.Sleep(index * 1000);
           continue;
         }
         string str = Encoding.GetEncoding("windows-1251").GetString(bytes);
         if (str.ToLower().Contains("форум временно отключен") || str.ToLower().Contains("форум временно отключен"))
           throw new Exception("Форум временно отключен");
-        if (!str.Contains("https://static.rutracker.org/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)) && !str.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
+        if (!str.Contains($"https://static.{Settings.Current.HostRuTrackerOrg}/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)) && !str.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
           return bytes;
         if (this._webClient != null)
           this._webClient.Dispose();
@@ -591,7 +607,6 @@ label_18:;
 
     public byte[] DownloadArchiveData(string page)
     {
-      page = page.Replace("rutracker.org", Settings.Current.HostRuTrackerOrg);
       for (int index = 0; index < 20; ++index)
       {
         byte[] numArray = new byte[0];
@@ -637,7 +652,7 @@ label_18:;
       if (((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=').Length < 3)
         throw new ArgumentException("Не корректно указан адрес отправки отчета: " + url);
       string str1 = ((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=')[2];
-      string[] strArray = this.DownloadWebPage(string.Format("https://rutracker.org/forum/posting.php?mode=editpost&p={0}", (object) str1)).Split(new char[2]
+      string[] strArray = this.DownloadWebPage(string.Format("https://{1}/forum/posting.php?mode=editpost&p={0}", (object) str1, Settings.Current.HostRuTrackerOrg)).Split(new char[2]
       {
         '\r',
         '\n'
@@ -700,7 +715,7 @@ label_18:;
     {
         try
         {
-            string str = ((IEnumerable<string>)this.DownloadWebPage("https://rutracker.org/forum/profile.php?mode=viewprofile&u={0}", (object)this._userName).Split(new char[2]
+            string str = ((IEnumerable<string>)this.DownloadWebPage(string.Format("https://{1}/forum/profile.php?mode=viewprofile&u={0}", (object)this._userName, Settings.Current.HostRuTrackerOrg)).Split(new char[2]
         {
           '\r',
           '\n'

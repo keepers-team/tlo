@@ -116,7 +116,7 @@ namespace TLO.local
       }
       catch (Exception ex)
       {
-        int num = (int) MessageBox.Show("Интересно что вывалит? :(.\r\n " + ex.Message);
+        int num = (int) MessageBox.Show("Непредвиденное исключение\r\n " + ex.Message);
       }
     }
 

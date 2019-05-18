@@ -49,17 +49,7 @@ namespace TLO.local
         flag = true;
       try
       {
-        ClientLocalDB._logger.Info("Загрзка базы в память...");
-        using (SQLiteConnection sqLiteConnection = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) this.FileDatabase)))
-        {
-          sqLiteConnection.Open();
-          this._conn = new SQLiteConnection(string.Format("Data Source=:memory:;Version=3;", (object) this.FileDatabase));
-          this._conn.Open();
-          sqLiteConnection.BackupDatabase(this._conn, "main", "main", -1, (SQLiteBackupCallback) null, -1);
-          this.UpdateDataBase();
-          sqLiteConnection.Close();
-        }
-        ClientLocalDB._logger.Info("Загрзка базы в память завершена.");
+        _conn = new DBConnectionCreator().Connection;
       }
       catch
       {
@@ -68,10 +58,16 @@ namespace TLO.local
       if (flag)
         this.CreateDatabase();
       this.SaveToDatabase();
+      this.UpdateDataBase();
     }
 
     public void SaveToDatabase()
     {
+      if (!DBConnectionCreator.InMemory())
+      {
+        // не нужно пересохранять в БД если, она не хранится в памяти.
+        return;
+      }
       try
       {
         if (File.Exists(this.FileDatabase + ".tmp"))
@@ -79,7 +75,7 @@ namespace TLO.local
         using (SQLiteConnection destination = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) (this.FileDatabase + ".tmp"))))
         {
           destination.Open();
-          this._conn.BackupDatabase(destination, "main", "main", -1, (SQLiteBackupCallback) null, -1);
+          this._conn.BackupDatabase(destination, "main", "main", -1, null, -1);
           destination.Close();
         }
       }
@@ -89,19 +85,19 @@ namespace TLO.local
       }
       if (!File.Exists(this.FileDatabase + ".tmp"))
         return;
+      _conn?.Close();
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
       File.Move(this.FileDatabase + ".tmp", this.FileDatabase);
+      this._conn = new DBConnectionCreator().Connection;
     }
 
     private void CreateDatabase()
     {
-      if (this._conn != null)
-        this._conn.Close();
+      _conn?.Close();
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
-      this._conn = new SQLiteConnection(string.Format("Data Source=:memory:;Version=3;", (object) this.FileDatabase));
-      this._conn.Open();
+      _conn = new DBConnectionCreator().Connection;
       using (SQLiteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nCREATE TABLE Category(CategoryID INTEGER PRIMARY KEY ASC, ParentID INTEGER, OrderID INT, Name TEXT NOT NULL, FullName TEXT NOT NULL, IsEnable BIT, CountSeeders int, \r\n    TorrentClientUID TEXT, Folder TEXT, AutoDownloads INT, LastUpdateTopics DATETIME, LastUpdateStatus DATETIME, Label TEXT, ReportTopicID INT);\r\nCREATE TABLE Topic (TopicID INT PRIMARY KEY ASC, CategoryID INT, Name TEXT, Hash TEXT, Size INTEGER, Seeders INT, AvgSeeders DECIMAL(18,4), Status INT, IsActive BIT, IsDeleted BIT, IsKeep BIT, IsKeepers BIT, IsBlackList BIT, IsDownload BIT, RegTime DATETIME, PosterID INT);\r\nCREATE INDEX IX_Topic__Hash ON Topic (Hash);\r\nCREATE TABLE TopicStatusHystory (TopicID INT NOT NULL, Date DateTime NOT NULL, Seeders INT, PRIMARY KEY(TopicID ASC, Date ASC));\r\nCREATE TABLE TorrentClient(UID NVARCHAR(50) PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL, Type VARCHAR(50) NOT NULL, ServerName NVARCHAR(50) NOT NULL, ServerPort INT NOT NULL, UserName NVARCHAR(50), UserPassword NVARCHAR(50), LastReadHash DATETIME);\r\nCREATE TABLE Report(CategoryID INT NOT NULL, ReportNo INT NOT NULL, URL TEXT, Report TEXT, PRIMARY KEY(CategoryID ASC, ReportNo ASC));\r\nCREATE TABLE Keeper (KeeperName nvarchar(100) not null, CategoryID int not null, Count INT NOT NULL, Size DECIMAL(18,4) NOT NULL, PRIMARY KEY(KeeperName ASC, CategoryID ASC));\r\nCREATE TABLE KeeperToTopic(KeeperName NVARCHAR(50) NOT NULL, CategoryID INT NULL, TopicID INT NOT NULL, PRIMARY KEY(KeeperName ASC, TopicID ASC));\r\nCREATE TABLE User (UserID INT PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL);\r\n";
@@ -135,8 +131,32 @@ namespace TLO.local
 
     public void UpdateDataBase()
     {
-        using (this._conn.CreateCommand())
-            ;
+      using (var command = _conn.CreateCommand())
+      {
+        var updated = false;
+        command.CommandText = "PRAGMA user_version";
+        var result = (long)command.ExecuteScalar();
+        for (var i = 0; i <= 1; i++, result++)
+        {
+          switch (result)
+          {
+            case 0:
+              command.CommandText = @"CREATE INDEX keepername_topicid_idx ON KeeperToTopic (TopicID, KeeperName)";
+              command.ExecuteNonQuery();
+              updated = true;
+              continue;
+            default:
+              command.CommandText = $"PRAGMA user_version={i}";
+              command.ExecuteNonQuery();
+              break;
+          }
+        }
+
+        if (updated)
+        {
+          this.SaveToDatabase();
+        }
+      }
     }
 
     public IEnumerable<UserInfo> GetUsers()
@@ -191,7 +211,13 @@ namespace TLO.local
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
           while (sqLiteDataReader.Read())
-            intList.Add(sqLiteDataReader.GetInt32(0));
+          {
+            var posterId = sqLiteDataReader.GetInt32(0);
+            if (posterId > 0)
+            {
+              intList.Add(posterId);
+            }
+          }
         }
       }
       return intList.ToArray();
@@ -609,7 +635,35 @@ namespace TLO.local
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
       using (SQLiteCommand command = this._conn.CreateCommand())
       {
-        command.CommandText = "\r\nSELECT DISTINCT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT),\r\n    CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT)\r\nFROM \r\n    Topic AS t    \r\n    LEFT JOIN User AS u ON (t.PosterID = u.UserID)\r\n    LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)\r\nWHERE \r\n    t.CategoryID = @CategoryID \r\n    AND t.RegTime < @RegTime\r\n    AND Status NOT IN (7, 4,11,5)\r\n    " + (countSeeders.HasValue ? string.Format("AND Seeders {1} {0}", (object) countSeeders.Value, Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ") : "") + "\r\n    " + (avgCountSeeders.HasValue ? string.Format("AND AvgSeeders {1} {0}", (object) avgCountSeeders.Value, Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ") : "") + "\r\n    " + (isKeep.HasValue ? string.Format("AND IsKeep = {0}", (object) (isKeep.Value ? 1 : 0)) : "") + "\r\n    " + (isKeepers.HasValue ? string.Format("AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}", (object) (isKeepers.Value ? 1 : 0)) : "") + "\r\n    " + (isDownload.HasValue ? string.Format("AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "") + "\r\n    " + (isPoster.HasValue ? string.Format("AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "") + "\r\n    " + string.Format("AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1)) + "\r\n    AND IsDeleted = 0\r\nORDER BY\r\n    t.Seeders, t.Name";
+        command.CommandText = @"
+SELECT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
+COUNT(kt.TopicID) AS KeepersCount
+FROM Topic AS t    
+LEFT JOIN User AS u ON (t.PosterID = u.UserID)
+LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)
+WHERE 
+    t.CategoryID = @CategoryID 
+    AND t.RegTime < @RegTime
+    AND Status NOT IN (7,4,11,5)
+" + (
+    countSeeders.HasValue
+      ? string.Format(" AND Seeders {1} {0}", (object) countSeeders.Value,
+        Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+      : ""
+  )
+  + (avgCountSeeders.HasValue
+    ? string.Format(" AND AvgSeeders {1} {0}", (object) avgCountSeeders.Value,
+      Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+    : "")
+  + (isKeep.HasValue ? string.Format(" AND IsKeep = {0}", (object) (isKeep.Value ? 1 : 0)) : "")
+  + (isKeepers.HasValue
+    ? string.Format(" AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}",
+      (object) (isKeepers.Value ? 1 : 0))
+    : "")
+  + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "")
+  + (isPoster.HasValue ? string.Format(" AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "")
+  + string.Format(" AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1))
+  + " AND IsDeleted = 0 GROUP BY t.TopicID HAVING t.TopicID IS NOT NULL ORDER BY t.Seeders, t.Name";
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
         command.Parameters.AddWithValue("@RegTime", (object) regTime);
         command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? (object) "-" : (object) Settings.Current.KeeperName);
@@ -626,7 +680,7 @@ namespace TLO.local
               Seeders = sqLiteDataReader.GetInt32(5),
               Status = sqLiteDataReader.GetInt32(6),
               IsKeep = sqLiteDataReader.GetBoolean(9),
-              IsKeeper = sqLiteDataReader.GetBoolean(16),
+              KeeperCount = sqLiteDataReader.GetInt32(16),
               IsBlackList = sqLiteDataReader.GetBoolean(11),
               IsDownload = sqLiteDataReader.GetBoolean(12),
               AvgSeeders = sqLiteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(Math.Round(sqLiteDataReader.GetDecimal(13), 3)),
@@ -764,7 +818,7 @@ namespace TLO.local
             {
               command.Parameters.Clear();
               command.CommandText = "INSERT OR REPLACE INTO KeeperToTopic(KeeperName, CategoryID, TopicID)\r\n" + string.Join("UNION ", source.Select<int, string>((Func<int, string>) (x => string.Format("SELECT @KeeperName, {2}, {1}\r\n", (object) dt.Key, (object) x, (object) dt.Value.Item1))));
-              command.Parameters.AddWithValue("@KeeperName", (object) dt.Key);
+              command.Parameters.AddWithValue("@KeeperName", (object) dt.Key.Replace("<wbr>", "").Trim());
               command.ExecuteNonQuery();
             }
           }
@@ -791,7 +845,7 @@ namespace TLO.local
             return;
           foreach (Tuple<int, int, Decimal> tuple in data)
           {
-            command.Parameters[0].Value = (object) keepName;
+            command.Parameters[0].Value = (object) keepName.Replace("<wbr>", "").Trim();
             command.Parameters[1].Value = (object) tuple.Item1;
             command.Parameters[2].Value = (object) tuple.Item2;
             command.Parameters[3].Value = (object) Math.Round(tuple.Item3, 2);
@@ -1071,7 +1125,7 @@ namespace TLO.local
               stringBuilder1.AppendLine("[/spoiler]");
             }
             reports.Add(c, new Dictionary<int, string>());
-            reports[c].Add(0, stringBuilder1.ToString().Replace("<wbr>", ""));
+            reports[c].Add(0, stringBuilder1.ToString().Replace("<wbr>", "").Trim());
           }
           this.SaveReports(reports);
         }

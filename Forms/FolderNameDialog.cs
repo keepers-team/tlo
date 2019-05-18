@@ -58,7 +58,7 @@ namespace TLO.local.Forms
         {
           if (this.SelectedPath.Contains<char>(invalidFileNameChar))
           {
-            int num = (int) MessageBox.Show("Название каталога содержит недопустимый симвод: " + invalidFileNameChar.ToString());
+            int num = (int) MessageBox.Show("Название каталога содержит недопустимый символ: " + invalidFileNameChar.ToString());
             return;
           }
         }
