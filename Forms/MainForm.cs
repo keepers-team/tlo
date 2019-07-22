@@ -101,6 +101,9 @@ namespace TLO.local
         private DataGridViewTextBoxColumn ColumnReport1DgvKeeperCount;
         private DataGridViewCheckBoxColumn ColumnReport1DgvBlack;
         private ToolStripSeparator toolStripSeparator3;
+        private ToolStripMenuItem menuTimerSetting;
+        private ToolStripMenuItem UpdateAll;
+        private ToolStripSeparator toolStripSeparator5;
         private DataGridView _dataGridTopicsList;
 
         private bool IsClose { get; set; }
@@ -108,11 +111,23 @@ namespace TLO.local
         public MainForm()
         {
             this.InitializeComponent();
+            this.menuTimerSetting.CheckStateChanged += (sender, args) =>
+            {
+                if (this.menuTimerSetting.Checked)
+                {
+                    _LastRunTimer = DateTime.Now;
+                    if (!tmr.Enabled) tmr.Start();
+                }
+                else
+                {
+                    if (tmr.Enabled) tmr.Stop();
+                }
+            };
             this._DateRegistration.Value = DateTime.Now.AddDays(-30.0);
             this.Text = this.headText = string.Format("TLO {0}",
                 (object) FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion);
-            this._cbCountSeeders.Value = new Decimal(5);
-            this._cbCategoryFilters.SelectedItem = (object) "Не скачан торрент";
+            this._cbCountSeeders.Value = new Decimal(0);
+            this._cbCategoryFilters.SelectedItem = (object)"Не скачан торрент и нет хранителя";
             this._CategorySource.Clear();
             this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
             this._CategorySource.CurrentChanged += new EventHandler(this.SelectionChanged);
@@ -157,6 +172,18 @@ namespace TLO.local
                                 "Полное обновление информации о топиках (раздачах) по всем категориям...",
                                 (object) ClientLocalDB.Current.GetCategoriesEnable());
                     }
+                }
+                else if (sender == UpdateCountSeedersToolStripMenuItem)
+                {
+                    this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategories),
+                        "Полное обновление информации о топиках (раздачах) по всем категориям...",
+                        (object) ClientLocalDB.Current.GetCategoriesEnable());
+                    this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateHashFromAllTorrentClients),
+                        "Полное обновление информации из Torrent-клиентов...", (object) null);
+                    this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateCountSeedersByAllCategories),
+                        "Обновление кол-ва сидов на раздачах...", sender);
+                    this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories),
+                        "Обновление данных о хранителях...", sender);
                 }
                 else if (sender == this.UpdateCountSeedersToolStripMenuItem)
                     this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateCountSeedersByAllCategories),
@@ -227,20 +254,6 @@ namespace TLO.local
                 {
                     this.IsClose = true;
                     this.Close();
-                }
-                else if (sender == this.DevlToolStripMenuItem)
-                {
-                    this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateKeepersByAllCategories),
-                        "Обновление данных о хранителях...", sender);
-                    try
-                    {
-                        RuTrackerOrg ruTrackerOrg =
-                            new RuTrackerOrg(Settings.Current.KeeperName, Settings.Current.KeeperPass);
-                    }
-                    catch (Exception ex)
-                    {
-                        int num = (int) MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                    }
                 }
                 else if (sender == this._btSaveToFile)
                     this.SaveSetingsToFile();
@@ -1054,6 +1067,7 @@ namespace TLO.local
             this.RuningStopingDistributionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.UpdateAll = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateCountSeedersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateListTopicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateKeepTopicsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1061,7 +1075,7 @@ namespace TLO.local
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.ClearKeeperListsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDatabaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DevlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuTimerSetting = new System.Windows.Forms.ToolStripMenuItem();
             this._cbCategory = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -1084,6 +1098,7 @@ namespace TLO.local
             this.label2 = new System.Windows.Forms.Label();
             this._cbCategoryFilters = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
+            this._dataGridTopicsList = new System.Windows.Forms.DataGridView();
             this.ColumnReport1DgvTopicID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColumnReport1DgvSelect = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.ColumnReport1DgvStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -1107,12 +1122,12 @@ namespace TLO.local
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            _dataGridTopicsList = new System.Windows.Forms.DataGridView();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this._tpReportDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this._cbCountSeeders)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(_dataGridTopicsList)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this._dataGridTopicsList)).BeginInit();
             this.tabConsolidatedReport.SuspendLayout();
             this.ConsolidatedTorrentClientsReport.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -1212,6 +1227,7 @@ namespace TLO.local
             this.RuningStopingDistributionToolStripMenuItem,
             this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem,
             this.toolStripSeparator1,
+            this.UpdateAll,
             this.UpdateCountSeedersToolStripMenuItem,
             this.UpdateListTopicsToolStripMenuItem,
             this.UpdateKeepTopicsToolStripMenuItem,
@@ -1219,7 +1235,8 @@ namespace TLO.local
             this.toolStripSeparator2,
             this.ClearKeeperListsToolStripMenuItem,
             this.ClearDatabaseToolStripMenuItem,
-            this.DevlToolStripMenuItem});
+            this.toolStripSeparator5,
+            this.menuTimerSetting});
             this.задачиToolStripMenuItem.Name = "задачиToolStripMenuItem";
             this.задачиToolStripMenuItem.Size = new System.Drawing.Size(58, 20);
             this.задачиToolStripMenuItem.Text = "Задачи";
@@ -1242,6 +1259,12 @@ namespace TLO.local
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(376, 6);
+            // 
+            // UpdateAll
+            // 
+            this.UpdateAll.Name = "UpdateAll";
+            this.UpdateAll.Size = new System.Drawing.Size(379, 22);
+            this.UpdateAll.Text = "Обновить всё и сразу";
             // 
             // UpdateCountSeedersToolStripMenuItem
             // 
@@ -1290,12 +1313,14 @@ namespace TLO.local
             this.ClearDatabaseToolStripMenuItem.Text = "Очистить списки разделов (удалить топики)";
             this.ClearDatabaseToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
             // 
-            // DevlToolStripMenuItem
+            // menuTimerSetting
             // 
-            this.DevlToolStripMenuItem.Name = "DevlToolStripMenuItem";
-            this.DevlToolStripMenuItem.Size = new System.Drawing.Size(379, 22);
-            this.DevlToolStripMenuItem.Text = "Не трогать и не спрашивать";
-            this.DevlToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
+            this.menuTimerSetting.Checked = true;
+            this.menuTimerSetting.CheckOnClick = true;
+            this.menuTimerSetting.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.menuTimerSetting.Name = "menuTimerSetting";
+            this.menuTimerSetting.Size = new System.Drawing.Size(379, 22);
+            this.menuTimerSetting.Text = "Таймер";
             // 
             // _cbCategory
             // 
@@ -1355,7 +1380,7 @@ namespace TLO.local
             this._tpReportDownloads.Controls.Add(this.label2);
             this._tpReportDownloads.Controls.Add(this._cbCategoryFilters);
             this._tpReportDownloads.Controls.Add(this.label3);
-            this._tpReportDownloads.Controls.Add(_dataGridTopicsList);
+            this._tpReportDownloads.Controls.Add(this._dataGridTopicsList);
             this._tpReportDownloads.Location = new System.Drawing.Point(4, 22);
             this._tpReportDownloads.Name = "_tpReportDownloads";
             this._tpReportDownloads.Padding = new System.Windows.Forms.Padding(3);
@@ -1573,15 +1598,15 @@ namespace TLO.local
             // 
             // _dataGridTopicsList
             // 
-            _dataGridTopicsList.AllowUserToAddRows = false;
-            _dataGridTopicsList.AllowUserToDeleteRows = false;
-            _dataGridTopicsList.AllowUserToResizeRows = false;
-            _dataGridTopicsList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this._dataGridTopicsList.AllowUserToAddRows = false;
+            this._dataGridTopicsList.AllowUserToDeleteRows = false;
+            this._dataGridTopicsList.AllowUserToResizeRows = false;
+            this._dataGridTopicsList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            _dataGridTopicsList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            _dataGridTopicsList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            _dataGridTopicsList.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this._dataGridTopicsList.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this._dataGridTopicsList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this._dataGridTopicsList.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColumnReport1DgvTopicID,
             this.ColumnReport1DgvSelect,
             this.ColumnReport1DgvStatus,
@@ -1593,15 +1618,15 @@ namespace TLO.local
             this.ColumnReport1DgvRegTime,
             this.ColumnReport1DgvKeeperCount,
             this.ColumnReport1DgvBlack});
-            _dataGridTopicsList.Location = new System.Drawing.Point(8, 48);
-            _dataGridTopicsList.MultiSelect = false;
-            _dataGridTopicsList.Name = "_dataGridTopicsList";
-            _dataGridTopicsList.RowHeadersVisible = false;
-            _dataGridTopicsList.Size = new System.Drawing.Size(822, 382);
-            _dataGridTopicsList.TabIndex = 0;
-            _dataGridTopicsList.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ContentClick);
-            _dataGridTopicsList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this._dgvReportDownloads_CellDoubleClick);
-            _dataGridTopicsList.Click += new System.EventHandler(this._dgvReportDownloads_Click);
+            this._dataGridTopicsList.Location = new System.Drawing.Point(8, 48);
+            this._dataGridTopicsList.MultiSelect = false;
+            this._dataGridTopicsList.Name = "_dataGridTopicsList";
+            this._dataGridTopicsList.RowHeadersVisible = false;
+            this._dataGridTopicsList.Size = new System.Drawing.Size(822, 382);
+            this._dataGridTopicsList.TabIndex = 0;
+            this._dataGridTopicsList.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ContentClick);
+            this._dataGridTopicsList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this._dgvReportDownloads_CellDoubleClick);
+            this._dataGridTopicsList.Click += new System.EventHandler(this._dgvReportDownloads_Click);
             // 
             // ColumnReport1DgvTopicID
             // 
@@ -1809,7 +1834,7 @@ namespace TLO.local
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(925, 412);
+            this.tabPage3.Size = new System.Drawing.Size(1023, 412);
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "tabPage3";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -1836,6 +1861,11 @@ namespace TLO.local
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
             // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(376, 6);
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1040, 540);
@@ -1854,7 +1884,7 @@ namespace TLO.local
             this._tpReportDownloads.ResumeLayout(false);
             this._tpReportDownloads.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this._cbCountSeeders)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(_dataGridTopicsList)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this._dataGridTopicsList)).EndInit();
             this.tabConsolidatedReport.ResumeLayout(false);
             this.tabConsolidatedReport.PerformLayout();
             this.ConsolidatedTorrentClientsReport.ResumeLayout(false);

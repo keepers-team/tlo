@@ -61,16 +61,6 @@ namespace TLO.local.Forms {
         }
         
         /// <summary>
-        ///   Поиск локализованного ресурса типа System.Boolean, аналогичного False.
-        /// </summary>
-        internal static bool _dgvReportDownloads_GenerateMember {
-            get {
-                object obj = ResourceManager.GetObject("_dgvReportDownloads.GenerateMember", resourceCulture);
-                return ((bool)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Point, аналогичного {X=17,Y=17}.
         /// </summary>
         internal static System.Drawing.Point menuStrip1_TrayLocation {
