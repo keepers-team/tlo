@@ -1267,6 +1267,7 @@ namespace TLO.local
             this.UpdateAll.Name = "UpdateAll";
             this.UpdateAll.Size = new System.Drawing.Size(379, 22);
             this.UpdateAll.Text = "Обновить всё и сразу";
+            this.UpdateAll.Click += new System.EventHandler(this.MenuClick);
             // 
             // UpdateCountSeedersToolStripMenuItem
             // 
