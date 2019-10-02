@@ -88,7 +88,8 @@ namespace TLO.local
         Name = x[2] as string,
         Size = x[3].GetType() == typeof (int) ? (long) (int) x[3] : (x[3].GetType() == typeof (long) ? (long) x[3] : 0L),
         Status = this.IntToArrayBool((long) x[1]),
-        PercentComplite = (Decimal) ((long) x[4]) * new Decimal(1, 0, 0, false, (byte) 1)
+        PercentComplite = (Decimal) ((long) x[4]) * new Decimal(1, 0, 0, false, (byte) 1),
+        Label = x[11] as string
       }).Select(x => new TopicInfo()
       {
         Hash = x.Hash,
@@ -97,7 +98,8 @@ namespace TLO.local
         IsKeep = x.Status != null && x.PercentComplite == new Decimal(100) && (x.Status[3] && !x.Status[4]) && x.Status[7],
         IsDownload = true,
         IsPause = x.Status[5],
-        IsRun = !(x.PercentComplite == new Decimal(100)) || !x.Status[3] || (x.Status[4] || !x.Status[7]) ? new bool?() : new bool?(x.Status[0])
+        IsRun = !(x.PercentComplite == new Decimal(100)) || !x.Status[3] || (x.Status[4] || !x.Status[7]) ? new bool?() : new bool?(x.Status[0]),
+        Label = x.Label
       }).ToList<TopicInfo>();
     }
 

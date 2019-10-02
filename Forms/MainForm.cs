@@ -105,6 +105,7 @@ namespace TLO.local
         private ToolStripMenuItem menuTimerSetting;
         private ToolStripMenuItem UpdateAll;
         private ToolStripSeparator toolStripSeparator5;
+        private Button button1;
         private DataGridView _dataGridTopicsList;
 
         private bool IsClose { get; set; }
@@ -161,10 +162,10 @@ namespace TLO.local
                 {
                     if (new SettingsForm().ShowDialog() == DialogResult.OK)
                     {
-//                        this._CategorySource.Clear();
-//                        this._CategorySource.DataSource = (object) null;
-//                        this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
-//                        this._CategorySource.Position = 0;
+                        this._CategorySource.Clear();
+                        this._CategorySource.DataSource = (object) null;
+                        this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
+                        this._CategorySource.Position = 0;
 //                        if (MessageBox.Show(
 //                                "Запустить загрузку/обновление информации о топиках (раздачах) по всем категориям?",
 //                                "Обновление данных", MessageBoxButtons.OKCancel, MessageBoxIcon.Question,
@@ -1124,6 +1125,7 @@ namespace TLO.local
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.button1 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this._tpReportDownloads.SuspendLayout();
@@ -1781,6 +1783,7 @@ namespace TLO.local
             // 
             // ConsolidatedTorrentClientsReport
             // 
+            this.ConsolidatedTorrentClientsReport.Controls.Add(this.button1);
             this.ConsolidatedTorrentClientsReport.Controls.Add(this._tbConsolidatedTorrentClientsReport);
             this.ConsolidatedTorrentClientsReport.Location = new System.Drawing.Point(4, 22);
             this.ConsolidatedTorrentClientsReport.Name = "ConsolidatedTorrentClientsReport";
@@ -1800,7 +1803,7 @@ namespace TLO.local
             this._tbConsolidatedTorrentClientsReport.Name = "_tbConsolidatedTorrentClientsReport";
             this._tbConsolidatedTorrentClientsReport.ReadOnly = true;
             this._tbConsolidatedTorrentClientsReport.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this._tbConsolidatedTorrentClientsReport.Size = new System.Drawing.Size(1032, 436);
+            this._tbConsolidatedTorrentClientsReport.Size = new System.Drawing.Size(1032, 410);
             this._tbConsolidatedTorrentClientsReport.TabIndex = 0;
             // 
             // tabPage1
@@ -1811,7 +1814,7 @@ namespace TLO.local
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage1.Size = new System.Drawing.Size(1032, 436);
             this.tabPage1.TabIndex = 4;
-            this.tabPage1.Text = "????";
+            this.tabPage1.Text = "Отчет по разделам";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // _tcCetegoriesRootReports
@@ -1869,6 +1872,16 @@ namespace TLO.local
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(3, 411);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(128, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "Неизвестные в файл";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.ExportUnknown_Click);
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1040, 540);
@@ -1913,6 +1926,11 @@ namespace TLO.local
             // Copy window location to app settings
             Properties.Settings.Default.WindowLocation = this.Location;
             Properties.Settings.Default.Save();
+        }
+
+        private void ExportUnknown_Click(object sender, EventArgs e)
+        {
+            dwCreateAndRun(new DoWorkEventHandler(Logic.bwCreateUnknownTorrentsReport), "Формирование отчета", (object)this);
         }
     }
 }

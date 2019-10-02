@@ -990,6 +990,115 @@ namespace TLO.local
       }
     }
 
+    public static void bwCreateUnknownTorrentsReport(object sender, DoWorkEventArgs e)
+    {
+      List<TorrentClientInfo> torrentClients = ClientLocalDB.Current.GetTorrentClients();
+      IEnumerable<TopicInfo> inner = ClientLocalDB.Current.GetTopicsByCategory(-1).Where<TopicInfo>(x => !x.IsBlackList);
+      Logic.logger.Info("Строим отчет о статистике в торрент-клиенте...");
+      StringBuilder stringBuilder = new StringBuilder();
+      Dictionary<int, Category> dictionary = ClientLocalDB.Current.GetCategories().ToDictionary<Category, int, Category>(x => x.CategoryID, x => x);
+      int num1 = Math.Max(dictionary.Count == 0 ? 20 : dictionary.Values.Max<Category>(x => x.FullName.Length), torrentClients.Count == 0 ? 20 : torrentClients.Max<TorrentClientInfo>(x => x.Name.Length));
+      string empty = string.Empty;
+      for (int index = 0; index < num1; ++index)
+        empty += "*";
+      BackgroundWorker backgroundWorker = sender as BackgroundWorker;
+      Decimal num2 = new Decimal(0, 0, 0, false, 1);
+      backgroundWorker.ReportProgress((int) num2);
+      var listUnknown = new StringBuilder();
+      listUnknown.AppendLine("Клиент;Метка;Торрент;Размер");
+      foreach (TorrentClientInfo torrentClientInfo in torrentClients)
+      {
+        Logic.logger.Debug("\t" + torrentClientInfo.Name + "...");
+        try
+        {
+          ITorrentClient torrentClient = torrentClientInfo.Create();
+          if (torrentClient != null)
+          {
+            var array1 = torrentClient.GetAllTorrentHash().GroupJoin(inner, t => t.Hash, b => b.Hash, (t, bt) => new
+            {
+              t = t,
+              bt = bt
+            }).SelectMany(_param1 => _param1.bt.DefaultIfEmpty<TopicInfo>(), (_param1, b) =>
+            {
+              int num3 = b != null ? b.CategoryID : -1;
+              long size = _param1.t.Size;
+              bool? isRun = _param1.t.IsRun;
+              int num4;
+              if (!isRun.HasValue)
+              {
+                num4 = -1;
+              }
+              else
+              {
+                isRun = _param1.t.IsRun;
+                num4 = isRun.Value ? 1 : 0;
+              }
+              int num5 = _param1.t.IsPause ? 1 : 0;
+              int num6 = b == null ? -1 : b.Seeders;
+              return new
+              {
+                CategoryID = num3,
+                Name = _param1.t.TorrentName,
+                Size = size,
+                IsRun = num4,
+                IsPause = num5 != 0,
+                Seeders = num6,
+                Label = _param1.t.Label
+              };
+            }).GroupBy(x => new
+            {
+              CategoryID = x.CategoryID,
+              Name = x.Name,
+              IsRun = x.IsRun,
+              IsPause = x.IsPause,
+              Seeders = x.Seeders,
+              Label = x.Label
+            }).Select(x => new
+            {
+              CategoryID = x.Key.CategoryID,
+              Name = x.Key.Name,
+              IsRun = x.Key.IsRun,
+              IsPause = x.Key.IsPause,
+              Size = x.Sum(y => y.Size),
+              Count = x.Count(),
+              Seeders = x.Key.Seeders,
+              Label = x.Key.Label
+            }).ToArray();
+            var countUnknown = array1.Where(x => x.CategoryID == -1).Sum(x => x.Count);
+            foreach (var info in array1.Where(x => x.CategoryID == -1).ToList())
+            {
+              listUnknown.AppendLine(String.Join(";", torrentClientInfo.Name, info.Label, info.Name, TopicInfo.sizeToString(info.Size)));
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          listUnknown.AppendFormat("Ошибка: {0}\r\n\r\n\r\n", ex.Message);
+        }
+        num2 += new Decimal(1000, 0, 0, false, 1) / torrentClients.Count();
+        if (num2 <= new Decimal(100))
+          backgroundWorker.ReportProgress((int) num2);
+      }
+      
+      var saveFileDialog = new SaveFileDialog();
+      saveFileDialog.AddExtension = true;
+      saveFileDialog.DefaultExt = "csv";
+      saveFileDialog.Filter = @".csv|CSV файл|.txt|Текстовый документ";
+      saveFileDialog.OverwritePrompt = true;
+      var form = (MainForm) e.Argument;
+      form.Invoke((MethodInvoker)delegate
+      {
+        if (saveFileDialog.ShowDialog() == DialogResult.OK)
+        {
+          var file = saveFileDialog.OpenFile();
+          var writer = new StreamWriter(file, Encoding.UTF8);
+          writer.Write(listUnknown.ToString());
+          writer.Flush();
+          file.Close();
+        }
+      });
+    }
+
     public static void bwSendReports(object sender, DoWorkEventArgs e)
     {
       Logic.logger.Info("Запущена задача на отправку отчетов на форум....");

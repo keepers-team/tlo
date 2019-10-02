@@ -34,6 +34,8 @@ namespace TLO.local
     }
 
     public string Name2 { get; set; }
+    
+    public string Label { get; set; }
 
     public string TorrentName { get; set; }
 
