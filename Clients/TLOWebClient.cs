@@ -54,6 +54,10 @@ namespace TLO.local
     protected override WebRequest GetWebRequest(Uri address)
     {
       HttpWebRequest webRequest = (HttpWebRequest) base.GetWebRequest(address);
+      if (Settings.Current.Proxy != "")
+      {
+          webRequest.Proxy = new WebProxy(Settings.Current.Proxy);
+      }
       webRequest.Accept = this._IsJson ? "application/json" : this._Accept;
       webRequest.UserAgent = this._UserAgent;
       webRequest.Headers.Add("Accept-Encoding", "gzip, deflate");
@@ -67,7 +71,7 @@ namespace TLO.local
       webRequest.KeepAlive = true;
       webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
       webRequest.Headers.Add("Pragma", "no-cache");
-      webRequest.Timeout = 3600000;
+      webRequest.Timeout = 60000;
       if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
       {
         string[] strArray = address.AbsoluteUri.Split(new char[1]

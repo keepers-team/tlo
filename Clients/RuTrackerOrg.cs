@@ -461,7 +461,8 @@ label_13:;
           innerException = ex;
           if (ex.Message.Contains("404"))
             throw ex;
-          Thread.Sleep(index * 1000);
+//          Thread.Sleep(index * 1000);
+          throw ex.GetBaseException();
         }
       }
       throw new Exception("Не удалось скачать WEB-страницу за 20 попыток: " + innerException.Message, innerException);

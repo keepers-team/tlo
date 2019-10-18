@@ -88,6 +88,7 @@ namespace TLO.local
             this.SetLogger(settings.LogLevel.HasValue ? settings.LogLevel.Value : 0);
             this._LastWriteTime = File.GetLastWriteTime(this.FileSettings);
             this.LoadDBInMemory = settings.LoadDBInMemory;
+            this.Proxy = settings.Proxy;
           }
         }
       }
@@ -209,5 +210,7 @@ namespace TLO.local
     public string HostRuTrackerOrg { get; set; }
     
     public bool? LoadDBInMemory { get; set; }
+
+    public string Proxy { get; set; }
   }
 }

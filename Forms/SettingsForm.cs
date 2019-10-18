@@ -120,6 +120,8 @@ namespace TLO.local
         private Label label40;
         private TabPage _tpAllCategories;
         private CheckBox _dbLoadInMemoryCheckbox;
+        private Label label41;
+        private TextBox proxyInput;
         private Panel panel2;
 
         public SettingsForm()
@@ -177,6 +179,7 @@ namespace TLO.local
                 this._dbLoadInMemoryCheckbox.Checked = current.LoadDBInMemory.GetValueOrDefault(false);
                 this._dbLoadInMemoryCheckbox.CheckState = checkState;
             }
+            this.proxyInput.Text = current.Proxy;
             NumericUpDown appLogLevel = this._appLogLevel;
             int? logLevel = current.LogLevel;
             int num1;
@@ -527,6 +530,7 @@ namespace TLO.local
                     {
                         current.LoadDBInMemory = this._dbLoadInMemoryCheckbox.Checked;
                     }
+                    current.Proxy = this.proxyInput.Text;
                     current.Save();
                     ClientLocalDB.Current.SaveToDatabase();
                     this.Close();
@@ -774,9 +778,11 @@ namespace TLO.local
             this._appKeeperName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.forumPages1 = new TLO.local.ForumPages();
             this._tpAllCategories = new System.Windows.Forms.TabPage();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.proxyInput = new System.Windows.Forms.TextBox();
+            this.label41 = new System.Windows.Forms.Label();
+            this.forumPages1 = new TLO.local.ForumPages();
             this._tpCategories.SuspendLayout();
             this.panel1.SuspendLayout();
             this.groupBox7.SuspendLayout();
@@ -1690,13 +1696,15 @@ namespace TLO.local
             this.label19.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label19.Location = new System.Drawing.Point(6, 42);
             this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(560, 13);
+            this.label19.Size = new System.Drawing.Size(557, 13);
             this.label19.TabIndex = 10;
-            this.label19.Text = "Если требуется чтобы в отчет попадали все раздачи указанной категории, требуется" +
-    " указать значение \"-1\"";
+            this.label19.Text = "Если требуется чтобы в отчет попадали все раздачи указанной категории, требуется " +
+    "указать значение \"-1\"";
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.label41);
+            this.groupBox4.Controls.Add(this.proxyInput);
             this.groupBox4.Controls.Add(this._dbLoadInMemoryCheckbox);
             this.groupBox4.Controls.Add(this._appIsNotSaveStatistics);
             this.groupBox4.Controls.Add(this.label23);
@@ -1955,16 +1963,6 @@ namespace TLO.local
             this.tabPage1.Text = "Отправка отчетов на форум";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // forumPages1
-            // 
-            this.forumPages1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.forumPages1.Location = new System.Drawing.Point(0, 0);
-            this.forumPages1.Name = "forumPages1";
-            this.forumPages1.Size = new System.Drawing.Size(1041, 591);
-            this.forumPages1.TabIndex = 0;
-            // 
             // _tpAllCategories
             // 
             this._tpAllCategories.Controls.Add(this.panel2);
@@ -1986,6 +1984,33 @@ namespace TLO.local
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(1041, 537);
             this.panel2.TabIndex = 0;
+            // 
+            // proxyInput
+            // 
+            this.proxyInput.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.proxyInput.Location = new System.Drawing.Point(150, 270);
+            this.proxyInput.Name = "proxyInput";
+            this.proxyInput.Size = new System.Drawing.Size(211, 22);
+            this.proxyInput.TabIndex = 18;
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(6, 273);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(138, 13);
+            this.label41.TabIndex = 19;
+            this.label41.Text = "Прокси (http, https, socks):";
+            // 
+            // forumPages1
+            // 
+            this.forumPages1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.forumPages1.Location = new System.Drawing.Point(0, 0);
+            this.forumPages1.Name = "forumPages1";
+            this.forumPages1.Size = new System.Drawing.Size(1041, 591);
+            this.forumPages1.TabIndex = 0;
             // 
             // SettingsForm
             // 
