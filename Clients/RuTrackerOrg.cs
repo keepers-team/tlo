@@ -60,7 +60,7 @@ namespace TLO.local
     public IEnumerable<Category> GetCategories()
     {
       List<Category> source = new List<Category>();
-      var downloadArchivePage = this.DownloadArchivePage($"http://api.{Settings.Current.HostRuTrackerOrg}/v1/static/cat_forum_tree");
+      var downloadArchivePage = this.DownloadArchivePage($"https://{Settings.Current.ApiHost}/v1/static/cat_forum_tree");
       JObject jobject1 = (JsonConvert.DeserializeObject(downloadArchivePage) as JObject)["result"].ToObject<JObject>();
       jobject1["c"].ToObject<JObject>();
       source.AddRange((IEnumerable<Category>) jobject1["c"].ToObject<Dictionary<string, object>>().Select<KeyValuePair<string, object>, Category>((Func<KeyValuePair<string, object>, Category>) (x => new Category()
@@ -173,7 +173,7 @@ namespace TLO.local
 
     public int[][] GetTopicsStatus(int forumID)
     {
-      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.{1}/v1/static/pvc/f/{0}", (object) forumID, Settings.Current.HostRuTrackerOrg)))["result"].ToObject<Dictionary<int, Int64[]>>();
+      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("https://{1}/v1/static/pvc/f/{0}", (object) forumID, Settings.Current.ApiHost)))["result"].ToObject<Dictionary<int, Int64[]>>();
       int[][] numArray1 = new int[dictionary.Count][];
       int index = 0;
       foreach (KeyValuePair<int, Int64[]> keyValuePair in dictionary)
@@ -194,7 +194,7 @@ namespace TLO.local
       if (topics == null || topics.Length == 0 || topics.Length > 100)
         return (List<TopicInfo>) null;
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("http://api.{0}/v1/get_tor_topic_data?by=topic_id&val={1}", Settings.Current.HostRuTrackerOrg, (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
+      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("https://{0}/v1/get_tor_topic_data?by=topic_id&val={1}", Settings.Current.ApiHost, (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
       {
         TopicInfo topicInfo = new TopicInfo();
         topicInfo.TopicID = keyValuePair.Key;
@@ -231,7 +231,7 @@ namespace TLO.local
       }
       foreach (IEnumerable<int> values in intListArray)
       {
-        var url = string.Format("http://api.{0}/v1/get_user_name?by=user_id&val={1}", Settings.Current.HostRuTrackerOrg, (object) HttpUtility.UrlEncode(string.Join<int>(",", values)));
+        var url = string.Format("https://{0}/v1/get_user_name?by=user_id&val={1}", Settings.Current.ApiHost, (object) HttpUtility.UrlEncode(string.Join<int>(",", values)));
         var getUserNameResult = this.DownloadArchivePage(url);
         foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(getUserNameResult)["result"].ToObject<Dictionary<int, string>>())
           userInfoList.Add(new UserInfo()
@@ -448,7 +448,7 @@ label_13:;
     private string DownloadArchivePage(string page)
     {
       Exception innerException = (Exception) null;
-      for (int index = 0; index < 20; ++index)
+      for (int index = 0; index < 5; ++index)
       {
         string empty = string.Empty;
         TLOWebClient tloWebClient = new TLOWebClient();
@@ -461,11 +461,10 @@ label_13:;
           innerException = ex;
           if (ex.Message.Contains("404"))
             throw ex;
-//          Thread.Sleep(index * 1000);
-          throw ex.GetBaseException();
+          Thread.Sleep(index * 1000);
         }
       }
-      throw new Exception("Не удалось скачать WEB-страницу за 20 попыток: " + innerException.Message, innerException);
+      throw new Exception("Не удалось скачать WEB-страницу за 5 попыток: " + innerException.Message, innerException);
     }
 
     public string DownloadWebPage(string page, params object[] param)

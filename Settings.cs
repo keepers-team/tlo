@@ -89,6 +89,8 @@ namespace TLO.local
             this._LastWriteTime = File.GetLastWriteTime(this.FileSettings);
             this.LoadDBInMemory = settings.LoadDBInMemory;
             this.Proxy = settings.Proxy;
+            this.ApiHost = settings.ApiHost;
+            this.DisableServerCertVerify = settings.DisableServerCertVerify;
           }
         }
       }
@@ -209,8 +211,16 @@ namespace TLO.local
     [XmlElement]
     public string HostRuTrackerOrg { get; set; }
     
+    [XmlElement]
     public bool? LoadDBInMemory { get; set; }
 
+    [XmlElement]
     public string Proxy { get; set; }
+    
+    [XmlElement]
+    public bool? DisableServerCertVerify { get; set; }
+    
+    [XmlElement]
+    public string ApiHost { get; set; }
   }
 }

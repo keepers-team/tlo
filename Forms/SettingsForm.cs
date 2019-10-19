@@ -122,6 +122,9 @@ namespace TLO.local
         private CheckBox _dbLoadInMemoryCheckbox;
         private Label label41;
         private TextBox proxyInput;
+        private ComboBox apiHosts;
+        private Label label42;
+        private CheckBox DisableCertVerifyCheck;
         private Panel panel2;
 
         public SettingsForm()
@@ -180,6 +183,19 @@ namespace TLO.local
                 this._dbLoadInMemoryCheckbox.CheckState = checkState;
             }
             this.proxyInput.Text = current.Proxy;
+            this.DisableCertVerifyCheck.Checked = current.DisableServerCertVerify.GetValueOrDefault(false);
+            this.DisableCertVerifyCheck.CheckState = current.DisableServerCertVerify.GetValueOrDefault(false) ?
+                CheckState.Checked : CheckState.Unchecked;
+            if (current.ApiHost != "")
+            {
+                foreach (String item in this.apiHosts.Items)
+                {
+                    if (item == current.ApiHost)
+                    {
+                        this.apiHosts.SelectedItem = item;
+                    }
+                }
+            }
             NumericUpDown appLogLevel = this._appLogLevel;
             int? logLevel = current.LogLevel;
             int num1;
@@ -531,6 +547,8 @@ namespace TLO.local
                         current.LoadDBInMemory = this._dbLoadInMemoryCheckbox.Checked;
                     }
                     current.Proxy = this.proxyInput.Text;
+                    current.DisableServerCertVerify = this.DisableCertVerifyCheck.Checked;
+                    current.ApiHost = this.apiHosts.SelectedItem.ToString();
                     current.Save();
                     ClientLocalDB.Current.SaveToDatabase();
                     this.Close();
@@ -757,6 +775,10 @@ namespace TLO.local
             this._appCountSeedersReport = new System.Windows.Forms.NumericUpDown();
             this.label19 = new System.Windows.Forms.Label();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.apiHosts = new System.Windows.Forms.ComboBox();
+            this.label42 = new System.Windows.Forms.Label();
+            this.label41 = new System.Windows.Forms.Label();
+            this.proxyInput = new System.Windows.Forms.TextBox();
             this._dbLoadInMemoryCheckbox = new System.Windows.Forms.CheckBox();
             this._appIsNotSaveStatistics = new System.Windows.Forms.CheckBox();
             this.label23 = new System.Windows.Forms.Label();
@@ -778,11 +800,10 @@ namespace TLO.local
             this._appKeeperName = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.forumPages1 = new TLO.local.ForumPages();
             this._tpAllCategories = new System.Windows.Forms.TabPage();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.proxyInput = new System.Windows.Forms.TextBox();
-            this.label41 = new System.Windows.Forms.Label();
-            this.forumPages1 = new TLO.local.ForumPages();
+            this.DisableCertVerifyCheck = new System.Windows.Forms.CheckBox();
             this._tpCategories.SuspendLayout();
             this.panel1.SuspendLayout();
             this.groupBox7.SuspendLayout();
@@ -1703,6 +1724,9 @@ namespace TLO.local
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.DisableCertVerifyCheck);
+            this.groupBox4.Controls.Add(this.apiHosts);
+            this.groupBox4.Controls.Add(this.label42);
             this.groupBox4.Controls.Add(this.label41);
             this.groupBox4.Controls.Add(this.proxyInput);
             this.groupBox4.Controls.Add(this._dbLoadInMemoryCheckbox);
@@ -1722,6 +1746,44 @@ namespace TLO.local
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Настройки программы";
+            // 
+            // apiHosts
+            // 
+            this.apiHosts.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.apiHosts.FormattingEnabled = true;
+            this.apiHosts.Items.AddRange(new object[] {
+            "api.t-ru.org",
+            "api.rutracker.org"});
+            this.apiHosts.Location = new System.Drawing.Point(150, 299);
+            this.apiHosts.Name = "apiHosts";
+            this.apiHosts.Size = new System.Drawing.Size(211, 21);
+            this.apiHosts.TabIndex = 21;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(9, 307);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(106, 13);
+            this.label42.TabIndex = 20;
+            this.label42.Text = "Хост API рутрекера";
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(6, 279);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(115, 13);
+            this.label41.TabIndex = 19;
+            this.label41.Text = "Прокси (http, socks5):";
+            // 
+            // proxyInput
+            // 
+            this.proxyInput.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.proxyInput.Location = new System.Drawing.Point(150, 270);
+            this.proxyInput.Name = "proxyInput";
+            this.proxyInput.Size = new System.Drawing.Size(211, 22);
+            this.proxyInput.TabIndex = 18;
             // 
             // _dbLoadInMemoryCheckbox
             // 
@@ -1963,6 +2025,16 @@ namespace TLO.local
             this.tabPage1.Text = "Отправка отчетов на форум";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // forumPages1
+            // 
+            this.forumPages1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.forumPages1.Location = new System.Drawing.Point(0, 0);
+            this.forumPages1.Name = "forumPages1";
+            this.forumPages1.Size = new System.Drawing.Size(1041, 591);
+            this.forumPages1.TabIndex = 0;
+            // 
             // _tpAllCategories
             // 
             this._tpAllCategories.Controls.Add(this.panel2);
@@ -1985,32 +2057,15 @@ namespace TLO.local
             this.panel2.Size = new System.Drawing.Size(1041, 537);
             this.panel2.TabIndex = 0;
             // 
-            // proxyInput
+            // DisableCertVerifyCheck
             // 
-            this.proxyInput.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.proxyInput.Location = new System.Drawing.Point(150, 270);
-            this.proxyInput.Name = "proxyInput";
-            this.proxyInput.Size = new System.Drawing.Size(211, 22);
-            this.proxyInput.TabIndex = 18;
-            // 
-            // label41
-            // 
-            this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(6, 273);
-            this.label41.Name = "label41";
-            this.label41.Size = new System.Drawing.Size(138, 13);
-            this.label41.TabIndex = 19;
-            this.label41.Text = "Прокси (http, https, socks):";
-            // 
-            // forumPages1
-            // 
-            this.forumPages1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.forumPages1.Location = new System.Drawing.Point(0, 0);
-            this.forumPages1.Name = "forumPages1";
-            this.forumPages1.Size = new System.Drawing.Size(1041, 591);
-            this.forumPages1.TabIndex = 0;
+            this.DisableCertVerifyCheck.AutoSize = true;
+            this.DisableCertVerifyCheck.Location = new System.Drawing.Point(12, 334);
+            this.DisableCertVerifyCheck.Name = "DisableCertVerifyCheck";
+            this.DisableCertVerifyCheck.Size = new System.Drawing.Size(247, 17);
+            this.DisableCertVerifyCheck.TabIndex = 23;
+            this.DisableCertVerifyCheck.Text = "Выключить проверку сертификата сервера";
+            this.DisableCertVerifyCheck.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 

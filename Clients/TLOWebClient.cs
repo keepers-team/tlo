@@ -8,6 +8,7 @@ using NLog;
 using System;
 using System.Net;
 using System.Text;
+using MihaZupan;
 
 namespace TLO.local
 {
@@ -54,9 +55,17 @@ namespace TLO.local
     protected override WebRequest GetWebRequest(Uri address)
     {
       HttpWebRequest webRequest = (HttpWebRequest) base.GetWebRequest(address);
-      if (Settings.Current.Proxy != "")
+      if (webRequest != null && Settings.Current.Proxy != "")
       {
+        if (Settings.Current.Proxy.Contains("http://"))
+        {
           webRequest.Proxy = new WebProxy(Settings.Current.Proxy);
+        }
+        else
+        {
+          var uri = new Uri(Settings.Current.Proxy);
+          webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
+        }
       }
       webRequest.Accept = this._IsJson ? "application/json" : this._Accept;
       webRequest.UserAgent = this._UserAgent;
@@ -82,6 +91,10 @@ namespace TLO.local
         webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) strArray[1], Settings.Current.HostRuTrackerOrg);
       }
       webRequest.CookieContainer = this.CookieContainer;
+      if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
+      {
+        webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+      }
       return (WebRequest) webRequest;
     }
 
