@@ -11,9 +11,26 @@ using System.Web;
 
 namespace TLO.local
 {
-  internal class TopicInfo
+  internal class TopicInfo : ICloneable
   {
     protected static CultureInfo _cultureUsInfo = new CultureInfo("en-US");
+    public object Clone()
+    {
+      TopicInfo ti = new TopicInfo();
+
+      foreach (var prop in Type.GetType("TLO.local.TopicInfo").GetProperties())
+      {
+        ti.CategoryID = CategoryID;
+        Console.WriteLine("Property is " + prop.Name);
+        if (prop.CanWrite)
+        {
+         
+          prop.SetValue(ti, prop.GetValue(this)); 
+        }
+      }
+
+      return ti;
+    }
 
     public int TopicID { get; set; }
 

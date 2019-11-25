@@ -448,7 +448,7 @@ label_13:;
     private string DownloadArchivePage(string page)
     {
       Exception innerException = (Exception) null;
-      for (int index = 0; index < 5; ++index)
+      for (int index = 0; index < 1; ++index)
       {
         string empty = string.Empty;
         TLOWebClient tloWebClient = new TLOWebClient();
@@ -459,12 +459,12 @@ label_13:;
         catch (Exception ex)
         {
           innerException = ex;
-          if (ex.Message.Contains("404"))
+          //if (ex.Message.Contains("404"))
             throw ex;
           Thread.Sleep(index * 1000);
         }
       }
-      throw new Exception("Не удалось скачать WEB-страницу за 5 попыток: " + innerException.Message, innerException);
+      throw new Exception("Не удалось скачать WEB-страницу за 1 попытку: " + innerException.Message, innerException);
     }
 
     public string DownloadWebPage(string page, params object[] param)
@@ -522,7 +522,7 @@ label_13:;
         }
         catch (Exception ex)
         {
-          if (index >= 20)
+          //if (index >= 20)
             throw new Exception("Не удалось скачать WEB-страницу за 20 попыток:" + ex.Message, ex);
           Thread.Sleep(index * 1000);
           continue;
@@ -553,7 +553,7 @@ label_13:;
 
     public byte[] DownloadWebPages(string page)
     {
-      for (int index = 0; index < 20; ++index)
+      for (int index = 0; index < 1; ++index)
       {
         string empty = string.Empty;
         TLOWebClient tloWebClient = null;
@@ -602,12 +602,12 @@ label_13:;
           this._webClient.Dispose();
         this._webClient = (TLOWebClient) null;
       }
-      throw new Exception("Не удалось скачать WEB-страницу за 20 попыток");
+      throw new Exception("Не удалось скачать WEB-страницу за 1 попытку");
     }
 
     public byte[] DownloadArchiveData(string page)
     {
-      for (int index = 0; index < 20; ++index)
+      for (int index = 0; index < 1; ++index)
       {
         byte[] numArray = new byte[0];
         string empty = string.Empty;
@@ -632,7 +632,7 @@ label_13:;
           return new byte[0];
         return bytes;
       }
-      throw new Exception("Не удалось скачать WEB-страницу за 20 попыток");
+      throw new Exception("Не удалось скачать WEB-страницу за 1 попытку");
     }
 
     public void SavePage(string topicID, string folder)
@@ -693,7 +693,7 @@ label_13:;
         str6 = string.Empty;
       objArray[index1] = (object) str6;
       string s = string.Format(format, objArray);
-      for (int index2 = 0; index2 < 20; ++index2)
+      for (int index2 = 0; index2 < 1; ++index2)
       {
         try
         {
@@ -704,8 +704,8 @@ label_13:;
         }
         catch (Exception ex)
         {
-          if (index2 == 20)
-            throw new Exception("Не удалось отправить отчет за 10 попыток. Ошибка " + ex.Message);
+          //if (index2 == 20)
+            throw new Exception("Не удалось отправить отчет за 1 попытку. Ошибка " + ex.Message);
           Thread.Sleep(index2 * 1000);
         }
       }

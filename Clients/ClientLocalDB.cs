@@ -394,6 +394,10 @@ namespace TLO.local
           }
         }
       }
+            Category unknown = new Category();
+            unknown.FullName = "Неизвестные";
+            unknown.CategoryID = -1;
+            categoryList.Add(unknown);
       return categoryList;
     }
 

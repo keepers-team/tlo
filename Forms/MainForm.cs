@@ -105,7 +105,9 @@ namespace TLO.local
         private ToolStripMenuItem menuTimerSetting;
         private ToolStripMenuItem UpdateAll;
         private ToolStripSeparator toolStripSeparator5;
+        private Label label6;
         private Button button1;
+        private Label label7;
         private DataGridView _dataGridTopicsList;
 
         private bool IsClose { get; set; }
@@ -407,17 +409,88 @@ namespace TLO.local
                                 break;
                         }
                     }
+                    List<TopicInfo> source;
 
-                    isBlack = new bool?(this._cbBlackList.Checked);
-                    List<TopicInfo> topicInfoList = new List<TopicInfo>();
-                    List<TopicInfo> source = !Settings.Current.IsAvgCountSeeders
-                        ? ClientLocalDB.Current.GetTopics(regTime, current.CategoryID,
-                            num > -1 ? new int?(num) : new int?(), new int?(), isKeep, isKeepers, isDownload, isBlack,
-                            isPoster)
-                        : ClientLocalDB.Current.GetTopics(regTime, current.CategoryID, new int?(),
-                            num > -1 ? new int?(num) : new int?(), isKeep, isKeepers, isDownload, isBlack, isPoster);
-                    this._lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", (object) source.Count<TopicInfo>(),
-                        (object) TopicInfo.sizeToString(source.Sum<TopicInfo>((Func<TopicInfo, long>) (x => x.Size))));
+                    if (current.CategoryID != -1)
+                    {
+
+                        isBlack = new bool?(this._cbBlackList.Checked);
+                        List<TopicInfo> topicInfoList = new List<TopicInfo>();
+                        source = !Settings.Current.IsAvgCountSeeders
+                            ? ClientLocalDB.Current.GetTopics(regTime, current.CategoryID,
+                                num > -1 ? new int?(num) : new int?(), new int?(), isKeep, isKeepers, isDownload, isBlack,
+                                isPoster)
+                            : ClientLocalDB.Current.GetTopics(regTime, current.CategoryID, new int?(),
+                                num > -1 ? new int?(num) : new int?(), isKeep, isKeepers, isDownload, isBlack, isPoster);
+
+                    }
+                    else
+                    {
+                        List<TorrentClientInfo> torrentClients = ClientLocalDB.Current.GetTorrentClients();
+                        IEnumerable<TopicInfo> inner = ClientLocalDB.Current.GetTopicsByCategory(-1).Where<TopicInfo>(x => !x.IsBlackList);
+                        Dictionary<int, Category> dictionary = ClientLocalDB.Current.GetCategories().ToDictionary<Category, int, Category>(x => x.CategoryID, x => x);
+                        source = new List<TopicInfo>();
+                        foreach (TorrentClientInfo torrentClientInfo in torrentClients)
+                        {
+                            ITorrentClient torrentClient = torrentClientInfo.Create();
+                            if (torrentClient != null)
+                            {
+                                var array1 = torrentClient.GetAllTorrentHash().GroupJoin(inner, t => t.Hash, b => b.Hash, (t, bt) => new
+                                {
+                                    t = t,
+                                    bt = bt
+                                }).SelectMany(_param1 => _param1.bt.DefaultIfEmpty<TopicInfo>(), (_param1, b) =>
+                                {
+                                    int num3 = b != null ? b.CategoryID : -1;
+                                    long size = _param1.t.Size;
+                                    bool? isRun = _param1.t.IsRun;
+                                    int num4;
+                                    if (!isRun.HasValue)
+                                    {
+                                        num4 = -1;
+                                    }
+                                    else
+                                    {
+                                        isRun = _param1.t.IsRun;
+                                        num4 = isRun.Value ? 1 : 0;
+                                    }
+                                    int num5 = _param1.t.IsPause ? 1 : 0;
+                                    int num6 = b == null ? -1 : b.Seeders;
+                                    TopicInfo a;
+                                    if (b == null)
+                                    {
+                                        a = (TopicInfo)_param1.t.Clone();
+                                        a.CategoryID = num3;
+                                        a.Name2 = _param1.t.TorrentName;
+                                        a.Size = size;
+                                        a.IsRun = isRun;
+                                        a.IsPause = num5 != 0;
+                                        a.Seeders = num6;
+                                        a.Label = _param1.t.Label;
+                                        return a;
+                                    } else
+                                    {
+                                        a = b;
+                                    }
+                                    return a;
+                                    /*{
+                                        CategoryID = num3,
+                                        Name = _param1.t.TorrentName,
+                                        Size = size,
+                                        IsRun = num4,
+                                        IsPause = num5 != 0,
+                                        Seeders = num6,
+                                        Label = _param1.t.Label
+                                    };*/
+                                });
+                                source.AddRange(array1.Where(x => x.CategoryID == -1).ToArray());
+                            }
+                        }
+
+                        this._lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", (object)source.Count<TopicInfo>(),
+                            (object)TopicInfo.sizeToString(source.Sum<TopicInfo>((Func<TopicInfo, long>)(x => x.Size))));
+                    }
+
                     this._TopicsSource.DataSource = (object) source;
                 }
             }
@@ -1083,6 +1156,9 @@ namespace TLO.local
             this.label1 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this._tpReportDownloads = new System.Windows.Forms.TabPage();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
             this._DateRegistration = new System.Windows.Forms.DateTimePicker();
             this.label5 = new System.Windows.Forms.Label();
             this._cbCountSeeders = new System.Windows.Forms.NumericUpDown();
@@ -1125,7 +1201,6 @@ namespace TLO.local
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.button1 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this._tpReportDownloads.SuspendLayout();
@@ -1372,6 +1447,9 @@ namespace TLO.local
             // 
             // _tpReportDownloads
             // 
+            this._tpReportDownloads.Controls.Add(this.label7);
+            this._tpReportDownloads.Controls.Add(this.label6);
+            this._tpReportDownloads.Controls.Add(this.button1);
             this._tpReportDownloads.Controls.Add(this._DateRegistration);
             this._tpReportDownloads.Controls.Add(this.label5);
             this._tpReportDownloads.Controls.Add(this._cbCountSeeders);
@@ -1398,6 +1476,36 @@ namespace TLO.local
             this._tpReportDownloads.TabIndex = 2;
             this._tpReportDownloads.Text = "Обработка раздела";
             this._tpReportDownloads.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(836, 391);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(44, 13);
+            this.label7.TabIndex = 35;
+            this.label7.Text = "Прочее";
+            // 
+            // label6
+            // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(836, 202);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(116, 13);
+            this.label6.TabIndex = 34;
+            this.label6.Text = "Действия по разделу";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(836, 407);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(128, 23);
+            this.button1.TabIndex = 33;
+            this.button1.Text = "Неизвестные в файл";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.ExportUnknown_Click);
             // 
             // _DateRegistration
             // 
@@ -1443,7 +1551,7 @@ namespace TLO.local
             // 
             this._llUpdateTopicsByCategory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateTopicsByCategory.AutoSize = true;
-            this._llUpdateTopicsByCategory.Location = new System.Drawing.Point(836, 399);
+            this._llUpdateTopicsByCategory.Location = new System.Drawing.Point(836, 248);
             this._llUpdateTopicsByCategory.Name = "_llUpdateTopicsByCategory";
             this._llUpdateTopicsByCategory.Size = new System.Drawing.Size(154, 13);
             this._llUpdateTopicsByCategory.TabIndex = 28;
@@ -1455,7 +1563,7 @@ namespace TLO.local
             // 
             this._llUpdateCountSeedersByCategory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateCountSeedersByCategory.AutoSize = true;
-            this._llUpdateCountSeedersByCategory.Location = new System.Drawing.Point(836, 382);
+            this._llUpdateCountSeedersByCategory.Location = new System.Drawing.Point(836, 225);
             this._llUpdateCountSeedersByCategory.Name = "_llUpdateCountSeedersByCategory";
             this._llUpdateCountSeedersByCategory.Size = new System.Drawing.Size(184, 13);
             this._llUpdateCountSeedersByCategory.TabIndex = 27;
@@ -1467,7 +1575,7 @@ namespace TLO.local
             // 
             this._llUpdateDataDromTorrentClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateDataDromTorrentClient.AutoSize = true;
-            this._llUpdateDataDromTorrentClient.Location = new System.Drawing.Point(836, 416);
+            this._llUpdateDataDromTorrentClient.Location = new System.Drawing.Point(836, 271);
             this._llUpdateDataDromTorrentClient.Name = "_llUpdateDataDromTorrentClient";
             this._llUpdateDataDromTorrentClient.Size = new System.Drawing.Size(184, 13);
             this._llUpdateDataDromTorrentClient.TabIndex = 26;
@@ -1489,7 +1597,7 @@ namespace TLO.local
             // 
             this.linkLabel5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkLabel5.AutoSize = true;
-            this.linkLabel5.Location = new System.Drawing.Point(836, 102);
+            this.linkLabel5.Location = new System.Drawing.Point(836, 126);
             this.linkLabel5.Name = "linkLabel5";
             this.linkLabel5.Size = new System.Drawing.Size(186, 13);
             this.linkLabel5.TabIndex = 22;
@@ -1501,7 +1609,7 @@ namespace TLO.local
             // 
             this.linkSetNewLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkSetNewLabel.AutoSize = true;
-            this.linkSetNewLabel.Location = new System.Drawing.Point(836, 85);
+            this.linkSetNewLabel.Location = new System.Drawing.Point(836, 104);
             this.linkSetNewLabel.Name = "linkSetNewLabel";
             this.linkSetNewLabel.Size = new System.Drawing.Size(100, 13);
             this.linkSetNewLabel.TabIndex = 21;
@@ -1513,7 +1621,7 @@ namespace TLO.local
             // 
             this._llSelectedTopicsDeleteFromBlackList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsDeleteFromBlackList.AutoSize = true;
-            this._llSelectedTopicsDeleteFromBlackList.Location = new System.Drawing.Point(836, 136);
+            this._llSelectedTopicsDeleteFromBlackList.Location = new System.Drawing.Point(836, 170);
             this._llSelectedTopicsDeleteFromBlackList.Name = "_llSelectedTopicsDeleteFromBlackList";
             this._llSelectedTopicsDeleteFromBlackList.Size = new System.Drawing.Size(147, 13);
             this._llSelectedTopicsDeleteFromBlackList.TabIndex = 20;
@@ -1525,7 +1633,7 @@ namespace TLO.local
             // 
             this._llSelectedTopicsToTorrentClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsToTorrentClient.AutoSize = true;
-            this._llSelectedTopicsToTorrentClient.Location = new System.Drawing.Point(836, 68);
+            this._llSelectedTopicsToTorrentClient.Location = new System.Drawing.Point(836, 81);
             this._llSelectedTopicsToTorrentClient.Name = "_llSelectedTopicsToTorrentClient";
             this._llSelectedTopicsToTorrentClient.Size = new System.Drawing.Size(141, 13);
             this._llSelectedTopicsToTorrentClient.TabIndex = 19;
@@ -1537,7 +1645,7 @@ namespace TLO.local
             // 
             this._llDownloadSelectTopics.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llDownloadSelectTopics.AutoSize = true;
-            this._llDownloadSelectTopics.Location = new System.Drawing.Point(836, 51);
+            this._llDownloadSelectTopics.Location = new System.Drawing.Point(836, 58);
             this._llDownloadSelectTopics.Name = "_llDownloadSelectTopics";
             this._llDownloadSelectTopics.Size = new System.Drawing.Size(122, 13);
             this._llDownloadSelectTopics.TabIndex = 18;
@@ -1549,7 +1657,7 @@ namespace TLO.local
             // 
             this._llSelectedTopicsToBlackList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsToBlackList.AutoSize = true;
-            this._llSelectedTopicsToBlackList.Location = new System.Drawing.Point(836, 119);
+            this._llSelectedTopicsToBlackList.Location = new System.Drawing.Point(836, 148);
             this._llSelectedTopicsToBlackList.Name = "_llSelectedTopicsToBlackList";
             this._llSelectedTopicsToBlackList.Size = new System.Drawing.Size(145, 13);
             this._llSelectedTopicsToBlackList.TabIndex = 17;
@@ -1783,7 +1891,6 @@ namespace TLO.local
             // 
             // ConsolidatedTorrentClientsReport
             // 
-            this.ConsolidatedTorrentClientsReport.Controls.Add(this.button1);
             this.ConsolidatedTorrentClientsReport.Controls.Add(this._tbConsolidatedTorrentClientsReport);
             this.ConsolidatedTorrentClientsReport.Location = new System.Drawing.Point(4, 22);
             this.ConsolidatedTorrentClientsReport.Name = "ConsolidatedTorrentClientsReport";
@@ -1803,7 +1910,7 @@ namespace TLO.local
             this._tbConsolidatedTorrentClientsReport.Name = "_tbConsolidatedTorrentClientsReport";
             this._tbConsolidatedTorrentClientsReport.ReadOnly = true;
             this._tbConsolidatedTorrentClientsReport.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this._tbConsolidatedTorrentClientsReport.Size = new System.Drawing.Size(1032, 410);
+            this._tbConsolidatedTorrentClientsReport.Size = new System.Drawing.Size(1032, 433);
             this._tbConsolidatedTorrentClientsReport.TabIndex = 0;
             // 
             // tabPage1
@@ -1871,16 +1978,6 @@ namespace TLO.local
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(3, 411);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(128, 23);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "Неизвестные в файл";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.ExportUnknown_Click);
             // 
             // MainForm
             // 
