@@ -347,7 +347,7 @@ namespace TLO.local
       return categoryList;
     }
 
-    public List<Category> GetCategoriesEnable()
+    public List<Category> GetCategoriesEnable(bool withUnknown = false)
     {
       List<Category> categoryList = new List<Category>();
       using (SQLiteCommand command = this._conn.CreateCommand())
@@ -394,11 +394,15 @@ namespace TLO.local
           }
         }
       }
-            Category unknown = new Category();
-            unknown.FullName = "Неизвестные";
-            unknown.CategoryID = -1;
-            categoryList.Add(unknown);
-      return categoryList;
+            if (withUnknown)
+            {
+                Category unknown = new Category();
+                unknown.FullName = "Неизвестные";
+                unknown.CategoryID = -1;
+                categoryList.Add(unknown);
+            }
+
+            return categoryList;
     }
 
     public void ResetFlagsTopicDownloads()

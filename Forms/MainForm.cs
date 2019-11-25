@@ -133,7 +133,7 @@ namespace TLO.local
             this._cbCountSeeders.Value = new Decimal(0);
             this._cbCategoryFilters.SelectedItem = (object)"Не скачан торрент и нет хранителя";
             this._CategorySource.Clear();
-            this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
+            this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable(true);
             this._CategorySource.CurrentChanged += new EventHandler(this.SelectionChanged);
             this._cbCategory.DataSource = (object) this._CategorySource;
             if (this._CategorySource.Count > 0)
@@ -487,10 +487,10 @@ namespace TLO.local
                             }
                         }
 
-                        this._lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", (object)source.Count<TopicInfo>(),
-                            (object)TopicInfo.sizeToString(source.Sum<TopicInfo>((Func<TopicInfo, long>)(x => x.Size))));
                     }
 
+                    this._lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", (object)source.Count<TopicInfo>(),
+                        (object)TopicInfo.sizeToString(source.Sum<TopicInfo>((Func<TopicInfo, long>)(x => x.Size))));
                     this._TopicsSource.DataSource = (object) source;
                 }
             }
@@ -2015,7 +2015,28 @@ namespace TLO.local
         }
         private void FormLoad(object sender, EventArgs e)
         {
-            this.Location = Properties.Settings.Default.WindowLocation;
+            var loc = Properties.Settings.Default.WindowLocation;
+            if (loc.X < 0)
+            {
+                loc.X = 0;
+            }
+
+            if (loc.Y < 0)
+            {
+                loc.Y = 0;
+            }
+
+            if (loc.X >= SystemInformation.VirtualScreen.Size.Width - this.Size.Width)
+            {
+                loc.X = SystemInformation.VirtualScreen.Size.Width - this.Size.Width;
+            }
+
+            if (loc.Y >= SystemInformation.VirtualScreen.Size.Height - this.Size.Height)
+            {
+                loc.Y = SystemInformation.VirtualScreen.Size.Height - this.Size.Height;
+            }
+
+            this.Location = loc;
         }
 
         private void FireFormClosing(object sender, FormClosingEventArgs e)
