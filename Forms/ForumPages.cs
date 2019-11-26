@@ -13,11 +13,8 @@ using System.Windows.Forms;
 
 namespace TLO.local
 {
-  public class ForumPages : UserControl
+  partial class ForumPages : UserControl
   {
-    private IContainer components;
-    private Panel panel1;
-
     private List<Tuple<int, int, TextBox>> Urls { get; set; }
 
     public ForumPages()
@@ -91,31 +88,6 @@ namespace TLO.local
     public void Save()
     {
       ClientLocalDB.Current.SaveSettingsReport(this.Urls.Select<Tuple<int, int, TextBox>, Tuple<int, int, string>>((Func<Tuple<int, int, TextBox>, Tuple<int, int, string>>) (x => new Tuple<int, int, string>(x.Item1, x.Item2, x.Item3.Text))).ToList<Tuple<int, int, string>>());
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && this.components != null)
-        this.components.Dispose();
-      base.Dispose(disposing);
-    }
-
-    private void InitializeComponent()
-    {
-      this.panel1 = new Panel();
-      this.SuspendLayout();
-      this.panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      this.panel1.AutoScroll = true;
-      this.panel1.Location = new Point(0, 0);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new Size(606, 440);
-      this.panel1.TabIndex = 0;
-      this.AutoScaleDimensions = new SizeF(6f, 13f);
-      this.AutoScaleMode = AutoScaleMode.Font;
-      this.Controls.Add((Control) this.panel1);
-      this.Name = "ForumPages";
-      this.Size = new Size(606, 440);
-      this.ResumeLayout(false);
     }
   }
 }

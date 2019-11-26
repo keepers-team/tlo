@@ -4,15 +4,15 @@
 // MVID: E76CFDB0-1920-4151-9DD8-5FF51DE7CC23
 // Assembly location: C:\Users\root\Downloads\TLO_2.6.2.21\TLO.local.exe
 
-using NLog;
-using NLog.Config;
-using NLog.Layouts;
-using NLog.Targets;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
+using NLog;
+using NLog.Config;
+using NLog.Layouts;
+using NLog.Targets;
 
 namespace TLO.local
 {
@@ -26,7 +26,7 @@ namespace TLO.local
     {
       get
       {
-        return Path.Combine(this.Folder, "TLO.local.Settings.xml");
+        return Path.Combine(Folder, "TLO.local.Settings.xml");
       }
     }
 
@@ -44,11 +44,11 @@ namespace TLO.local
       {
         try
         {
-          if (!Directory.Exists(Path.GetDirectoryName(this.FileSettings)))
-            Directory.CreateDirectory(Path.GetDirectoryName(this.FileSettings));
-          using (Stream stream = (Stream) File.Open(this.FileSettings, FileMode.Create, FileAccess.ReadWrite))
+          if (!Directory.Exists(Path.GetDirectoryName(FileSettings)))
+            Directory.CreateDirectory(Path.GetDirectoryName(FileSettings));
+          using (Stream stream = (Stream) File.Open(FileSettings, FileMode.Create, FileAccess.ReadWrite))
           {
-            this.LogLevel = new int?(this.LogLevel.HasValue ? this.LogLevel.Value : 0);
+            LogLevel = new int?(LogLevel.HasValue ? LogLevel.Value : 0);
             new XmlSerializer(typeof (Settings)).Serialize(stream, (object) this);
           }
         }
@@ -57,7 +57,7 @@ namespace TLO.local
           Console.WriteLine(ex.Message);
           Console.WriteLine(ex.StackTrace);
         }
-        this._LastWriteTime = File.GetLastWriteTime(this.FileSettings);
+        _LastWriteTime = File.GetLastWriteTime(FileSettings);
       }
     }
 
@@ -67,71 +67,72 @@ namespace TLO.local
       {
         lock (this)
         {
-          using (Stream stream = (Stream) File.Open(this.FileSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+          using (Stream stream = (Stream) File.Open(FileSettings, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
           {
             Settings settings = (Settings) new XmlSerializer(typeof (Settings)).Deserialize(stream);
-            this.IsUpdateStatistics = settings.IsUpdateStatistics;
-            this.CountDaysKeepHistory = settings.CountDaysKeepHistory;
-            this.PeriodRunAndStopTorrents = settings.PeriodRunAndStopTorrents;
-            this.CountSeedersReport = settings.CountSeedersReport;
-            this.IsAvgCountSeeders = settings.IsAvgCountSeeders;
-            this.KeeperName = settings.KeeperName;
-            this.KeeperPass = settings.KeeperPass;
-            this.IsSelectLessOrEqual = settings.IsSelectLessOrEqual;
-            this.IsNotSaveStatistics = settings.IsNotSaveStatistics;
-            this.LastUpdateTopics = settings.LastUpdateTopics;
-            this.ReportTop1 = settings.ReportTop1.Replace("\n", "\r\n").Replace("\r\r", "\r");
-            this.ReportTop2 = settings.ReportTop2.Replace("\n", "\r\n").Replace("\r\r", "\r");
-            this.ReportLine = settings.ReportLine.Replace("\n", "\r\n").Replace("\r\r", "\r");
-            this.ReportBottom = settings.ReportBottom;
-            this.HostRuTrackerOrg = settings.HostRuTrackerOrg;
-            this.SetLogger(settings.LogLevel.HasValue ? settings.LogLevel.Value : 0);
-            this._LastWriteTime = File.GetLastWriteTime(this.FileSettings);
-            this.LoadDBInMemory = settings.LoadDBInMemory;
-            this.Proxy = settings.Proxy;
-            this.ApiHost = settings.ApiHost;
-            this.DisableServerCertVerify = settings.DisableServerCertVerify;
+            IsUpdateStatistics = settings.IsUpdateStatistics;
+            CountDaysKeepHistory = settings.CountDaysKeepHistory;
+            PeriodRunAndStopTorrents = settings.PeriodRunAndStopTorrents;
+            CountSeedersReport = settings.CountSeedersReport;
+            IsAvgCountSeeders = settings.IsAvgCountSeeders;
+            KeeperName = settings.KeeperName;
+            KeeperPass = settings.KeeperPass;
+            IsSelectLessOrEqual = settings.IsSelectLessOrEqual;
+            IsNotSaveStatistics = settings.IsNotSaveStatistics;
+            LastUpdateTopics = settings.LastUpdateTopics;
+            ReportTop1 = settings.ReportTop1.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportTop2 = settings.ReportTop2.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportLine = settings.ReportLine.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportBottom = settings.ReportBottom;
+            HostRuTrackerOrg = settings.HostRuTrackerOrg;
+            SetLogger(settings.LogLevel.HasValue ? settings.LogLevel.Value : 0);
+            _LastWriteTime = File.GetLastWriteTime(FileSettings);
+            LoadDBInMemory = settings.LoadDBInMemory;
+            Proxy = settings.Proxy;
+            ApiHost = settings.ApiHost;
+            DisableServerCertVerify = settings.DisableServerCertVerify;
           }
         }
       }
       catch
       {
-        this.Save();
+        Save();
       }
     }
 
     public void Checking()
     {
-      if (!(File.GetLastWriteTime(this.FileSettings) != this._LastWriteTime))
+      if (!(File.GetLastWriteTime(FileSettings) != _LastWriteTime))
         return;
-      this.Read();
+      Read();
     }
 
     public static Settings Current
     {
       get
       {
-        if (Settings._data == null)
-          Settings._data = new Settings();
-        Settings._data.Checking();
-        return Settings._data;
+        if (_data == null)
+          _data = new Settings();
+        _data.Checking();
+        return _data;
       }
     }
 
     public Settings()
     {
-      this.KeeperName = string.Empty;
-      this.KeeperPass = string.Empty;
-      this.CountDaysKeepHistory = 7;
-      this.PeriodRunAndStopTorrents = 60;
-      this.CountSeedersReport = 10;
-      this.IsSelectLessOrEqual = true;
-      this.IsNotSaveStatistics = true;
-      this.ReportLine = "[*] %%Status%% [url=viewtopic.php?t=%%ID%%]%%Name%%[/url] %%Size%%";
-      this.ReportTop1 = "[b]Актуально на:[/b] %%CreateDate%%\r\n\r\nОбщее количество хранимых раздач подраздела: %%CountTopics%% шт. (%%SizeTopics%%)";
-      this.ReportTop2 = "%%Top1%%[spoiler=\"Раздачи, взятые на хранение, №№ %%NumberTopicsFirst%% - %%NumberTopicsLast%%\"]\r\n[list=1]\r\n%%ReportLines%%\r\n[/list]\r\n[/spoiler]";
-      this.ReportBottom = "";
-      this.HostRuTrackerOrg = "rutracker.org";
+      KeeperName = string.Empty;
+      KeeperPass = string.Empty;
+      CountDaysKeepHistory = 7;
+      PeriodRunAndStopTorrents = 60;
+      CountSeedersReport = 10;
+      IsSelectLessOrEqual = true;
+      IsNotSaveStatistics = true;
+      ReportLine = "[*] %%Status%% [url=viewtopic.php?t=%%ID%%]%%Name%%[/url] %%Size%%";
+      ReportTop1 = "[b]Актуально на:[/b] %%CreateDate%%\r\n\r\nОбщее количество хранимых раздач подраздела: %%CountTopics%% шт. (%%SizeTopics%%)";
+      ReportTop2 = "%%Top1%%[spoiler=\"Раздачи, взятые на хранение, №№ %%NumberTopicsFirst%% - %%NumberTopicsLast%%\"]\r\n[list=1]\r\n%%ReportLines%%\r\n[/list]\r\n[/spoiler]";
+      ReportBottom = "";
+      ReportCategories = "[hr]\r\n[hr]\r\n[b][color=darkgreen][align=center][size=16]Статистика раздела: {0}[/size][/align][/color][/b][hr]\r\n[hr]\r\n\r\n";
+      HostRuTrackerOrg = "rutracker.org";
     }
 
     [XmlElement]
@@ -139,7 +140,7 @@ namespace TLO.local
 
     private void SetLogger(int logLevel)
     {
-      if (this.LogLevel.HasValue && this.LogLevel.Value == logLevel)
+      if (LogLevel.HasValue && LogLevel.Value == logLevel)
         return;
       string str = "BI.Analytics.Expert.Other";
       if (Assembly.GetEntryAssembly() != (Assembly) null)
@@ -148,7 +149,7 @@ namespace TLO.local
       FileTarget fileTarget = new FileTarget();
       fileTarget.Layout = (Layout) "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${message}";
       loggingConfiguration.AddTarget("logfile", (Target) fileTarget);
-      fileTarget.FileName = (Layout) Path.Combine(this.Folder, str + ".log");
+      fileTarget.FileName = (Layout) Path.Combine(Folder, str + ".log");
       fileTarget.Encoding = Encoding.UTF8;
       fileTarget.ArchiveAboveSize = 20971520L;
       if (Environment.UserInteractive)
@@ -162,8 +163,8 @@ namespace TLO.local
       LoggingRule loggingRule1 = logLevel > 0 ? (logLevel != 1 ? (logLevel != 2 ? new LoggingRule("*", NLog.LogLevel.Trace, (Target) fileTarget) : new LoggingRule("*", NLog.LogLevel.Debug, (Target) fileTarget)) : new LoggingRule("*", NLog.LogLevel.Info, (Target) fileTarget)) : new LoggingRule("*", NLog.LogLevel.Warn, (Target) fileTarget);
       loggingConfiguration.LoggingRules.Add(loggingRule1);
       LogManager.Configuration = loggingConfiguration;
-      Settings._logger.Info(string.Format("OS: {0} (Is64BitOperatingSystem: {1}, Version {2})", (object) Environment.OSVersion.VersionString, (object) Environment.Is64BitOperatingSystem, (object) Environment.OSVersion.Version.ToString()));
-      this.LogLevel = new int?(logLevel);
+      _logger.Info(string.Format("OS: {0} (Is64BitOperatingSystem: {1}, Version {2})", (object) Environment.OSVersion.VersionString, (object) Environment.Is64BitOperatingSystem, (object) Environment.OSVersion.Version.ToString()));
+      LogLevel = new int?(logLevel);
     }
 
     [XmlAttribute]
@@ -207,6 +208,10 @@ namespace TLO.local
 
     [XmlElement]
     public string ReportBottom { get; set; }
+    
+    public string ReportCategories { get; set; }
+    
+    public string ReportSummary { get; set; }
 
     [XmlElement]
     public string HostRuTrackerOrg { get; set; }
