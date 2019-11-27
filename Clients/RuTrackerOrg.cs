@@ -34,9 +34,9 @@ namespace TLO.local
     {
       get
       {
-        if (RuTrackerOrg._current == null)
-          RuTrackerOrg._current = new RuTrackerOrg();
-        return RuTrackerOrg._current;
+        if (_current == null)
+          _current = new RuTrackerOrg(Settings.Current.KeeperName, Settings.Current.KeeperPass);
+        return _current;
       }
     }
 
@@ -47,20 +47,20 @@ namespace TLO.local
 
     public RuTrackerOrg(string userName, string password)
     {
-      this.jSerializer = new JsonSerializer();
-      this._userName = userName;
-      this._userPass = password;
-      if (this._logger == null)
-        this._logger = LogManager.GetLogger("RuTrackerOrg");
-      if (string.IsNullOrWhiteSpace(this._userName) || string.IsNullOrWhiteSpace(this._userPass))
+      jSerializer = new JsonSerializer();
+      _userName = userName;
+      _userPass = password;
+      if (_logger == null)
+        _logger = LogManager.GetLogger("RuTrackerOrg");
+      if (string.IsNullOrWhiteSpace(_userName) || string.IsNullOrWhiteSpace(_userPass))
         return;
-      this.ReadKeeperInfo();
+      ReadKeeperInfo();
     }
 
     public IEnumerable<Category> GetCategories()
     {
       List<Category> source = new List<Category>();
-      var downloadArchivePage = this.DownloadArchivePage($"https://{Settings.Current.ApiHost}/v1/static/cat_forum_tree");
+      var downloadArchivePage = DownloadArchivePage($"https://{Settings.Current.ApiHost}/v1/static/cat_forum_tree");
       JObject jobject1 = (JsonConvert.DeserializeObject(downloadArchivePage) as JObject)["result"].ToObject<JObject>();
       jobject1["c"].ToObject<JObject>();
       source.AddRange((IEnumerable<Category>) jobject1["c"].ToObject<Dictionary<string, object>>().Select<KeyValuePair<string, object>, Category>((Func<KeyValuePair<string, object>, Category>) (x => new Category()
@@ -117,7 +117,7 @@ namespace TLO.local
     public IEnumerable<Tuple<int, string>> GetCategoriesFromPost(string postUrl)
     {
       List<Tuple<int, string>> tupleList = new List<Tuple<int, string>>();
-      string[] array = ((IEnumerable<string>) this.DownloadWebPage(postUrl).Split(new char[2]
+      string[] array = ((IEnumerable<string>) DownloadWebPage(postUrl).Split(new char[2]
       {
         '\r',
         '\n'
@@ -150,7 +150,7 @@ namespace TLO.local
           if (postUrl1.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=") && postUrl1 != $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=")
             str1 = postUrl1;
           if (postUrl1.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p="))
-            str1 = this.GetTopicUrlByPostUrl(postUrl1);
+            str1 = GetTopicUrlByPostUrl(postUrl1);
         }
         if (nullable1.HasValue && !string.IsNullOrWhiteSpace(str1))
           tupleList.Add(new Tuple<int, string>(nullable1.Value, str1));
@@ -162,7 +162,7 @@ namespace TLO.local
 
     public string GetTopicUrlByPostUrl(string postUrl)
     {
-      string str = this.DownloadWebPage(postUrl);
+      string str = DownloadWebPage(postUrl);
       if (str.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         return (string) null;
       return ((IEnumerable<string>) str.Split(new char[1]
@@ -173,7 +173,7 @@ namespace TLO.local
 
     public int[][] GetTopicsStatus(int forumID)
     {
-      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("https://{1}/v1/static/pvc/f/{0}", (object) forumID, Settings.Current.ApiHost)))["result"].ToObject<Dictionary<int, Int64[]>>();
+      Dictionary<int, Int64[]> dictionary = JsonConvert.DeserializeObject<JObject>(DownloadArchivePage(string.Format("https://{1}/v1/static/pvc/f/{0}", (object) forumID, Settings.Current.ApiHost)))["result"].ToObject<Dictionary<int, Int64[]>>();
       int[][] numArray1 = new int[dictionary.Count][];
       int index = 0;
       foreach (KeyValuePair<int, Int64[]> keyValuePair in dictionary)
@@ -194,7 +194,7 @@ namespace TLO.local
       if (topics == null || topics.Length == 0 || topics.Length > 100)
         return (List<TopicInfo>) null;
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(this.DownloadArchivePage(string.Format("https://{0}/v1/get_tor_topic_data?by=topic_id&val={1}", Settings.Current.ApiHost, (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
+      foreach (KeyValuePair<int, Dictionary<string, object>> keyValuePair in JsonConvert.DeserializeObject<JObject>(DownloadArchivePage(string.Format("https://{0}/v1/get_tor_topic_data?by=topic_id&val={1}", Settings.Current.ApiHost, (object) HttpUtility.UrlEncode(string.Join<int>(",", (IEnumerable<int>) topics)))))["result"].ToObject<Dictionary<int, Dictionary<string, object>>>())
       {
         TopicInfo topicInfo = new TopicInfo();
         topicInfo.TopicID = keyValuePair.Key;
@@ -232,7 +232,7 @@ namespace TLO.local
       foreach (IEnumerable<int> values in intListArray)
       {
         var url = string.Format("https://{0}/v1/get_user_name?by=user_id&val={1}", Settings.Current.ApiHost, (object) HttpUtility.UrlEncode(string.Join<int>(",", values)));
-        var getUserNameResult = this.DownloadArchivePage(url);
+        var getUserNameResult = DownloadArchivePage(url);
         foreach (KeyValuePair<int, string> keyValuePair in JsonConvert.DeserializeObject<JObject>(getUserNameResult)["result"].ToObject<Dictionary<int, string>>())
           userInfoList.Add(new UserInfo()
           {
@@ -253,11 +253,11 @@ namespace TLO.local
       do
       {
         empty = string.Empty;
-        str1 = this.DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}", (object) topicid, num1 == 0 ? (object) "" : (object) ("&start=" + num1.ToString()), Settings.Current.HostRuTrackerOrg));
+        str1 = DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}", (object) topicid, num1 == 0 ? (object) "" : (object) ("&start=" + num1.ToString()), Settings.Current.HostRuTrackerOrg));
         if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         {
           Thread.Sleep(500);
-          str1 = this.DownloadWebPage(string.Format("https://{0}/forum/viewtopic.php?p={1}", (object) topicid, Settings.Current.HostRuTrackerOrg));
+          str1 = DownloadWebPage(string.Format("https://{0}/forum/viewtopic.php?p={1}", (object) topicid, Settings.Current.HostRuTrackerOrg));
           if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
             return new List<int>();
           string s = ((IEnumerable<string>) str1.Split(new char[1]
@@ -295,7 +295,7 @@ label_13:;
     internal Tuple<string, int, List<int>> GetTopicsFromReport(int postId, int categoryId)
     {
       Tuple<string, int, List<int>> tuple = (Tuple<string, int, List<int>>) null;
-      string[] strArray1 = this.DownloadWebPage(string.Format("https://post.{1}/forum/posting.php?mode=quote&p={0}", (object) postId, Settings.Current.HostRuTrackerOrg)).Split(new string[2]
+      string[] strArray1 = DownloadWebPage(string.Format("https://post.{1}/forum/posting.php?mode=quote&p={0}", (object) postId, Settings.Current.HostRuTrackerOrg)).Split(new string[2]
       {
         "<textarea",
         "</textarea>"
@@ -325,7 +325,7 @@ label_13:;
         }
         catch (Exception ex)
         {
-          this._logger.Error("Ошибка получения информации о раздаче по адресу \"" + str2 + "\": " + ex.Message);
+          _logger.Error("Ошибка получения информации о раздаче по адресу \"" + str2 + "\": " + ex.Message);
         }
       }
       return tuple;
@@ -341,12 +341,12 @@ label_13:;
       do
       {
         empty = string.Empty;
-        str1 = this.DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
+        str1 = DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
           (object) topicid, num == 0 ? (object) "" : (object) ("&start=" + num.ToString()), Settings.Current.HostRuTrackerOrg));
         if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
         {
           Thread.Sleep(500);
-          str1 = this.DownloadWebPage(
+          str1 = DownloadWebPage(
             $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p={(object) topicid}");
           if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
             return dictionary;
@@ -415,7 +415,7 @@ label_13:;
                 }
                 catch (Exception ex)
                 {
-                  this._logger.Warn(topicid.ToString() + "\t" + strArray[1] + "\t" + ex.Message);
+                  _logger.Warn(topicid.ToString() + "\t" + strArray[1] + "\t" + ex.Message);
                 }
               }
             }
@@ -432,9 +432,9 @@ label_13:;
     public Dictionary<string, Tuple<int, List<int>>> GetKeeps2(int topicid, int categoryId)
     {
       Dictionary<string, Tuple<int, List<int>>> dictionary = new Dictionary<string, Tuple<int, List<int>>>();
-      foreach (int postId in this.GetPostsFromTopicId(topicid))
+      foreach (int postId in GetPostsFromTopicId(topicid))
       {
-        Tuple<string, int, List<int>> topicsFromReport = this.GetTopicsFromReport(postId, categoryId);
+        Tuple<string, int, List<int>> topicsFromReport = GetTopicsFromReport(postId, categoryId);
         if (topicsFromReport != null && topicsFromReport.Item3.Count != 0)
         {
           if (!dictionary.ContainsKey(topicsFromReport.Item1))
@@ -469,7 +469,7 @@ label_13:;
 
     public string DownloadWebPage(string page, params object[] param)
     {
-      return Encoding.GetEncoding("windows-1251").GetString(this.DownloadWebPages(string.Format(page, param)));
+      return Encoding.GetEncoding("windows-1251").GetString(DownloadWebPages(string.Format(page, param)));
     }
 
     public byte[] DownloadTorrentFile(int id)
@@ -481,18 +481,18 @@ label_13:;
         TLOWebClient tloWebClient = (TLOWebClient) null;
         try
         {
-          if (this._webClient == null)
+          if (_webClient == null)
           {
             tloWebClient = new TLOWebClient();
-            string s = string.Format("login_username={0}&login_password={1}&login={2}", (object) HttpUtility.UrlEncode(this._userName, Encoding.GetEncoding(1251)), (object) HttpUtility.UrlEncode(this._userPass, Encoding.GetEncoding(1251)), (object) "Вход");
+            string s = string.Format("login_username={0}&login_password={1}&login={2}", (object) HttpUtility.UrlEncode(_userName, Encoding.GetEncoding(1251)), (object) HttpUtility.UrlEncode(_userPass, Encoding.GetEncoding(1251)), (object) "Вход");
             empty = Encoding.GetEncoding("windows-1251").GetString(tloWebClient.UploadData("https://" + Settings.Current.HostRuTrackerOrg + "/forum/login.php", "POST", Encoding.GetEncoding(1251).GetBytes(s)));
             Thread.Sleep(500);
           }
         }
         catch (Exception ex)
         {
-          this._logger.Warn(ex.Message);
-          this._logger.Warn<Exception>(ex);
+          _logger.Warn(ex.Message);
+          _logger.Warn<Exception>(ex);
         }
         if (!string.IsNullOrWhiteSpace(empty))
         {
@@ -500,14 +500,14 @@ label_13:;
             throw new Exception("При авторизации требуется ввести текст с картинки. Авторизуйтесь на WEB-сайте, а потом повторите попытку");
           if (empty.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
             throw new Exception("Не удалось авторизоваться, проверьте логин и пароль");
-          this._webClient = tloWebClient;
+          _webClient = tloWebClient;
         }
         byte[] numArray2;
         try
         {
-          if (string.IsNullOrWhiteSpace(this._apiid))
+          if (string.IsNullOrWhiteSpace(_apiid))
           {
-            string str = ((IEnumerable<string>) this.DownloadWebPage(string.Format("https://" + Settings.Current.HostRuTrackerOrg + "/forum/viewtopic.php?t={0}", (object) id)).Split(new char[2]
+            string str = ((IEnumerable<string>) DownloadWebPage(string.Format("https://" + Settings.Current.HostRuTrackerOrg + "/forum/viewtopic.php?t={0}", (object) id)).Split(new char[2]
             {
               '\r',
               '\n'
@@ -515,10 +515,10 @@ label_13:;
             if (!string.IsNullOrWhiteSpace(str))
               str = str.Split(new char[1]{ '\'' }, StringSplitOptions.RemoveEmptyEntries)[1];
             string s = string.Format("form_token={0}", (object) str);
-            numArray2 = this._webClient.UploadData(string.Format("https://dl." + Settings.Current.HostRuTrackerOrg + "/forum/dl.php?t={0}", (object) id), "POST", Encoding.GetEncoding(1251).GetBytes(s));
+            numArray2 = _webClient.UploadData(string.Format("https://dl." + Settings.Current.HostRuTrackerOrg + "/forum/dl.php?t={0}", (object) id), "POST", Encoding.GetEncoding(1251).GetBytes(s));
           }
           else
-            numArray2 = this._webClient.UploadData("https://" + Settings.Current.HostRuTrackerOrg + "/forum/dl.php", "POST", Encoding.GetEncoding(1251).GetBytes(string.Format("keeper_user_id={0}&keeper_api_key={1}&t={2}&add_retracker_url=0", (object) this._keeperid, (object) this._apiid, (object) id)));
+            numArray2 = _webClient.UploadData("https://" + Settings.Current.HostRuTrackerOrg + "/forum/dl.php", "POST", Encoding.GetEncoding(1251).GetBytes(string.Format("keeper_user_id={0}&keeper_api_key={1}&t={2}&add_retracker_url=0", (object) _keeperid, (object) _apiid, (object) id)));
         }
         catch (Exception ex)
         {
@@ -532,9 +532,9 @@ label_13:;
           throw new Exception("Форум временно отключен");
         if (lower.Contains("https://static." + Settings.Current.HostRuTrackerOrg + "/captcha") || lower.Contains("<a href=\"profile.php?mode=register\"><b>регистрация</b></a>"))
         {
-          if (this._webClient != null)
-            this._webClient.Dispose();
-          this._webClient = (TLOWebClient) null;
+          if (_webClient != null)
+            _webClient.Dispose();
+          _webClient = (TLOWebClient) null;
         }
         else
         {
@@ -559,12 +559,12 @@ label_13:;
         TLOWebClient tloWebClient = null;
         try
         {
-          if (this._webClient == null)
+          if (_webClient == null)
           {
             tloWebClient = new TLOWebClient(Encoding.GetEncoding(1251));
-            if (!string.IsNullOrWhiteSpace(this._userName) && !string.IsNullOrWhiteSpace(this._userPass))
+            if (!string.IsNullOrWhiteSpace(_userName) && !string.IsNullOrWhiteSpace(_userPass))
             {
-              string s = string.Format("login_username={0}&login_password={1}&login={2}", (object) HttpUtility.UrlEncode(this._userName, Encoding.GetEncoding(1251)), (object) HttpUtility.UrlEncode(this._userPass, Encoding.GetEncoding(1251)), (object) "вход");
+              string s = string.Format("login_username={0}&login_password={1}&login={2}", (object) HttpUtility.UrlEncode(_userName, Encoding.GetEncoding(1251)), (object) HttpUtility.UrlEncode(_userPass, Encoding.GetEncoding(1251)), (object) "вход");
               empty = Encoding.GetEncoding("windows-1251").GetString(tloWebClient.UploadData($"https://{Settings.Current.HostRuTrackerOrg}/forum/login.php".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg), "POST", Encoding.GetEncoding(1251).GetBytes(s)));
             }
             Thread.Sleep(500);
@@ -574,18 +574,18 @@ label_13:;
         {
           _logger.Warn(ex.Message);
         }
-        if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(this._userName) && !string.IsNullOrWhiteSpace(this._userPass))
+        if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(_userName) && !string.IsNullOrWhiteSpace(_userPass))
         {
           if (empty.Contains($"https://static.{Settings.Current.HostRuTrackerOrg}/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)))
             throw new Exception("При авторизации требуется ввести текст с картинки. Авторизуйтесь на WEB-сайте, а потом повторите попытку");
           if (empty.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
             throw new Exception("Не удалось авторизоваться, проверьте логин и пароль");
-          this._webClient = tloWebClient;
+          _webClient = tloWebClient;
         }
         byte[] bytes;
         try
         {
-          bytes = this._webClient.DownloadData(page);
+          bytes = _webClient.DownloadData(page);
         }
         catch(Exception e)
         {
@@ -598,9 +598,9 @@ label_13:;
           throw new Exception("Форум временно отключен");
         if (!str.Contains($"https://static.{Settings.Current.HostRuTrackerOrg}/captcha".Replace("rutracker.org", Settings.Current.HostRuTrackerOrg)) && !str.Contains("<a href=\"profile.php?mode=register\"><b>Регистрация</b></a>"))
           return bytes;
-        if (this._webClient != null)
-          this._webClient.Dispose();
-        this._webClient = (TLOWebClient) null;
+        if (_webClient != null)
+          _webClient.Dispose();
+        _webClient = (TLOWebClient) null;
       }
       throw new Exception("Не удалось скачать WEB-страницу за 1 попытку");
     }
@@ -611,12 +611,12 @@ label_13:;
       {
         byte[] numArray = new byte[0];
         string empty = string.Empty;
-        if (this._webClient == null)
-          this._webClient = new TLOWebClient();
+        if (_webClient == null)
+          _webClient = new TLOWebClient();
         byte[] bytes;
         try
         {
-          bytes = this._webClient.DownloadData(page);
+          bytes = _webClient.DownloadData(page);
         }
         catch
         {
@@ -653,7 +653,7 @@ label_13:;
         throw new ArgumentException("Не корректно указан адрес отправки отчета: " + url);
       string str1 = ((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=')[2];
       var page = string.Format("https://{1}/forum/posting.php?mode=editpost&p={0}", (object) str1, Settings.Current.HostRuTrackerOrg);
-      string[] strArray = this.DownloadWebPage(page).Split(new char[2]
+      string[] strArray = DownloadWebPage(page).Split(new char[2]
       {
         '\r',
         '\n'
@@ -697,9 +697,9 @@ label_13:;
       {
         try
         {
-          if (this._webClient == null)
-            this.DownloadWebPage(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1));
-          this._webClient.UploadData(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1), "POST", Encoding.GetEncoding(1251).GetBytes(s));
+          if (_webClient == null)
+            DownloadWebPage(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1));
+          _webClient.UploadData(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}", (object) Settings.Current.HostRuTrackerOrg, (object) str1), "POST", Encoding.GetEncoding(1251).GetBytes(s));
           break;
         }
         catch (Exception ex)
@@ -716,7 +716,7 @@ label_13:;
     {
         try
         {
-            string str = ((IEnumerable<string>)this.DownloadWebPage(string.Format("https://{1}/forum/profile.php?mode=viewprofile&u={0}", (object)this._userName, Settings.Current.HostRuTrackerOrg)).Split(new char[2]
+            string str = ((IEnumerable<string>)DownloadWebPage(string.Format("https://{1}/forum/profile.php?mode=viewprofile&u={0}", (object)_userName, Settings.Current.HostRuTrackerOrg)).Split(new char[2]
         {
           '\r',
           '\n'
@@ -728,12 +728,12 @@ label_13:;
         })).FirstOrDefault<string>();
             if (string.IsNullOrWhiteSpace(str))
                 return;
-            this._apiid = str.Split(new string[2]
+            _apiid = str.Split(new string[2]
         {
           "<b>",
           "</b>"
         }, StringSplitOptions.RemoveEmptyEntries)[3];
-            this._keeperid = int.Parse(str.Split(new string[2]
+            _keeperid = int.Parse(str.Split(new string[2]
         {
           "<b>",
           "</b>"
@@ -742,7 +742,7 @@ label_13:;
         catch
         {
         }
-        this._logger.Info<int, string>("Результат авторизации: KeeperID: {0}; KeeperApiKey: {1}", this._keeperid, this._apiid);
+        _logger.Info<int, string>("Результат авторизации: KeeperID: {0}; KeeperApiKey: {1}", _keeperid, _apiid);
     }
   }
 }

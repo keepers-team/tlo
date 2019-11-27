@@ -6,32 +6,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace TLO.local
 {
-  public class ForumPages : UserControl
+  partial class ForumPages : UserControl
   {
-    private IContainer components;
-    private Panel panel1;
-
     private List<Tuple<int, int, TextBox>> Urls { get; set; }
 
     public ForumPages()
     {
-      this.Urls = new List<Tuple<int, int, TextBox>>();
-      this.InitializeComponent();
+      Urls = new List<Tuple<int, int, TextBox>>();
+      InitializeComponent();
     }
 
     public void LoadSettings()
     {
-      this.panel1.Controls.Clear();
+      panel1.Controls.Clear();
       Dictionary<Tuple<int, int>, Tuple<string, string>> reports = ClientLocalDB.Current.GetReports(new int?());
       List<Category> categoriesEnable = ClientLocalDB.Current.GetCategoriesEnable();
-      categoriesEnable.Add(new Category()
+      categoriesEnable.Add(new Category
       {
         CategoryID = 0,
         Name = " Сводный отчет",
@@ -39,7 +35,7 @@ namespace TLO.local
       });
       int num1 = 0;
       int y = 10;
-      foreach (Category category1 in (IEnumerable<Category>) categoriesEnable.OrderBy<Category, string>((Func<Category, string>) (x => x.FullName)))
+      foreach (Category category1 in categoriesEnable.OrderBy(x => x.FullName))
       {
         Category category = category1;
         Label label = new Label();
@@ -48,9 +44,9 @@ namespace TLO.local
         label.Size = new Size(35, 13);
         label.TabIndex = num1;
         label.Text = category.FullName;
-        this.panel1.Controls.Add((Control) label);
+        panel1.Controls.Add(label);
         y += 16;
-        KeyValuePair<Tuple<int, int>, Tuple<string, string>>[] array = reports.Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>((Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x => x.Key.Item1 == category.CategoryID)).OrderBy<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, int>((Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, int>) (x => x.Key.Item2)).ToArray<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>();
+        KeyValuePair<Tuple<int, int>, Tuple<string, string>>[] array = reports.Where(x => x.Key.Item1 == category.CategoryID).OrderBy(x => x.Key.Item2).ToArray();
         KeyValuePair<Tuple<int, int>, Tuple<string, string>>[] keyValuePairArray;
         if (array.Length != 0)
           keyValuePairArray = array;
@@ -69,19 +65,19 @@ namespace TLO.local
             textBox1.Location = new Point(6, y);
             textBox1.Size = new Size(123, 20);
             textBox1.TabIndex = num2;
-            textBox1.Text = "Отчет " + (keyValuePair.Key.Item2 != 0 ? keyValuePair.Key.Item2.ToString() + (keyValuePair.Value.Item2 == "Резерв" ? " (Резерв)" : "") : " (Шапка)");
+            textBox1.Text = "Отчет " + (keyValuePair.Key.Item2 != 0 ? keyValuePair.Key.Item2 + (keyValuePair.Value.Item2 == "Резерв" ? " (Резерв)" : "") : " (Шапка)");
             if (category.CategoryID == 0)
               textBox1.Text = "Сводный отчет";
-            this.panel1.Controls.Add((Control) textBox1);
+            panel1.Controls.Add(textBox1);
             num1 = num2 + 1;
             TextBox textBox2 = new TextBox();
             textBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             textBox2.Location = new Point(135, y);
-            textBox2.Size = new Size(this.panel1.Size.Width - 135, 20);
+            textBox2.Size = new Size(panel1.Size.Width - 135, 20);
             textBox2.TabIndex = num1;
             textBox2.Text = string.IsNullOrWhiteSpace(keyValuePair.Value.Item1) ? "" : keyValuePair.Value.Item1;
-            this.panel1.Controls.Add((Control) textBox2);
-            this.Urls.Add(new Tuple<int, int, TextBox>(keyValuePair.Key.Item1, keyValuePair.Key.Item2, textBox2));
+            panel1.Controls.Add(textBox2);
+            Urls.Add(new Tuple<int, int, TextBox>(keyValuePair.Key.Item1, keyValuePair.Key.Item2, textBox2));
             y += 26;
           }
         }
@@ -90,32 +86,7 @@ namespace TLO.local
 
     public void Save()
     {
-      ClientLocalDB.Current.SaveSettingsReport(this.Urls.Select<Tuple<int, int, TextBox>, Tuple<int, int, string>>((Func<Tuple<int, int, TextBox>, Tuple<int, int, string>>) (x => new Tuple<int, int, string>(x.Item1, x.Item2, x.Item3.Text))).ToList<Tuple<int, int, string>>());
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && this.components != null)
-        this.components.Dispose();
-      base.Dispose(disposing);
-    }
-
-    private void InitializeComponent()
-    {
-      this.panel1 = new Panel();
-      this.SuspendLayout();
-      this.panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      this.panel1.AutoScroll = true;
-      this.panel1.Location = new Point(0, 0);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new Size(606, 440);
-      this.panel1.TabIndex = 0;
-      this.AutoScaleDimensions = new SizeF(6f, 13f);
-      this.AutoScaleMode = AutoScaleMode.Font;
-      this.Controls.Add((Control) this.panel1);
-      this.Name = "ForumPages";
-      this.Size = new Size(606, 440);
-      this.ResumeLayout(false);
+      ClientLocalDB.Current.SaveSettingsReport(Urls.Select(x => new Tuple<int, int, string>(x.Item1, x.Item2, x.Item3.Text)).ToList());
     }
   }
 }

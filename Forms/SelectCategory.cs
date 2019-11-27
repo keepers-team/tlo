@@ -4,13 +4,13 @@
 // MVID: E76CFDB0-1920-4151-9DD8-5FF51DE7CC23
 // Assembly location: C:\Users\root\Downloads\TLO_2.6.2.21\TLO.local.exe
 
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using NLog;
 
 namespace TLO.local
 {
@@ -29,10 +29,10 @@ namespace TLO.local
 
     public SelectCategory()
     {
-      if (SelectCategory._logger == null)
-        SelectCategory._logger = LogManager.GetLogger("SelectCategory");
-      this.InitializeComponent();
-      this.SelectedCategories = new List<Category>();
+      if (_logger == null)
+        _logger = LogManager.GetLogger("SelectCategory");
+      InitializeComponent();
+      SelectedCategories = new List<Category>();
     }
 
     public void Read()
@@ -44,62 +44,62 @@ namespace TLO.local
       catch (Exception ex)
       {
         int num = (int) MessageBox.Show("Не удалось загрузить список категорий.\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
-        SelectCategory._logger.Error(ex.Message + "\r\n" + ex.StackTrace);
+        _logger.Error(ex.Message + "\r\n" + ex.StackTrace);
       }
-      Category[] array = ClientLocalDB.Current.GetCategories().OrderBy<Category, string>((Func<Category, string>) (x => x.FullName)).ToArray<Category>();
-      foreach (Category category3 in ((IEnumerable<Category>) array).Where<Category>((Func<Category, bool>) (x => x.CategoryID > 999999)).OrderBy<Category, string>((Func<Category, string>) (x => x.FullName)).ToArray<Category>())
+      Category[] array = ClientLocalDB.Current.GetCategories().OrderBy(x => x.FullName).ToArray();
+      foreach (Category category3 in array.Where(x => x.CategoryID > 999999).OrderBy(x => x.FullName).ToArray())
       {
         Category category1 = category3;
         List<TreeNode> source1 = new List<TreeNode>();
         Category[] categoryArray1 = array;
-        foreach (Category category4 in ((IEnumerable<Category>) categoryArray1).Where<Category>((Func<Category, bool>) (x => x.ParentID == category1.CategoryID)).OrderBy<Category, string>((Func<Category, string>) (x => x.FullName)).ToArray<Category>())
+        foreach (Category category4 in categoryArray1.Where(x => x.ParentID == category1.CategoryID).OrderBy(x => x.FullName).ToArray())
         {
           Category category2 = category4;
           List<TreeNode> source2 = new List<TreeNode>();
           Category[] categoryArray2 = array;
-          foreach (Category category5 in ((IEnumerable<Category>) categoryArray2).Where<Category>((Func<Category, bool>) (x => x.ParentID == category2.CategoryID)).OrderBy<Category, string>((Func<Category, string>) (x => x.FullName)).ToArray<Category>())
+          foreach (Category category5 in categoryArray2.Where(x => x.ParentID == category2.CategoryID).OrderBy(x => x.FullName).ToArray())
             source2.Add(new TreeNode(category5.Name)
             {
-              Tag = (object) category5
+              Tag = category5
             });
-          if (source2.Count<TreeNode>() != 0)
+          if (source2.Count() != 0)
             source1.Add(new TreeNode(category2.Name, source2.ToArray())
             {
-              Tag = (object) category2
+              Tag = category2
             });
           else
             source1.Add(new TreeNode(category2.Name)
             {
-              Tag = (object) category2
+              Tag = category2
             });
         }
-        if (source1.Count<TreeNode>() != 0)
-          this.treeView1.Nodes.Add(new TreeNode(category1.Name, source1.ToArray())
+        if (source1.Count() != 0)
+          treeView1.Nodes.Add(new TreeNode(category1.Name, source1.ToArray())
           {
-            Tag = (object) category1
+            Tag = category1
           });
         else
-          this.treeView1.Nodes.Add(new TreeNode(category1.Name)
+          treeView1.Nodes.Add(new TreeNode(category1.Name)
           {
-            Tag = (object) category1
+            Tag = category1
           });
       }
     }
 
     private void _btCancel_Click(object sender, EventArgs e)
     {
-      this.SelectedCategory = (Category) null;
-      this.DialogResult = DialogResult.Cancel;
-      this.Close();
+      SelectedCategory = null;
+      DialogResult = DialogResult.Cancel;
+      Close();
     }
 
     private void _btSelected_Click(object sender, EventArgs e)
     {
       try
       {
-        if (this.treeView1 == null)
+        if (treeView1 == null)
           return;
-        TreeNode selectedNode = this.treeView1.SelectedNode;
+        TreeNode selectedNode = treeView1.SelectedNode;
         if (selectedNode == null)
           return;
         Category tag = selectedNode.Tag as Category;
@@ -109,9 +109,9 @@ namespace TLO.local
         }
         else
         {
-          this.SelectedCategory = tag;
-          this.DialogResult = DialogResult.OK;
-          this.Close();
+          SelectedCategory = tag;
+          DialogResult = DialogResult.OK;
+          Close();
         }
       }
       catch (Exception ex)
@@ -124,84 +124,84 @@ namespace TLO.local
     {
       if (e.KeyCode != Keys.Return)
         return;
-      if (string.IsNullOrWhiteSpace(this._txtFrom.Text))
+      if (string.IsNullOrWhiteSpace(_txtFrom.Text))
         return;
       try
       {
-        if (this._txtFrom.Text.Split('=').Length != 2)
+        if (_txtFrom.Text.Split('=').Length != 2)
           return;
-        IEnumerable<Tuple<int, string>> categoriesFromPost = new RuTrackerOrg(Settings.Current.KeeperName, Settings.Current.KeeperPass).GetCategoriesFromPost(this._txtFrom.Text);
-        this.SelectedCategories = ClientLocalDB.Current.GetCategories().Join<Category, Tuple<int, string>, int, Category>(categoriesFromPost, (Func<Category, int>) (c => c.CategoryID), (Func<Tuple<int, string>, int>) (t => t.Item1), (Func<Category, Tuple<int, string>, Category>) ((c, t) => c)).ToList<Category>();
+        IEnumerable<Tuple<int, string>> categoriesFromPost = new RuTrackerOrg(Settings.Current.KeeperName, Settings.Current.KeeperPass).GetCategoriesFromPost(_txtFrom.Text);
+        SelectedCategories = ClientLocalDB.Current.GetCategories().Join(categoriesFromPost, c => c.CategoryID, t => t.Item1, (c, t) => c).ToList();
         List<Tuple<int, int, string>> result = new List<Tuple<int, int, string>>();
         foreach (Tuple<int, string> tuple in categoriesFromPost)
           result.Add(new Tuple<int, int, string>(tuple.Item1, 0, tuple.Item2));
         ClientLocalDB.Current.SaveSettingsReport(result);
-        this.DialogResult = DialogResult.OK;
-        this.Close();
+        DialogResult = DialogResult.OK;
+        Close();
       }
       catch (Exception ex)
       {
         int num = (int) MessageBox.Show(ex.Message);
-        SelectCategory._logger.Error(ex.Message);
-        SelectCategory._logger.Debug(ex.StackTrace);
+        _logger.Error(ex.Message);
+        _logger.Debug(ex.StackTrace);
       }
     }
 
     protected override void Dispose(bool disposing)
     {
-      if (disposing && this.components != null)
-        this.components.Dispose();
+      if (disposing && components != null)
+        components.Dispose();
       base.Dispose(disposing);
     }
 
     private void InitializeComponent()
     {
-      this.treeView1 = new TreeView();
-      this._btCancel = new Button();
-      this._btSelected = new Button();
-      this._txtFrom = new TextBox();
-      this.SuspendLayout();
-      this.treeView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      this.treeView1.Location = new Point(12, 12);
-      this.treeView1.Name = "treeView1";
-      this.treeView1.Size = new Size(468, 495);
-      this.treeView1.TabIndex = 0;
-      this.treeView1.DoubleClick += new EventHandler(this._btSelected_Click);
-      this._btCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      this._btCancel.Location = new Point(405, 513);
-      this._btCancel.Name = "_btCancel";
-      this._btCancel.Size = new Size(75, 23);
-      this._btCancel.TabIndex = 1;
-      this._btCancel.Text = "Отмена";
-      this._btCancel.UseVisualStyleBackColor = true;
-      this._btCancel.Click += new EventHandler(this._btCancel_Click);
-      this._btSelected.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      this._btSelected.Location = new Point(324, 513);
-      this._btSelected.Name = "_btSelected";
-      this._btSelected.Size = new Size(75, 23);
-      this._btSelected.TabIndex = 2;
-      this._btSelected.Text = "Выбрать";
-      this._btSelected.UseVisualStyleBackColor = true;
-      this._btSelected.Click += new EventHandler(this._btSelected_Click);
-      this._txtFrom.Location = new Point(12, 513);
-      this._txtFrom.Name = "_txtFrom";
-      this._txtFrom.Size = new Size(306, 20);
-      this._txtFrom.TabIndex = 3;
-      this._txtFrom.KeyDown += new KeyEventHandler(this._txtFrom_KeyDown);
-      this.AutoScaleDimensions = new SizeF(6f, 13f);
-      this.AutoScaleMode = AutoScaleMode.Font;
-      this.ClientSize = new Size(492, 548);
-      this.ControlBox = false;
-      this.Controls.Add((Control) this._txtFrom);
-      this.Controls.Add((Control) this._btSelected);
-      this.Controls.Add((Control) this._btCancel);
-      this.Controls.Add((Control) this.treeView1);
-      this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
-      this.Name = "SelectCategory";
-      this.StartPosition = FormStartPosition.CenterScreen;
-      this.Text = "Выбор категории";
-      this.ResumeLayout(false);
-      this.PerformLayout();
+      treeView1 = new TreeView();
+      _btCancel = new Button();
+      _btSelected = new Button();
+      _txtFrom = new TextBox();
+      SuspendLayout();
+      treeView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      treeView1.Location = new Point(12, 12);
+      treeView1.Name = "treeView1";
+      treeView1.Size = new Size(468, 495);
+      treeView1.TabIndex = 0;
+      treeView1.DoubleClick += _btSelected_Click;
+      _btCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      _btCancel.Location = new Point(405, 513);
+      _btCancel.Name = "_btCancel";
+      _btCancel.Size = new Size(75, 23);
+      _btCancel.TabIndex = 1;
+      _btCancel.Text = "Отмена";
+      _btCancel.UseVisualStyleBackColor = true;
+      _btCancel.Click += _btCancel_Click;
+      _btSelected.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      _btSelected.Location = new Point(324, 513);
+      _btSelected.Name = "_btSelected";
+      _btSelected.Size = new Size(75, 23);
+      _btSelected.TabIndex = 2;
+      _btSelected.Text = "Выбрать";
+      _btSelected.UseVisualStyleBackColor = true;
+      _btSelected.Click += _btSelected_Click;
+      _txtFrom.Location = new Point(12, 513);
+      _txtFrom.Name = "_txtFrom";
+      _txtFrom.Size = new Size(306, 20);
+      _txtFrom.TabIndex = 3;
+      _txtFrom.KeyDown += _txtFrom_KeyDown;
+      AutoScaleDimensions = new SizeF(6f, 13f);
+      AutoScaleMode = AutoScaleMode.Font;
+      ClientSize = new Size(492, 548);
+      ControlBox = false;
+      Controls.Add(_txtFrom);
+      Controls.Add(_btSelected);
+      Controls.Add(_btCancel);
+      Controls.Add(treeView1);
+      FormBorderStyle = FormBorderStyle.FixedToolWindow;
+      Name = "SelectCategory";
+      StartPosition = FormStartPosition.CenterScreen;
+      Text = "Выбор категории";
+      ResumeLayout(false);
+      PerformLayout();
     }
   }
 }

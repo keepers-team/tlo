@@ -23,88 +23,88 @@ namespace TLO.local.Forms
     {
       get
       {
-        return this._txtLabel.Text;
+        return _txtLabel.Text;
       }
       set
       {
-        this._txtLabel.Text = value;
+        _txtLabel.Text = value;
       }
     }
 
     public GetLableName()
     {
-      this.InitializeComponent();
+      InitializeComponent();
     }
 
     private void btClick(object sender, EventArgs e)
     {
-      if (sender == this.btCancel)
+      if (sender == btCancel)
       {
-        this.DialogResult = DialogResult.Cancel;
-        this.Close();
+        DialogResult = DialogResult.Cancel;
+        Close();
       }
       else
       {
-        if (sender != this.btOk)
+        if (sender != btOk)
           return;
-        this.DialogResult = DialogResult.OK;
+        DialogResult = DialogResult.OK;
       }
     }
 
     protected override void Dispose(bool disposing)
     {
-      if (disposing && this.components != null)
-        this.components.Dispose();
+      if (disposing && components != null)
+        components.Dispose();
       base.Dispose(disposing);
     }
 
     private void InitializeComponent()
     {
-      this._txtLabel = new TextBox();
-      this.label1 = new Label();
-      this.btOk = new Button();
-      this.btCancel = new Button();
-      this.SuspendLayout();
-      this._txtLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-      this._txtLabel.Location = new Point(94, 12);
-      this._txtLabel.Name = "_txtLabel";
-      this._txtLabel.Size = new Size(408, 20);
-      this._txtLabel.TabIndex = 0;
-      this.label1.AutoSize = true;
-      this.label1.Location = new Point(12, 15);
-      this.label1.Name = "label1";
-      this.label1.Size = new Size(76, 13);
-      this.label1.TabIndex = 1;
-      this.label1.Text = "Новая метка:";
-      this.btOk.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-      this.btOk.Location = new Point(427, 38);
-      this.btOk.Name = "btOk";
-      this.btOk.Size = new Size(75, 23);
-      this.btOk.TabIndex = 2;
-      this.btOk.Text = "Применить";
-      this.btOk.UseVisualStyleBackColor = true;
-      this.btOk.Click += new EventHandler(this.btClick);
-      this.btCancel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-      this.btCancel.Location = new Point(346, 38);
-      this.btCancel.Name = "btCancel";
-      this.btCancel.Size = new Size(75, 23);
-      this.btCancel.TabIndex = 3;
-      this.btCancel.Text = "Отмена";
-      this.btCancel.UseVisualStyleBackColor = true;
-      this.btCancel.Click += new EventHandler(this.btClick);
-      this.AutoScaleDimensions = new SizeF(6f, 13f);
-      this.AutoScaleMode = AutoScaleMode.Font;
-      this.ClientSize = new Size(514, 72);
-      this.Controls.Add((Control) this.btCancel);
-      this.Controls.Add((Control) this.btOk);
-      this.Controls.Add((Control) this.label1);
-      this.Controls.Add((Control) this._txtLabel);
-      this.FormBorderStyle = FormBorderStyle.None;
-      this.Name = "GetLableName";
-      this.StartPosition = FormStartPosition.CenterScreen;
-      this.Text = "GetLableName";
-      this.ResumeLayout(false);
-      this.PerformLayout();
+      _txtLabel = new TextBox();
+      label1 = new Label();
+      btOk = new Button();
+      btCancel = new Button();
+      SuspendLayout();
+      _txtLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      _txtLabel.Location = new Point(94, 12);
+      _txtLabel.Name = "_txtLabel";
+      _txtLabel.Size = new Size(408, 20);
+      _txtLabel.TabIndex = 0;
+      label1.AutoSize = true;
+      label1.Location = new Point(12, 15);
+      label1.Name = "label1";
+      label1.Size = new Size(76, 13);
+      label1.TabIndex = 1;
+      label1.Text = "Новая метка:";
+      btOk.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+      btOk.Location = new Point(427, 38);
+      btOk.Name = "btOk";
+      btOk.Size = new Size(75, 23);
+      btOk.TabIndex = 2;
+      btOk.Text = "Применить";
+      btOk.UseVisualStyleBackColor = true;
+      btOk.Click += btClick;
+      btCancel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+      btCancel.Location = new Point(346, 38);
+      btCancel.Name = "btCancel";
+      btCancel.Size = new Size(75, 23);
+      btCancel.TabIndex = 3;
+      btCancel.Text = "Отмена";
+      btCancel.UseVisualStyleBackColor = true;
+      btCancel.Click += btClick;
+      AutoScaleDimensions = new SizeF(6f, 13f);
+      AutoScaleMode = AutoScaleMode.Font;
+      ClientSize = new Size(514, 72);
+      Controls.Add(btCancel);
+      Controls.Add(btOk);
+      Controls.Add(label1);
+      Controls.Add(_txtLabel);
+      FormBorderStyle = FormBorderStyle.None;
+      Name = "GetLableName";
+      StartPosition = FormStartPosition.CenterScreen;
+      Text = "GetLableName";
+      ResumeLayout(false);
+      PerformLayout();
     }
   }
 }
