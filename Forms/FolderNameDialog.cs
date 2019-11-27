@@ -25,107 +25,107 @@ namespace TLO.local.Forms
     {
       get
       {
-        return this.txtFolderName.Text;
+        return txtFolderName.Text;
       }
       set
       {
-        this.txtFolderName.Text = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        txtFolderName.Text = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
       }
     }
 
     public FolderNameDialog()
     {
-      this.InitializeComponent();
+      InitializeComponent();
     }
 
     private void ClickButton(object sender, EventArgs e)
     {
-      if (sender == this.btAbort)
+      if (sender == btAbort)
       {
-        this.DialogResult = DialogResult.Abort;
-        this.Close();
+        DialogResult = DialogResult.Abort;
+        Close();
       }
-      else if (sender == this.btCancel)
+      else if (sender == btCancel)
       {
-        this.DialogResult = DialogResult.Cancel;
-        this.Close();
+        DialogResult = DialogResult.Cancel;
+        Close();
       }
       else
       {
-        if (sender != this.btOk)
+        if (sender != btOk)
           return;
         foreach (char invalidFileNameChar in Path.GetInvalidFileNameChars())
         {
-          if (this.SelectedPath.Contains<char>(invalidFileNameChar))
+          if (SelectedPath.Contains(invalidFileNameChar))
           {
-            int num = (int) MessageBox.Show("Название каталога содержит недопустимый символ: " + invalidFileNameChar.ToString());
+            int num = (int) MessageBox.Show("Название каталога содержит недопустимый символ: " + invalidFileNameChar);
             return;
           }
         }
-        this.DialogResult = DialogResult.OK;
-        this.Close();
+        DialogResult = DialogResult.OK;
+        Close();
       }
     }
 
     protected override void Dispose(bool disposing)
     {
-      if (disposing && this.components != null)
-        this.components.Dispose();
+      if (disposing && components != null)
+        components.Dispose();
       base.Dispose(disposing);
     }
 
     private void InitializeComponent()
     {
-      this.btCancel = new Button();
-      this.btOk = new Button();
-      this.btAbort = new Button();
-      this.txtFolderName = new TextBox();
-      this.SuspendLayout();
-      this.btCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      this.btCancel.Location = new Point(426, 38);
-      this.btCancel.Name = "btCancel";
-      this.btCancel.Size = new Size(75, 23);
-      this.btCancel.TabIndex = 0;
-      this.btCancel.Text = "Пропустить";
-      this.btCancel.UseVisualStyleBackColor = true;
-      this.btCancel.Click += new EventHandler(this.ClickButton);
-      this.btOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      this.btOk.Location = new Point(345, 38);
-      this.btOk.Name = "btOk";
-      this.btOk.Size = new Size(75, 23);
-      this.btOk.TabIndex = 1;
-      this.btOk.Text = "Применить";
-      this.btOk.UseVisualStyleBackColor = true;
-      this.btOk.Click += new EventHandler(this.ClickButton);
-      this.btAbort.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-      this.btAbort.Location = new Point(12, 38);
-      this.btAbort.Name = "btAbort";
-      this.btAbort.Size = new Size(75, 23);
-      this.btAbort.TabIndex = 2;
-      this.btAbort.Text = "Прервать";
-      this.btAbort.UseVisualStyleBackColor = true;
-      this.btAbort.Click += new EventHandler(this.ClickButton);
-      this.txtFolderName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-      this.txtFolderName.Location = new Point(12, 12);
-      this.txtFolderName.Name = "txtFolderName";
-      this.txtFolderName.Size = new Size(489, 20);
-      this.txtFolderName.TabIndex = 3;
-      this.AutoScaleDimensions = new SizeF(6f, 13f);
-      this.AutoScaleMode = AutoScaleMode.Font;
-      this.ClientSize = new Size(513, 73);
-      this.ControlBox = false;
-      this.Controls.Add((Control) this.txtFolderName);
-      this.Controls.Add((Control) this.btAbort);
-      this.Controls.Add((Control) this.btOk);
-      this.Controls.Add((Control) this.btCancel);
-      this.FormBorderStyle = FormBorderStyle.FixedToolWindow;
-      this.MaximizeBox = false;
-      this.MinimizeBox = false;
-      this.Name = "FolderNameDialog";
-      this.StartPosition = FormStartPosition.CenterScreen;
-      this.Text = "Запрос наименования каталога";
-      this.ResumeLayout(false);
-      this.PerformLayout();
+      btCancel = new Button();
+      btOk = new Button();
+      btAbort = new Button();
+      txtFolderName = new TextBox();
+      SuspendLayout();
+      btCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      btCancel.Location = new Point(426, 38);
+      btCancel.Name = "btCancel";
+      btCancel.Size = new Size(75, 23);
+      btCancel.TabIndex = 0;
+      btCancel.Text = "Пропустить";
+      btCancel.UseVisualStyleBackColor = true;
+      btCancel.Click += ClickButton;
+      btOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      btOk.Location = new Point(345, 38);
+      btOk.Name = "btOk";
+      btOk.Size = new Size(75, 23);
+      btOk.TabIndex = 1;
+      btOk.Text = "Применить";
+      btOk.UseVisualStyleBackColor = true;
+      btOk.Click += ClickButton;
+      btAbort.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      btAbort.Location = new Point(12, 38);
+      btAbort.Name = "btAbort";
+      btAbort.Size = new Size(75, 23);
+      btAbort.TabIndex = 2;
+      btAbort.Text = "Прервать";
+      btAbort.UseVisualStyleBackColor = true;
+      btAbort.Click += ClickButton;
+      txtFolderName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      txtFolderName.Location = new Point(12, 12);
+      txtFolderName.Name = "txtFolderName";
+      txtFolderName.Size = new Size(489, 20);
+      txtFolderName.TabIndex = 3;
+      AutoScaleDimensions = new SizeF(6f, 13f);
+      AutoScaleMode = AutoScaleMode.Font;
+      ClientSize = new Size(513, 73);
+      ControlBox = false;
+      Controls.Add(txtFolderName);
+      Controls.Add(btAbort);
+      Controls.Add(btOk);
+      Controls.Add(btCancel);
+      FormBorderStyle = FormBorderStyle.FixedToolWindow;
+      MaximizeBox = false;
+      MinimizeBox = false;
+      Name = "FolderNameDialog";
+      StartPosition = FormStartPosition.CenterScreen;
+      Text = "Запрос наименования каталога";
+      ResumeLayout(false);
+      PerformLayout();
     }
   }
 }

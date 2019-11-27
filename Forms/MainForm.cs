@@ -1,5 +1,4 @@
-﻿using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,8 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+using NLog;
 using TLO.local.Forms;
-using TLO.local.Properties;
 using TLO.local.Tools;
 
 namespace TLO.local
@@ -33,10 +32,10 @@ namespace TLO.local
 
         public MainForm()
         {
-            this.InitializeComponent();
-            this.menuTimerSetting.CheckStateChanged += (sender, args) =>
+            InitializeComponent();
+            menuTimerSetting.CheckStateChanged += (sender, args) =>
             {
-                if (this.menuTimerSetting.Checked)
+                if (menuTimerSetting.Checked)
                 {
                     _LastRunTimer = DateTime.Now;
                     if (!tmr.Enabled) tmr.Start();
@@ -46,47 +45,47 @@ namespace TLO.local
                     if (tmr.Enabled) tmr.Stop();
                 }
             };
-            this._DateRegistration.Value = DateTime.Now.AddDays(-30.0);
-            this.Text = this.headText = string.Format("TLO {0}",
-                (object) FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion);
-            this._cbCountSeeders.Value = new Decimal(0);
-            this._cbCategoryFilters.SelectedItem = (object) "Не скачан торрент и нет хранителя";
-            this._CategorySource.Clear();
-            this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable(true);
-            this._CategorySource.CurrentChanged += new EventHandler(this.SelectionChanged);
-            this._cbCategory.DataSource = (object) this._CategorySource;
-            if (this._CategorySource.Count > 0)
-                this._CategorySource.Position = 1;
-            this._TopicsSource.CurrentChanged += new EventHandler(this.SelectionChanged);
-            this._dataGridTopicsList.AutoGenerateColumns = false;
-            this._dataGridTopicsList.ClearSelection();
-            this._dataGridTopicsList.DataSource = (object) this._TopicsSource;
-            this.Disposed += new EventHandler(this.MainForm_Disposed);
-            this.Resize += new EventHandler(this.MainForm_Resize);
-            this.tmr = new Timer();
-            this.tmr.Tick += new EventHandler(this.tmr_Tick);
-            this.tmr.Interval = 1000;
-            this.tmr.Start();
-            this.IsClose = false;
-            this.notifyIcon = new NotifyIcon();
-            this.notifyIcon.Icon = (Icon) new ComponentResourceManager(typeof(MainForm)).GetObject("$this.Icon");
-            this.notifyIcon.MouseDoubleClick += new MouseEventHandler(this.notifyIcon_MouseDoubleClick);
-            this.notifyIcon.Visible = true;
-            this.WriteReports();
+            _DateRegistration.Value = DateTime.Now.AddDays(-30.0);
+            Text = headText = string.Format("TLO {0}",
+                FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion);
+            _cbCountSeeders.Value = new Decimal(0);
+            _cbCategoryFilters.SelectedItem = "Не скачан торрент и нет хранителя";
+            _CategorySource.Clear();
+            _CategorySource.DataSource = ClientLocalDB.Current.GetCategoriesEnable(true);
+            _CategorySource.CurrentChanged += SelectionChanged;
+            _cbCategory.DataSource = _CategorySource;
+            if (_CategorySource.Count > 0)
+                _CategorySource.Position = 1;
+            _TopicsSource.CurrentChanged += SelectionChanged;
+            _dataGridTopicsList.AutoGenerateColumns = false;
+            _dataGridTopicsList.ClearSelection();
+            _dataGridTopicsList.DataSource = _TopicsSource;
+            Disposed += MainForm_Disposed;
+            Resize += MainForm_Resize;
+            tmr = new Timer();
+            tmr.Tick += tmr_Tick;
+            tmr.Interval = 1000;
+            tmr.Start();
+            IsClose = false;
+            notifyIcon = new NotifyIcon();
+            notifyIcon.Icon = (Icon) new ComponentResourceManager(typeof(MainForm)).GetObject("$this.Icon");
+            notifyIcon.MouseDoubleClick += notifyIcon_MouseDoubleClick;
+            notifyIcon.Visible = true;
+            WriteReports();
         }
 
         private void MenuClick(object sender, EventArgs e)
         {
             try
             {
-                if (sender == this.menuSettingsToolStripMenuItem)
+                if (sender == menuSettingsToolStripMenuItem)
                 {
                     if (new SettingsForm().ShowDialog() == DialogResult.OK)
                     {
-                        this._CategorySource.Clear();
-                        this._CategorySource.DataSource = (object) null;
-                        this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
-                        this._CategorySource.Position = 0;
+                        _CategorySource.Clear();
+                        _CategorySource.DataSource = null;
+                        _CategorySource.DataSource = ClientLocalDB.Current.GetCategoriesEnable();
+                        _CategorySource.Position = 0;
 //                        if (MessageBox.Show(
 //                                "Запустить загрузку/обновление информации о топиках (раздачах) по всем категориям?",
 //                                "Обновление данных", MessageBoxButtons.OKCancel, MessageBoxIcon.Question,
@@ -98,27 +97,27 @@ namespace TLO.local
                 }
                 else if (sender == UpdateAll)
                 {
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateTopicsByCategories),
+                    dwCreateAndRun(WorkerMethods.bwUpdateTopicsByCategories,
                         "Полное обновление информации о топиках (раздачах) по всем категориям...",
-                        (object) ClientLocalDB.Current.GetCategoriesEnable());
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateHashFromAllTorrentClients),
-                        "Полное обновление информации из Torrent-клиентов...", (object) null);
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateCountSeedersByAllCategories),
+                        ClientLocalDB.Current.GetCategoriesEnable());
+                    dwCreateAndRun(WorkerMethods.bwUpdateHashFromAllTorrentClients,
+                        "Полное обновление информации из Torrent-клиентов...");
+                    dwCreateAndRun(WorkerMethods.bwUpdateCountSeedersByAllCategories,
                         "Обновление кол-ва сидов на раздачах...", sender);
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateKeepersByAllCategories),
+                    dwCreateAndRun(WorkerMethods.bwUpdateKeepersByAllCategories,
                         "Обновление данных о хранителях...", sender);
                 }
-                else if (sender == this.UpdateCountSeedersToolStripMenuItem)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateCountSeedersByAllCategories),
+                else if (sender == UpdateCountSeedersToolStripMenuItem)
+                    dwCreateAndRun(WorkerMethods.bwUpdateCountSeedersByAllCategories,
                         "Обновление кол-ва сидов на раздачах...", sender);
-                else if (sender == this.UpdateListTopicsToolStripMenuItem)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateTopicsByCategories),
+                else if (sender == UpdateListTopicsToolStripMenuItem)
+                    dwCreateAndRun(WorkerMethods.bwUpdateTopicsByCategories,
                         "Полное обновление информации о топиках (раздачах) по всем категориям...",
-                        (object) ClientLocalDB.Current.GetCategoriesEnable());
-                else if (sender == this.UpdateKeepTopicsToolStripMenuItem)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateHashFromAllTorrentClients),
-                        "Полное обновление информации из Torrent-клиентов...", (object) null);
-                else if (sender == this.ClearDatabaseToolStripMenuItem)
+                        ClientLocalDB.Current.GetCategoriesEnable());
+                else if (sender == UpdateKeepTopicsToolStripMenuItem)
+                    dwCreateAndRun(WorkerMethods.bwUpdateHashFromAllTorrentClients,
+                        "Полное обновление информации из Torrent-клиентов...");
+                else if (sender == ClearDatabaseToolStripMenuItem)
                 {
                     if (MessageBox.Show(
                             "Вы пытаетесь очистить базу данны от текущих данных (статистику и информацию о топиках).\r\n Продолжить?",
@@ -127,62 +126,62 @@ namespace TLO.local
                         return;
                     ClientLocalDB.Current.ClearDatabase();
                 }
-                else if (sender == this.ClearKeeperListsToolStripMenuItem)
+                else if (sender == ClearKeeperListsToolStripMenuItem)
                 {
                     if (MessageBox.Show("Вы пытаетесь очистить базу данны от данных других хранителей.\r\n Продолжить?",
                             "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk,
                             MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                         return;
                     ClientLocalDB.Current.ClearKeepers();
-                    this.SelectionChanged((object) this._CategorySource, (EventArgs) null);
+                    SelectionChanged(_CategorySource, null);
                 }
-                else if (sender == this.SendReportsToForumToolStripMenuItem)
+                else if (sender == SendReportsToForumToolStripMenuItem)
                 {
                     if (MessageBox.Show(
                             "Отправка отчетов на форум может продолжаться продолжительное время.\r\n Продолжить?",
                             "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk,
                             MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                         return;
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwSendReports),
+                    dwCreateAndRun(WorkerMethods.bwSendReports,
                         "Отправка отчетов на форум...",
-                        (object) this);
+                        this);
                 }
-                else if (sender == this.CreateReportsToolStripMenuItem)
+                else if (sender == CreateReportsToolStripMenuItem)
                 {
                     if (MessageBox.Show(
                             "Сборка отчетов может продолжаться продолжительное время и потребуется обновить список раздач и информацию из торрент-клиентов.\r\n Продолжит?",
                             "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk,
                             MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                         return;
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateCountSeedersByAllCategories),
+                    dwCreateAndRun(WorkerMethods.bwUpdateCountSeedersByAllCategories,
                         "Обновление кол-ва сидов на раздачах...", sender);
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateHashFromAllTorrentClients),
+                    dwCreateAndRun(WorkerMethods.bwUpdateHashFromAllTorrentClients,
                         "Обновление информации из Torrent-клиентов...", sender);
                 }
-                else if (sender == this.RuningStopingDistributionToolStripMenuItem)
+                else if (sender == RuningStopingDistributionToolStripMenuItem)
                 {
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateCountSeedersByAllCategories),
+                    dwCreateAndRun(WorkerMethods.bwUpdateCountSeedersByAllCategories,
                         "Обновление кол-ва сидов на раздачах...", sender);
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwRuningAndStopingDistributions),
+                    dwCreateAndRun(WorkerMethods.bwRuningAndStopingDistributions,
                         "Обновление информации из Torrent-клиентов...", sender);
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwCreateReportsTorrentClients),
+                    dwCreateAndRun(WorkerMethods.bwCreateReportsTorrentClients,
                         "Построение сводного отчета по торрент-клиентам...", sender);
                 }
-                else if (sender == this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwCreateReportsTorrentClients),
+                else if (sender == CreateConsolidatedReportByTorrentClientsToolStripMenuItem)
+                    dwCreateAndRun(WorkerMethods.bwCreateReportsTorrentClients,
                         "Построение сводного отчета по торрент-клиентам...", sender);
-                else if (sender == this.LoadListKeepersToolStripMenuItem)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateKeepersByAllCategories),
+                else if (sender == LoadListKeepersToolStripMenuItem)
+                    dwCreateAndRun(WorkerMethods.bwUpdateKeepersByAllCategories,
                         "Обновление данных о хранителях...", sender);
-                else if (sender == this.ExitToolStripMenuItem)
+                else if (sender == ExitToolStripMenuItem)
                 {
-                    this.IsClose = true;
-                    this.Close();
+                    IsClose = true;
+                    Close();
                 }
-                else if (sender == this._btSaveToFile)
-                    this.SaveSetingsToFile();
-                else if (sender == this._btLoadSettingsFromFile)
-                    this.ReadSettingsFromFile();
+                else if (sender == _btSaveToFile)
+                    SaveSetingsToFile();
+                else if (sender == _btLoadSettingsFromFile)
+                    ReadSettingsFromFile();
             }
             catch (Exception ex)
             {
@@ -195,23 +194,23 @@ namespace TLO.local
 
         private void tmr_Tick(object sender, EventArgs e)
         {
-            if (this.backgroundWorkers.Count > 0)
+            if (backgroundWorkers.Count > 0)
             {
-                this.Text = string.Format("{0} ({1})", (object) this.headText, (object) "Выполняются задачи...");
-                this.notifyIcon.Text =
-                    string.Format("{0} ({1})", (object) this.headText, (object) "Выполняются задачи...");
+                Text = string.Format("{0} ({1})", headText, "Выполняются задачи...");
+                notifyIcon.Text =
+                    string.Format("{0} ({1})", headText, "Выполняются задачи...");
             }
             else
             {
-                DateTime lastRunTimer = this._LastRunTimer;
+                DateTime lastRunTimer = _LastRunTimer;
                 DateTime now = DateTime.Now;
-                DateTime dateTime1 = now.AddMinutes((double) -Settings.Current.PeriodRunAndStopTorrents);
+                DateTime dateTime1 = now.AddMinutes(-Settings.Current.PeriodRunAndStopTorrents);
                 TimeSpan timeSpan = lastRunTimer - dateTime1;
                 if (timeSpan.TotalSeconds > 0.0)
                 {
-                    this.Text = string.Format("{0} ({1:hh\\:mm\\:ss})", (object) this.headText, (object) timeSpan);
-                    this.notifyIcon.Text =
-                        string.Format("{0} ({1:hh\\:mm\\:ss})", (object) this.headText, (object) timeSpan);
+                    Text = string.Format("{0} ({1:hh\\:mm\\:ss})", headText, timeSpan);
+                    notifyIcon.Text =
+                        string.Format("{0} ({1:hh\\:mm\\:ss})", headText, timeSpan);
                 }
                 else
                 {
@@ -222,10 +221,10 @@ namespace TLO.local
                         DateTime dateTime2 = now.AddDays(-1.0);
                         if (lastUpdateTopics < dateTime2)
                         {
-                            this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateTopicsByCategories),
+                            dwCreateAndRun(WorkerMethods.bwUpdateTopicsByCategories,
                                 "Полное обновление информации о топиках (раздачах) по всем категориям...",
-                                (object) ClientLocalDB.Current.GetCategoriesEnable());
-                            this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateKeepersByAllCategories),
+                                ClientLocalDB.Current.GetCategoriesEnable());
+                            dwCreateAndRun(WorkerMethods.bwUpdateKeepersByAllCategories,
                                 "Обновление данных о хранителях...", sender);
                             Settings current = Settings.Current;
                             now = DateTime.Now;
@@ -234,99 +233,99 @@ namespace TLO.local
                             Settings.Current.Save();
                         }
                         else
-                            this.dwCreateAndRun(
-                                new DoWorkEventHandler(WorkerMethods.bwUpdateCountSeedersByAllCategories),
+                            dwCreateAndRun(
+                                WorkerMethods.bwUpdateCountSeedersByAllCategories,
                                 "Обновление информации о кол-ве сидов на раздачах...", sender);
 
-                        this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwRuningAndStopingDistributions),
+                        dwCreateAndRun(WorkerMethods.bwRuningAndStopingDistributions,
                             "Запуск/Остановка раздач в Torrent-клиентах...", sender);
-                        this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwCreateReportsTorrentClients),
+                        dwCreateAndRun(WorkerMethods.bwCreateReportsTorrentClients,
                             "Построение сводного отчета по торрент-клиентам...", sender);
                     }
                     catch (Exception ex)
                     {
-                        this._logger.Error(ex.Message);
-                        this._logger.Debug(ex.Message, ex);
+                        _logger.Error(ex.Message);
+                        _logger.Debug(ex.Message, ex);
                     }
 
-                    this._LastRunTimer = DateTime.Now;
+                    _LastRunTimer = DateTime.Now;
                 }
             }
         }
 
         private void MainForm_Disposed(object sender, EventArgs e)
         {
-            this.tmr.Stop();
-            this.tmr.Dispose();
+            tmr.Stop();
+            tmr.Dispose();
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            if (this.WindowState != FormWindowState.Minimized)
+            if (WindowState != FormWindowState.Minimized)
                 return;
-            this.Hide();
+            Hide();
         }
 
         private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            this.Show();
-            this.WindowState = FormWindowState.Normal;
+            Show();
+            WindowState = FormWindowState.Normal;
         }
 
         private void SelectionChanged(object sender, EventArgs e)
         {
-            if (sender == this._CategorySource || sender == this._cbCountSeeders ||
-                (sender == this._cbBlackList || sender == this._cbCategoryFilters) || sender == this._DateRegistration)
+            if (sender == _CategorySource || sender == _cbCountSeeders ||
+                (sender == _cbBlackList || sender == _cbCategoryFilters) || sender == _DateRegistration)
             {
-                this._TopicsSource.Clear();
-                if (this._CategorySource.Current != null)
+                _TopicsSource.Clear();
+                if (_CategorySource.Current != null)
                 {
-                    Category current = this._CategorySource.Current as Category;
-                    int num = (int) this._cbCountSeeders.Value;
-                    DateTime regTime = this._DateRegistration.Value;
+                    Category current = _CategorySource.Current as Category;
+                    int num = (int) _cbCountSeeders.Value;
+                    DateTime regTime = _DateRegistration.Value;
                     bool? isKeep = new bool?();
                     bool? isKeepers = new bool?();
                     bool? isDownload = new bool?();
                     bool? isBlack = new bool?();
                     bool? isPoster = new bool?();
-                    string selectedItem = this._cbCategoryFilters.SelectedItem as string;
+                    string selectedItem = _cbCategoryFilters.SelectedItem as string;
                     if (!string.IsNullOrWhiteSpace(selectedItem))
                     {
                         switch (selectedItem)
                         {
                             case "Есть хранитель":
-                                isKeepers = new bool?(true);
+                                isKeepers = true;
                                 break;
                             case "Не скачан торрент":
-                                isDownload = new bool?(false);
+                                isDownload = false;
                                 break;
                             case "Не скачан торрент и есть хранитель":
-                                isDownload = new bool?(false);
-                                isKeepers = new bool?(true);
+                                isDownload = false;
+                                isKeepers = true;
                                 break;
                             case "Не скачан торрент и нет хранителя":
-                                isDownload = new bool?(false);
-                                isKeepers = new bool?(false);
+                                isDownload = false;
+                                isKeepers = false;
                                 break;
                             case "Не скачано":
-                                isDownload = new bool?(false);
+                                isDownload = false;
                                 break;
                             case "Не храню":
-                                isKeep = new bool?(false);
+                                isKeep = false;
                                 break;
                             case "Скачиваю раздачу":
-                                isDownload = new bool?(true);
-                                isKeep = new bool?(false);
+                                isDownload = true;
+                                isKeep = false;
                                 break;
                             case "Храню":
-                                isKeep = new bool?(true);
+                                isKeep = true;
                                 break;
                             case "Храню и есть хранитель":
-                                isKeep = new bool?(true);
-                                isKeepers = new bool?(true);
+                                isKeep = true;
+                                isKeepers = true;
                                 break;
                             case "Я релизер":
-                                isPoster = new bool?(false);
+                                isPoster = false;
                                 break;
                         }
                     }
@@ -335,24 +334,24 @@ namespace TLO.local
 
                     if (current.CategoryID != -1)
                     {
-                        isBlack = new bool?(this._cbBlackList.Checked);
+                        isBlack = _cbBlackList.Checked;
                         List<TopicInfo> topicInfoList = new List<TopicInfo>();
                         source = !Settings.Current.IsAvgCountSeeders
                             ? ClientLocalDB.Current.GetTopics(regTime, current.CategoryID,
-                                num > -1 ? new int?(num) : new int?(), new int?(), isKeep, isKeepers, isDownload,
+                                num > -1 ? num : new int?(), new int?(), isKeep, isKeepers, isDownload,
                                 isBlack,
                                 isPoster)
                             : ClientLocalDB.Current.GetTopics(regTime, current.CategoryID, new int?(),
-                                num > -1 ? new int?(num) : new int?(), isKeep, isKeepers, isDownload, isBlack,
+                                num > -1 ? num : new int?(), isKeep, isKeepers, isDownload, isBlack,
                                 isPoster);
                     }
                     else
                     {
                         List<TorrentClientInfo> torrentClients = ClientLocalDB.Current.GetTorrentClients();
                         IEnumerable<TopicInfo> inner = ClientLocalDB.Current.GetTopicsByCategory(-1)
-                            .Where<TopicInfo>(x => !x.IsBlackList);
+                            .Where(x => !x.IsBlackList);
                         Dictionary<int, Category> dictionary = ClientLocalDB.Current.GetCategories()
-                            .ToDictionary<Category, int, Category>(x => x.CategoryID, x => x);
+                            .ToDictionary(x => x.CategoryID, x => x);
                         source = new List<TopicInfo>();
                         foreach (TorrentClientInfo torrentClientInfo in torrentClients)
                         {
@@ -362,9 +361,8 @@ namespace TLO.local
                                 var array1 = torrentClient.GetAllTorrentHash().GroupJoin(inner, t => t.Hash,
                                     b => b.Hash, (t, bt) => new
                                     {
-                                        t = t,
-                                        bt = bt
-                                    }).SelectMany(_param1 => _param1.bt.DefaultIfEmpty<TopicInfo>(), (_param1, b) =>
+                                        t, bt
+                                    }).SelectMany(_param1 => _param1.bt.DefaultIfEmpty(), (_param1, b) =>
                                 {
                                     int num3 = b != null ? b.CategoryID : -1;
                                     long size = _param1.t.Size;
@@ -395,10 +393,8 @@ namespace TLO.local
                                         a.Label = _param1.t.Label;
                                         return a;
                                     }
-                                    else
-                                    {
-                                        a = b;
-                                    }
+
+                                    a = b;
 
                                     return a;
                                     /*{
@@ -416,30 +412,29 @@ namespace TLO.local
                         }
                     }
 
-                    this._lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", (object) source.Count<TopicInfo>(),
-                        (object) TopicInfo.sizeToString(source.Sum<TopicInfo>((Func<TopicInfo, long>) (x => x.Size))));
-                    this._TopicsSource.DataSource = (object) source;
+                    _lbTotal.Text = string.Format("Кол-во: {0}; Размер: {1}", source.Count(),
+                        TopicInfo.sizeToString(source.Sum(x => x.Size)));
+                    _TopicsSource.DataSource = source;
                 }
             }
 
-            if (sender != this._CategorySource || this._CategorySource.Current == null)
+            if (sender != _CategorySource || _CategorySource.Current == null)
                 return;
-            this.tabReports.Controls.Clear();
+            tabReports.Controls.Clear();
             Dictionary<Tuple<int, int>, Tuple<string, string>> reports =
-                ClientLocalDB.Current.GetReports(new int?((this._CategorySource.Current as Category).CategoryID));
-            if (reports.Count<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>() > 0)
+                ClientLocalDB.Current.GetReports((_CategorySource.Current as Category).CategoryID);
+            if (reports.Count() > 0)
             {
-                Size size = this.tabReports.Size;
+                Size size = tabReports.Size;
                 TabControl tabControl = new TabControl();
                 tabControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                 tabControl.Location = new Point(0, 0);
                 tabControl.SelectedIndex = 0;
                 tabControl.Size = new Size(size.Width, size.Height);
-                this.tabReports.Controls.Add((Control) tabControl);
-                foreach (KeyValuePair<Tuple<int, int>, Tuple<string, string>> keyValuePair in (
-                    IEnumerable<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>) reports
-                    .OrderBy<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, int>(
-                        (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, int>) (x => x.Key.Item2)))
+                tabReports.Controls.Add(tabControl);
+                foreach (KeyValuePair<Tuple<int, int>, Tuple<string, string>> keyValuePair in reports
+                    .OrderBy(
+                        x => x.Key.Item2))
                 {
                     if (!(keyValuePair.Value.Item2 == "Резерв") && !(keyValuePair.Value.Item2 == "Удалено"))
                     {
@@ -447,9 +442,9 @@ namespace TLO.local
                         TextBox textBox = new TextBox();
                         tabPage.Location = new Point(4, 22);
                         tabPage.Padding = new Padding(3);
-                        tabPage.Text = string.Format("Сидируемое: отчет № {0}", (object) keyValuePair.Key.Item2);
+                        tabPage.Text = string.Format("Сидируемое: отчет № {0}", keyValuePair.Key.Item2);
                         if (keyValuePair.Key.Item2 == 0)
-                            tabPage.Text = string.Format("Шапка сидируемого");
+                            tabPage.Text = "Шапка сидируемого";
                         tabPage.UseVisualStyleBackColor = true;
                         tabPage.AutoScroll = true;
                         textBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left |
@@ -460,27 +455,27 @@ namespace TLO.local
                         textBox.ScrollBars = ScrollBars.Both;
                         textBox.Size = new Size(size.Width - 8, size.Height - 20);
                         textBox.Text = keyValuePair.Value.Item2;
-                        tabControl.Controls.Add((Control) tabPage);
-                        tabPage.Controls.Add((Control) textBox);
+                        tabControl.Controls.Add(tabPage);
+                        tabPage.Controls.Add(textBox);
                     }
                 }
             }
             else
             {
-                Size size = this.tabReports.Size;
+                Size size = tabReports.Size;
                 TabControl tabControl = new TabControl();
                 tabControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                 tabControl.Location = new Point(0, 0);
                 tabControl.SelectedIndex = 0;
                 tabControl.Size = new Size(size.Width, size.Height);
-                this.tabReports.Controls.Add((Control) tabControl);
+                tabReports.Controls.Add(tabControl);
                 TabPage tabPage = new TabPage();
                 TextBox textBox = new TextBox();
-                tabControl.Controls.Add((Control) tabPage);
-                tabPage.Controls.Add((Control) textBox);
+                tabControl.Controls.Add(tabPage);
+                tabPage.Controls.Add(textBox);
                 tabPage.Location = new Point(4, 22);
                 tabPage.Padding = new Padding(3);
-                tabPage.Text = string.Format("Для информации");
+                tabPage.Text = "Для информации";
                 tabPage.UseVisualStyleBackColor = true;
                 textBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
                 textBox.Location = new Point(0, 0);
@@ -495,7 +490,7 @@ namespace TLO.local
 
         private void LinkClick(object sender, EventArgs e)
         {
-            if (this.backgroundWorkers.Count != 0 &&
+            if (backgroundWorkers.Count != 0 &&
                 MessageBox.Show("Выполняются другие задачи. Добавить в очередь новое?", "Внимание",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) !=
                 DialogResult.Yes)
@@ -503,67 +498,67 @@ namespace TLO.local
             Cursor.Current = Cursors.WaitCursor;
             try
             {
-                Category current = this._CategorySource.Current as Category;
+                Category current = _CategorySource.Current as Category;
                 if (current == null)
                     return;
-                if (sender == this._llUpdateCountSeedersByCategory)
+                if (sender == _llUpdateCountSeedersByCategory)
                     UpdaterMethods.UpdateSeedersByCategory(current);
-                else if (sender == this._llUpdateTopicsByCategory)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwUpdateTopicsByCategory),
-                        "Обновление списков по разделу...", (object) current);
-                else if (sender == this._llUpdateDataDromTorrentClient)
+                else if (sender == _llUpdateTopicsByCategory)
+                    dwCreateAndRun(WorkerMethods.bwUpdateTopicsByCategory,
+                        "Обновление списков по разделу...", current);
+                else if (sender == _llUpdateDataDromTorrentClient)
                     UpdaterMethods.UpdateHashFromClients(current.TorrentClientUID);
-                else if (sender == this._llDownloadSelectTopics)
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwDownloadTorrentFiles),
+                else if (sender == _llDownloadSelectTopics)
+                    dwCreateAndRun(WorkerMethods.bwDownloadTorrentFiles,
                         "Скачиваются выделеные торрент-файлы в каталог...",
-                        (object) new Tuple<List<TopicInfo>, MainForm>(
-                            (this._TopicsSource.DataSource as List<TopicInfo>)
-                            .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(), this));
-                else if (sender == this._llSelectedTopicsToTorrentClient)
+                        new Tuple<List<TopicInfo>, MainForm>(
+                            (_TopicsSource.DataSource as List<TopicInfo>)
+                            .Where(x => x.Checked).ToList(), this));
+                else if (sender == _llSelectedTopicsToTorrentClient)
                 {
-                    this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwSendTorrentFileToTorrentClient),
+                    dwCreateAndRun(WorkerMethods.bwSendTorrentFileToTorrentClient,
                         "Скачиваются и добавляются в торрент-клиент выделенные раздачи...",
-                        (object) new Tuple<MainForm, List<TopicInfo>, Category>(this,
-                            (this._TopicsSource.DataSource as List<TopicInfo>)
-                            .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(), current));
-                    this.dwCreateAndRun(
-                        new DoWorkEventHandler(WorkerMethods.bwUpdateHashFromTorrentClientsByCategoryUID),
-                        "Обновляем список раздач из торрент-клиента...", (object) current);
+                        new Tuple<MainForm, List<TopicInfo>, Category>(this,
+                            (_TopicsSource.DataSource as List<TopicInfo>)
+                            .Where(x => x.Checked).ToList(), current));
+                    dwCreateAndRun(
+                        WorkerMethods.bwUpdateHashFromTorrentClientsByCategoryUID,
+                        "Обновляем список раздач из торрент-клиента...", current);
                 }
-                else if (sender == this._llSelectedTopicsToBlackList)
+                else if (sender == _llSelectedTopicsToBlackList)
                 {
-                    List<TopicInfo> list = (this._TopicsSource.DataSource as List<TopicInfo>)
-                        .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>();
-                    list.ForEach((Action<TopicInfo>) (x => x.IsBlackList = true));
-                    ClientLocalDB.Current.SaveTopicInfo(list, false);
+                    List<TopicInfo> list = (_TopicsSource.DataSource as List<TopicInfo>)
+                        .Where(x => x.Checked).ToList();
+                    list.ForEach(x => x.IsBlackList = true);
+                    ClientLocalDB.Current.SaveTopicInfo(list);
                 }
-                else if (sender == this._llSelectedTopicsDeleteFromBlackList)
+                else if (sender == _llSelectedTopicsDeleteFromBlackList)
                 {
-                    List<TopicInfo> list = (this._TopicsSource.DataSource as List<TopicInfo>)
-                        .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>();
-                    list.ForEach((Action<TopicInfo>) (x => x.IsBlackList = false));
-                    ClientLocalDB.Current.SaveTopicInfo(list, false);
+                    List<TopicInfo> list = (_TopicsSource.DataSource as List<TopicInfo>)
+                        .Where(x => x.Checked).ToList();
+                    list.ForEach(x => x.IsBlackList = false);
+                    ClientLocalDB.Current.SaveTopicInfo(list);
                 }
-                else if (sender == this.linkSetNewLabel)
+                else if (sender == linkSetNewLabel)
                 {
                     if (current == null)
                         return;
                     GetLableName getLableName = new GetLableName();
                     getLableName.Value = string.IsNullOrWhiteSpace(current.Label) ? current.FullName : current.Label;
                     if (getLableName.ShowDialog() == DialogResult.OK)
-                        this.dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwSetLabels),
+                        dwCreateAndRun(WorkerMethods.bwSetLabels,
                             "Установка пользовательских меток...",
-                            (object) new Tuple<MainForm, List<TopicInfo>, string>(this,
-                                (this._TopicsSource.DataSource as List<TopicInfo>)
-                                .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.Checked)).ToList<TopicInfo>(),
+                            new Tuple<MainForm, List<TopicInfo>, string>(this,
+                                (_TopicsSource.DataSource as List<TopicInfo>)
+                                .Where(x => x.Checked).ToList(),
                                 getLableName.Value));
                 }
 
-                this.SelectionChanged((object) this._CategorySource, (EventArgs) null);
+                SelectionChanged(_CategorySource, null);
             }
             catch (Exception ex)
             {
-                this._logger.Error<Exception>(ex);
+                _logger.Error(ex);
                 int num = (int) MessageBox.Show("Произошла ошибка:\r\n" + ex.Message, "Ошибка", MessageBoxButtons.OK,
                     MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
             }
@@ -573,14 +568,14 @@ namespace TLO.local
 
         private void ContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (this._dataGridTopicsList.Columns[e.ColumnIndex].DataPropertyName == "Name")
+            if (_dataGridTopicsList.Columns[e.ColumnIndex].DataPropertyName == "Name")
             {
                 try
                 {
-                    int? nullable = this._dataGridTopicsList.Rows[e.RowIndex].Cells[0].Value as int?;
+                    int? nullable = _dataGridTopicsList.Rows[e.RowIndex].Cells[0].Value as int?;
                     if (!nullable.HasValue)
                         return;
-                    Process.Start(string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) nullable.Value,
+                    Process.Start(string.Format("https://{1}/forum/viewtopic.php?t={0}", nullable.Value,
                         Settings.Current.HostRuTrackerOrg));
                 }
                 catch
@@ -589,19 +584,19 @@ namespace TLO.local
             }
             else
             {
-                if (!(this._dataGridTopicsList.Columns[e.ColumnIndex].DataPropertyName == "Alternative"))
+                if (!(_dataGridTopicsList.Columns[e.ColumnIndex].DataPropertyName == "Alternative"))
                     return;
                 try
                 {
-                    int? topicId = this._dataGridTopicsList.Rows[e.RowIndex].Cells[0].Value as int?;
+                    int? topicId = _dataGridTopicsList.Rows[e.RowIndex].Cells[0].Value as int?;
                     if (!topicId.HasValue)
                         return;
-                    List<TopicInfo> dataSource = this._TopicsSource.DataSource as List<TopicInfo>;
+                    List<TopicInfo> dataSource = _TopicsSource.DataSource as List<TopicInfo>;
                     if (dataSource == null)
                         return;
                     TopicInfo topicInfo = dataSource
-                        .Where<TopicInfo>((Func<TopicInfo, bool>) (x => x.TopicID == topicId.Value))
-                        .FirstOrDefault<TopicInfo>();
+                        .Where(x => x.TopicID == topicId.Value)
+                        .FirstOrDefault();
                     if (topicInfo == null)
                         return;
                     string empty1 = string.Empty;
@@ -609,15 +604,15 @@ namespace TLO.local
                     int num1 = topicInfo.Name.IndexOf('/');
                     string str1;
                     if (topicInfo.Name.IndexOf(']') > num1 && num1 != -1)
-                        str1 = ((IEnumerable<string>) topicInfo.Name.Split('/')).FirstOrDefault<string>();
+                        str1 = topicInfo.Name.Split('/').FirstOrDefault();
                     else if (topicInfo.Name.IndexOf(']') < num1 && num1 != -1)
-                        str1 = ((IEnumerable<string>) topicInfo.Name.Split('/')).FirstOrDefault<string>().Split(']')[1];
+                        str1 = topicInfo.Name.Split('/').FirstOrDefault().Split(']')[1];
                     else if (num1 == -1 && topicInfo.Name.IndexOf('[') < 5 && topicInfo.Name.IndexOf('[') != -1)
-                        str1 = ((IEnumerable<string>) topicInfo.Name.Split(']')[1].Split('[')).FirstOrDefault<string>();
+                        str1 = topicInfo.Name.Split(']')[1].Split('[').FirstOrDefault();
                     else if (num1 == -1 && topicInfo.Name.IndexOf('[') != -1)
-                        str1 = ((IEnumerable<string>) topicInfo.Name.Split('[')).FirstOrDefault<string>();
+                        str1 = topicInfo.Name.Split('[').FirstOrDefault();
                     else
-                        str1 = ((IEnumerable<string>) topicInfo.Name.Split('[')).FirstOrDefault<string>();
+                        str1 = topicInfo.Name.Split('[').FirstOrDefault();
                     int num2 = topicInfo.Name.IndexOf('[', num1 > -1 ? num1 : 0);
                     if (num2 < 5)
                     {
@@ -627,16 +622,16 @@ namespace TLO.local
 
                     string str2 = topicInfo.Name.Substring(num2 == -1 ? 0 : num2 + 1);
                     if (!string.IsNullOrWhiteSpace(str2))
-                        str2 = ((IEnumerable<string>) str2.Split(new char[3]
+                        str2 = str2.Split(new char[3]
                         {
                             ',',
                             ' ',
                             ']'
-                        }, StringSplitOptions.RemoveEmptyEntries)).FirstOrDefault<string>();
+                        }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
                     if (!string.IsNullOrWhiteSpace(str2))
                         str1 = str1 + " " + str2;
                     Process.Start(string.Format("https://{2}/forum/tracker.php?f={0}&nm={1}",
-                        (object) topicInfo.CategoryID, (object) str1, Settings.Current.HostRuTrackerOrg));
+                        topicInfo.CategoryID, str1, Settings.Current.HostRuTrackerOrg));
                 }
                 catch
                 {
@@ -649,47 +644,47 @@ namespace TLO.local
             BackgroundWorker key = new BackgroundWorker();
             key.WorkerReportsProgress = true;
             key.WorkerSupportsCancellation = true;
-            key.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
-            key.ProgressChanged += new ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
+            key.RunWorkerCompleted += backgroundWorker1_RunWorkerCompleted;
+            key.ProgressChanged += backgroundWorker1_ProgressChanged;
             key.DoWork += e;
-            this.backgroundWorkers.Add(key, new Tuple<DateTime, object, string>(DateTime.Now, argument, comment));
-            if (this.backgroundWorkers.Count != 1)
+            backgroundWorkers.Add(key, new Tuple<DateTime, object, string>(DateTime.Now, argument, comment));
+            if (backgroundWorkers.Count != 1)
                 return;
             key.RunWorkerAsync(argument);
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.toolStripProgressBar1.Value = 0;
-            this.toolStripProgressBar1.Visible = false;
-            this.toolStripStatusLabel1.Text = "";
-            this.toolStripStatusLabel1.Visible = false;
-            this.statusStrip1.Refresh();
+            toolStripProgressBar1.Value = 0;
+            toolStripProgressBar1.Visible = false;
+            toolStripStatusLabel1.Text = "";
+            toolStripStatusLabel1.Visible = false;
+            statusStrip1.Refresh();
             if (sender != null && sender is BackgroundWorker &&
-                this.backgroundWorkers.ContainsKey(sender as BackgroundWorker))
+                backgroundWorkers.ContainsKey(sender as BackgroundWorker))
             {
                 BackgroundWorker key = sender as BackgroundWorker;
-                if (this.backgroundWorkers.ContainsKey(key))
-                    this.backgroundWorkers.Remove(key);
+                if (backgroundWorkers.ContainsKey(key))
+                    backgroundWorkers.Remove(key);
                 key.Dispose();
             }
 
             if (e.Result != null)
-                this._logger.Info(e.Result);
-            if (this.backgroundWorkers.Count > 0)
+                _logger.Info(e.Result);
+            if (backgroundWorkers.Count > 0)
             {
                 // запуск следующей задачи.
-                KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>> keyValuePair = this.backgroundWorkers
-                    .OrderBy<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>, DateTime>(
-                        (Func<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>, DateTime>) (x =>
-                            x.Value.Item1)).First<KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>>>();
+                KeyValuePair<BackgroundWorker, Tuple<DateTime, object, string>> keyValuePair = backgroundWorkers
+                    .OrderBy(
+                        x =>
+                            x.Value.Item1).First();
                 keyValuePair.Key.RunWorkerAsync(keyValuePair.Value.Item2);
             }
             else
             {
                 // записываем окончательные изменения в БД после выполнения последней задачи.
-                this.SelectionChanged((object) this._CategorySource, (EventArgs) null);
-                this.WriteReports();
+                SelectionChanged(_CategorySource, null);
+                WriteReports();
                 ClientLocalDB.Current.SaveToDatabase();
             }
 
@@ -699,49 +694,49 @@ namespace TLO.local
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (sender != null && sender is BackgroundWorker &&
-                this.backgroundWorkers.ContainsKey(sender as BackgroundWorker))
+                backgroundWorkers.ContainsKey(sender as BackgroundWorker))
             {
-                this.toolStripStatusLabel1.Text = this.backgroundWorkers[sender as BackgroundWorker].Item3;
-                this.toolStripProgressBar1.Visible = true;
-                this.toolStripStatusLabel1.Visible = true;
-                this.statusStrip1.Refresh();
+                toolStripStatusLabel1.Text = backgroundWorkers[sender as BackgroundWorker].Item3;
+                toolStripProgressBar1.Visible = true;
+                toolStripStatusLabel1.Visible = true;
+                statusStrip1.Refresh();
             }
 
-            this.toolStripProgressBar1.Value =
+            toolStripProgressBar1.Value =
                 e.ProgressPercentage < 0 || e.ProgressPercentage > 100 ? 100 : e.ProgressPercentage;
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (!this.IsClose)
+            if (!IsClose)
             {
                 e.Cancel = true;
-                this.WindowState = FormWindowState.Minimized;
+                WindowState = FormWindowState.Minimized;
             }
             else
-                this.notifyIcon.Visible = false;
+                notifyIcon.Visible = false;
         }
 
         private void _dgvReportDownloads_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridViewColumn column = this._dataGridTopicsList.Columns[e.ColumnIndex];
-            if (column == this.ColumnReport1DgvSelect)
+            DataGridViewColumn column = _dataGridTopicsList.Columns[e.ColumnIndex];
+            if (column == ColumnReport1DgvSelect)
             {
-                List<TopicInfo> dataSource = this._TopicsSource.DataSource as List<TopicInfo>;
+                List<TopicInfo> dataSource = _TopicsSource.DataSource as List<TopicInfo>;
                 if (dataSource == null)
                     return;
-                List<TopicInfo> list = dataSource.ToList<TopicInfo>();
-                list.ForEach((Action<TopicInfo>) (x =>
+                List<TopicInfo> list = dataSource.ToList();
+                list.ForEach(x =>
                 {
                     TopicInfo topicInfo = x;
                     topicInfo.Checked = !topicInfo.Checked;
-                }));
-                this._TopicsSource.Clear();
-                this._TopicsSource.DataSource = (object) list;
+                });
+                _TopicsSource.Clear();
+                _TopicsSource.DataSource = list;
             }
             else
             {
-                DataGridViewColumn sortedColumn = this._dataGridTopicsList.SortedColumn;
+                DataGridViewColumn sortedColumn = _dataGridTopicsList.SortedColumn;
                 SortOrder sortOrder =
                     column.HeaderCell.SortGlyphDirection == SortOrder.None ||
                     column.HeaderCell.SortGlyphDirection == SortOrder.Descending
@@ -754,82 +749,82 @@ namespace TLO.local
                 }
                 else
                 {
-                    List<TopicInfo> dataSource = this._TopicsSource.DataSource as List<TopicInfo>;
+                    List<TopicInfo> dataSource = _TopicsSource.DataSource as List<TopicInfo>;
                     if (dataSource == null)
                         return;
-                    List<TopicInfo> list1 = dataSource.ToList<TopicInfo>();
+                    List<TopicInfo> list1 = dataSource.ToList();
                     List<TopicInfo> list2;
-                    if (column == this.ColumnReport1DgvSize)
+                    if (column == ColumnReport1DgvSize)
                         list2 = (sortOrder == SortOrder.Ascending
-                            ? (IEnumerable<TopicInfo>) list1.OrderBy<TopicInfo, long>(
-                                (Func<TopicInfo, long>) (d => d.Size))
-                            : (IEnumerable<TopicInfo>) list1.OrderByDescending<TopicInfo, long>(
-                                (Func<TopicInfo, long>) (d => d.Size))).ToList<TopicInfo>();
-                    else if (column == this.ColumnReport1DgvName)
+                            ? list1.OrderBy(
+                                d => d.Size)
+                            : list1.OrderByDescending(
+                                d => d.Size)).ToList();
+                    else if (column == ColumnReport1DgvName)
                         list2 = (sortOrder == SortOrder.Ascending
-                            ? (IEnumerable<TopicInfo>) list1.OrderBy<TopicInfo, string>(
-                                (Func<TopicInfo, string>) (d => d.Name))
-                            : (IEnumerable<TopicInfo>) list1.OrderByDescending<TopicInfo, string>(
-                                (Func<TopicInfo, string>) (d => d.Name))).ToList<TopicInfo>();
-                    else if (column == this.ColumnReport1DgvSeeders)
+                            ? list1.OrderBy(
+                                d => d.Name)
+                            : list1.OrderByDescending(
+                                d => d.Name)).ToList();
+                    else if (column == ColumnReport1DgvSeeders)
                         list2 = (sortOrder == SortOrder.Ascending
-                                ? (IEnumerable<TopicInfo>) list1
-                                    .OrderBy<TopicInfo, int>((Func<TopicInfo, int>) (d => d.Seeders))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name))
-                                : (IEnumerable<TopicInfo>) list1
-                                    .OrderByDescending<TopicInfo, int>((Func<TopicInfo, int>) (d => d.Seeders))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name)))
-                            .ToList<TopicInfo>();
-                    else if (column == this.ColumnReport1DgvAvgSeeders)
+                                ? list1
+                                    .OrderBy(d => d.Seeders)
+                                    .ThenBy(d => Name)
+                                : list1
+                                    .OrderByDescending(d => d.Seeders)
+                                    .ThenBy(d => Name))
+                            .ToList();
+                    else if (column == ColumnReport1DgvAvgSeeders)
                         list2 = (sortOrder == SortOrder.Ascending
-                                ? (IEnumerable<TopicInfo>) list1
-                                    .OrderBy<TopicInfo, Decimal?>((Func<TopicInfo, Decimal?>) (d => d.AvgSeeders))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name))
-                                : (IEnumerable<TopicInfo>) list1
-                                    .OrderByDescending<TopicInfo, Decimal?>(
-                                        (Func<TopicInfo, Decimal?>) (d => d.AvgSeeders))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name)))
-                            .ToList<TopicInfo>();
-                    else if (column == this.ColumnReport1DgvRegTime)
+                                ? list1
+                                    .OrderBy(d => d.AvgSeeders)
+                                    .ThenBy(d => Name)
+                                : list1
+                                    .OrderByDescending(
+                                        d => d.AvgSeeders)
+                                    .ThenBy(d => Name))
+                            .ToList();
+                    else if (column == ColumnReport1DgvRegTime)
                     {
                         list2 = (sortOrder == SortOrder.Ascending
-                                ? (IEnumerable<TopicInfo>) list1
-                                    .OrderBy<TopicInfo, DateTime>((Func<TopicInfo, DateTime>) (d => d.RegTime))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name))
-                                : (IEnumerable<TopicInfo>) list1
-                                    .OrderByDescending<TopicInfo, DateTime>(
-                                        (Func<TopicInfo, DateTime>) (d => d.RegTime))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name)))
-                            .ToList<TopicInfo>();
+                                ? list1
+                                    .OrderBy(d => d.RegTime)
+                                    .ThenBy(d => Name)
+                                : list1
+                                    .OrderByDescending(
+                                        d => d.RegTime)
+                                    .ThenBy(d => Name))
+                            .ToList();
                     }
-                    else if (column == this.ColumnReport1DgvKeeperCount)
+                    else if (column == ColumnReport1DgvKeeperCount)
                     {
                         list2 = (sortOrder == SortOrder.Ascending
-                                ? (IEnumerable<TopicInfo>) list1
-                                    .OrderBy<TopicInfo, int?>((Func<TopicInfo, int?>) (d => d.KeeperCount))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name))
-                                : (IEnumerable<TopicInfo>) list1
-                                    .OrderByDescending<TopicInfo, int?>((Func<TopicInfo, int?>) (d => d.KeeperCount))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name)))
-                            .ToList<TopicInfo>();
+                                ? list1
+                                    .OrderBy(d => d.KeeperCount)
+                                    .ThenBy(d => Name)
+                                : list1
+                                    .OrderByDescending(d => d.KeeperCount)
+                                    .ThenBy(d => Name))
+                            .ToList();
                     }
                     else
                     {
-                        if (column != this.ColumnReport1DgvStatus)
+                        if (column != ColumnReport1DgvStatus)
                             return;
                         list2 = (sortOrder == SortOrder.Ascending
-                                ? (IEnumerable<TopicInfo>) list1
-                                    .OrderBy<TopicInfo, string>((Func<TopicInfo, string>) (d => d.StatusToString))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name))
-                                : (IEnumerable<TopicInfo>) list1
-                                    .OrderByDescending<TopicInfo, string>(
-                                        (Func<TopicInfo, string>) (d => d.StatusToString))
-                                    .ThenBy<TopicInfo, string>((Func<TopicInfo, string>) (d => this.Name)))
-                            .ToList<TopicInfo>();
+                                ? list1
+                                    .OrderBy(d => d.StatusToString)
+                                    .ThenBy(d => Name)
+                                : list1
+                                    .OrderByDescending(
+                                        d => d.StatusToString)
+                                    .ThenBy(d => Name))
+                            .ToList();
                     }
 
-                    this._TopicsSource.Clear();
-                    this._TopicsSource.DataSource = (object) list2;
+                    _TopicsSource.Clear();
+                    _TopicsSource.DataSource = list2;
                     column.HeaderCell.SortGlyphDirection = sortOrder;
                 }
             }
@@ -837,9 +832,9 @@ namespace TLO.local
 
         private void _dgvReportDownloads_Click(object sender, EventArgs e)
         {
-            if (this._dataGridTopicsList.Columns.GetColumnCount(DataGridViewElementStates.Selected) == 1)
+            if (_dataGridTopicsList.Columns.GetColumnCount(DataGridViewElementStates.Selected) == 1)
             {
-                DataGridViewColumn selectedColumn = this._dataGridTopicsList.SelectedColumns[0];
+                DataGridViewColumn selectedColumn = _dataGridTopicsList.SelectedColumns[0];
             }
 
             Console.WriteLine("");
@@ -847,34 +842,34 @@ namespace TLO.local
 
         private void WriteReports()
         {
-            ClientLocalDB.Current.CreateReportByRootCategories();
-            this._tcCetegoriesRootReports.Controls.Clear();
-            Dictionary<Tuple<int, int>, Tuple<string, string>> reports = ClientLocalDB.Current.GetReports(new int?(0));
+            Reports.CreateReportByRootCategories();
+            _tcCetegoriesRootReports.Controls.Clear();
+            Dictionary<Tuple<int, int>, Tuple<string, string>> reports = ClientLocalDB.Current.GetReports(0);
             string str1 = reports
-                .Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>(
-                    (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x => x.Key.Item2 == 0))
-                .Select<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>(
-                    (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>) (x => x.Value.Item2))
-                .FirstOrDefault<string>();
-            this._txtConsolidatedReport.Text = string.IsNullOrWhiteSpace(str1) ? string.Empty : str1;
+                .Where(
+                    x => x.Key.Item2 == 0)
+                .Select(
+                    x => x.Value.Item2)
+                .FirstOrDefault();
+            _txtConsolidatedReport.Text = string.IsNullOrWhiteSpace(str1) ? string.Empty : str1;
             string str2 = reports
-                .Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>(
-                    (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x => x.Key.Item2 == 1))
-                .Select<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>(
-                    (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>) (x => x.Value.Item2))
-                .FirstOrDefault<string>();
-            this._tbConsolidatedTorrentClientsReport.Text = string.IsNullOrWhiteSpace(str2) ? string.Empty : str2;
+                .Where(
+                    x => x.Key.Item2 == 1)
+                .Select(
+                    x => x.Value.Item2)
+                .FirstOrDefault();
+            _tbConsolidatedTorrentClientsReport.Text = string.IsNullOrWhiteSpace(str2) ? string.Empty : str2;
             IEnumerable<Category> categories = ClientLocalDB.Current.GetCategories()
-                .Where<Category>((Func<Category, bool>) (x => x.CategoryID > 100000));
-            Size size = this._tcCetegoriesRootReports.Size;
+                .Where(x => x.CategoryID > 100000);
+            Size size = _tcCetegoriesRootReports.Size;
             foreach (Category category in categories)
             {
-                string str3 = ClientLocalDB.Current.GetReports(new int?(category.CategoryID))
-                    .Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>(
-                        (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x => x.Key.Item2 == 0))
-                    .Select<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>(
-                        (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, string>) (x => x.Value.Item2))
-                    .FirstOrDefault<string>();
+                string str3 = ClientLocalDB.Current.GetReports(category.CategoryID)
+                    .Where(
+                        x => x.Key.Item2 == 0)
+                    .Select(
+                        x => x.Value.Item2)
+                    .FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(str3))
                 {
                     TabPage tabPage = new TabPage();
@@ -892,8 +887,8 @@ namespace TLO.local
                     textBox.ScrollBars = ScrollBars.Both;
                     textBox.Size = new Size(size.Width - 8, size.Height - 20);
                     textBox.Text = str3;
-                    this._tcCetegoriesRootReports.Controls.Add((Control) tabPage);
-                    tabPage.Controls.Add((Control) textBox);
+                    _tcCetegoriesRootReports.Controls.Add(tabPage);
+                    tabPage.Controls.Add(textBox);
                 }
             }
         }
@@ -913,7 +908,7 @@ namespace TLO.local
                     return;
                 using (FileStream fileStream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.Write))
                 {
-                    using (BinaryWriter binaryWriter = new BinaryWriter((Stream) fileStream, Encoding.UTF8))
+                    using (BinaryWriter binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8))
                     {
                         foreach (TorrentClientInfo torrentClient in ClientLocalDB.Current.GetTorrentClients())
                         {
@@ -941,13 +936,13 @@ namespace TLO.local
                         }
 
                         int[] cats = ClientLocalDB.Current.GetCategoriesEnable()
-                            .Select<Category, int>((Func<Category, int>) (x => x.CategoryID)).ToArray<int>();
+                            .Select(x => x.CategoryID).ToArray();
                         Dictionary<Tuple<int, int>, Tuple<string, string>> reports =
                             ClientLocalDB.Current.GetReports(new int?());
                         foreach (KeyValuePair<Tuple<int, int>, Tuple<string, string>> keyValuePair in reports
-                            .Where<KeyValuePair<Tuple<int, int>, Tuple<string, string>>>(
-                                (Func<KeyValuePair<Tuple<int, int>, Tuple<string, string>>, bool>) (x =>
-                                    ((IEnumerable<int>) cats).Contains<int>(x.Key.Item1))))
+                            .Where(
+                                x =>
+                                    cats.Contains(x.Key.Item1)))
                         {
                             binaryWriter.Write("Report");
                             binaryWriter.Write(keyValuePair.Key.Item1);
@@ -959,8 +954,8 @@ namespace TLO.local
             }
             catch (Exception ex)
             {
-                this._logger.Error(ex.Message);
-                this._logger.Trace(ex.StackTrace);
+                _logger.Error(ex.Message);
+                _logger.Trace(ex.StackTrace);
             }
         }
 
@@ -982,7 +977,7 @@ namespace TLO.local
                 List<Tuple<int, int, string>> result = new List<Tuple<int, int, string>>();
                 using (FileStream fileStream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.Read))
                 {
-                    using (BinaryReader binaryReader = new BinaryReader((Stream) fileStream))
+                    using (BinaryReader binaryReader = new BinaryReader(fileStream))
                     {
                         while (binaryReader.BaseStream.Length != binaryReader.BaseStream.Position)
                         {
@@ -997,7 +992,7 @@ namespace TLO.local
                                 }
                                 else
                                 {
-                                    Category category = new Category()
+                                    Category category = new Category
                                     {
                                         CategoryID = binaryReader.ReadInt32(),
                                         IsEnable = true,
@@ -1014,7 +1009,7 @@ namespace TLO.local
                             }
                             else
                             {
-                                TorrentClientInfo torrentClientInfo = new TorrentClientInfo()
+                                TorrentClientInfo torrentClientInfo = new TorrentClientInfo
                                 {
                                     UID = Guid.Parse(binaryReader.ReadString()),
                                     Name = binaryReader.ReadString(),
@@ -1028,9 +1023,8 @@ namespace TLO.local
                             }
                         }
 
-                        ClientLocalDB.Current.SaveTorrentClients((IEnumerable<TorrentClientInfo>) torrentClientInfoList,
-                            false);
-                        ClientLocalDB.Current.CategoriesSave((IEnumerable<Category>) categoryList, false);
+                        ClientLocalDB.Current.SaveTorrentClients(torrentClientInfoList);
+                        ClientLocalDB.Current.CategoriesSave(categoryList);
                         ClientLocalDB.Current.SaveSettingsReport(result);
                         ClientLocalDB.Current.SaveToDatabase();
                     }
@@ -1038,8 +1032,8 @@ namespace TLO.local
             }
             catch (Exception ex)
             {
-                this._logger.Error(ex.Message);
-                this._logger.Trace(ex.StackTrace);
+                _logger.Error(ex.Message);
+                _logger.Trace(ex.StackTrace);
             }
         }
 
@@ -1056,30 +1050,30 @@ namespace TLO.local
                 loc.Y = 0;
             }
 
-            if (loc.X >= SystemInformation.VirtualScreen.Size.Width - this.Size.Width)
+            if (loc.X >= SystemInformation.VirtualScreen.Size.Width - Size.Width)
             {
-                loc.X = SystemInformation.VirtualScreen.Size.Width - this.Size.Width;
+                loc.X = SystemInformation.VirtualScreen.Size.Width - Size.Width;
             }
 
-            if (loc.Y >= SystemInformation.VirtualScreen.Size.Height - this.Size.Height)
+            if (loc.Y >= SystemInformation.VirtualScreen.Size.Height - Size.Height)
             {
-                loc.Y = SystemInformation.VirtualScreen.Size.Height - this.Size.Height;
+                loc.Y = SystemInformation.VirtualScreen.Size.Height - Size.Height;
             }
 
-            this.Location = loc;
+            Location = loc;
         }
 
         private void FireFormClosing(object sender, FormClosingEventArgs e)
         {
             // Copy window location to app settings
-            Properties.Settings.Default.WindowLocation = this.Location;
+            Properties.Settings.Default.WindowLocation = Location;
             Properties.Settings.Default.Save();
         }
 
         private void ExportUnknown_Click(object sender, EventArgs e)
         {
-            dwCreateAndRun(new DoWorkEventHandler(WorkerMethods.bwCreateUnknownTorrentsReport), "Формирование отчета",
-                (object) this);
+            dwCreateAndRun(WorkerMethods.bwCreateUnknownTorrentsReport, "Формирование отчета",
+                this);
         }
     }
 }

@@ -83,7 +83,10 @@ namespace TLO.local
             ReportTop1 = settings.ReportTop1.Replace("\n", "\r\n").Replace("\r\r", "\r");
             ReportTop2 = settings.ReportTop2.Replace("\n", "\r\n").Replace("\r\r", "\r");
             ReportLine = settings.ReportLine.Replace("\n", "\r\n").Replace("\r\r", "\r");
-            ReportBottom = settings.ReportBottom;
+            ReportBottom = settings.ReportBottom.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportSummaryTemplate = settings.ReportSummaryTemplate.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportCategoryHeaderTemplate = settings.ReportCategoryHeaderTemplate.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            ReportCategoriesTemplate = settings.ReportCategoriesTemplate.Replace("\n", "\r\n").Replace("\r\r", "\r");
             HostRuTrackerOrg = settings.HostRuTrackerOrg;
             SetLogger(settings.LogLevel.HasValue ? settings.LogLevel.Value : 0);
             _LastWriteTime = File.GetLastWriteTime(FileSettings);
@@ -131,7 +134,60 @@ namespace TLO.local
       ReportTop1 = "[b]Актуально на:[/b] %%CreateDate%%\r\n\r\nОбщее количество хранимых раздач подраздела: %%CountTopics%% шт. (%%SizeTopics%%)";
       ReportTop2 = "%%Top1%%[spoiler=\"Раздачи, взятые на хранение, №№ %%NumberTopicsFirst%% - %%NumberTopicsLast%%\"]\r\n[list=1]\r\n%%ReportLines%%\r\n[/list]\r\n[/spoiler]";
       ReportBottom = "";
-      ReportCategories = "[hr]\r\n[hr]\r\n[b][color=darkgreen][align=center][size=16]Статистика раздела: {0}[/size][/align][/color][/b][hr]\r\n[hr]\r\n\r\n";
+      ReportSummaryTemplate = @"
+Актуально на: {{{today}}}
+
+Общее количество хранимых раздач: {{{summary_topics_count}}} шт.
+Общий вес хранимых раздач: {{{summary_topics_size}}} GB
+[hr]
+
+{{#categories}}
+[url={{{url}}}]{{{category_name}}}[/url] - {{{topics_count}}} шт. ({{{topics_size}}} GB)
+{{/categories}}
+".Trim();
+      ReportCategoryHeaderTemplate = @"
+[url={{{category_uri}}}][color=darkgreen][b]{{{category_name}}}[/b][/color][/url] | [url={{{category_check_seeds_uri}][color=darkgreen][b]Проверка сидов[/b][/color][/url]
+
+[b]Актуально на:[/b] {{{today}}}
+
+[b]Общее количество раздач в подразделе:[/b] {{{topics_count}}} шт.
+[b]Общий размер раздач в подразделе:[/b] {{{topics_size}}} GB.
+[b]Количество хранителей:[/b] {{{keepers_count}}}
+[b]Общее количество хранимых раздач:[/b] {{{keep_topics_count}}} шт.
+[b]Общий вес хранимых раздач:[/b] {{{keep_topics_size}}} GB.
+[hr]
+
+{{#keepers}}
+[b]Хранитель {{{keeper_number}}}:[/b] [url={{{keeper_profile_uri}}}][color=darkgreen][b]{{{keeper_username}}}[/b][/color][/url] - {{{keep_topics_count}}} шт. ({{{keep_topics_size}}} GB)
+{{/keepers}}
+".Trim();
+      ReportCategoriesTemplate = @"
+[hr]
+[hr]
+[b][color=darkgreen][align=center][size=16]Статистика раздела: {{{today}}}[/size][/align][/color][/b][hr]
+[hr]
+
+Всего: {{{topics_count}}} шт. ({{{topics_size}}} Гб.)
+
+[hr]
+[size=12][b]По хранителям:[/b][/size]
+{{#keepers}}
+[spoiler=""{{{keeper_number}}}. {{{keeper_username}}} - {{{keep_topics_count}}} шт. ({{{keep_topics_size}}} Гб.)""]
+{{#categories}}
+{{{keep_category_name}}} - {{{keep_category_topics_count}}} шт. ({{{keep_category_topics_size}}} Гб.)
+{{/categories}}
+[/spoiler]
+{{/keepers}}
+[hr]
+[size=12][b]По форумам:[/b][/size]
+{{#categories}}
+[spoiler=""{{{category_name}}} - {{{topics_count}}} шт. ({{{topics_size}}} Гб.)""]
+{{#keepers}}
+{{{keeper_username}}} - {{{keep_topics_count}}} шт. ({{{keep_topics_size}}} Гб.)
+{{/keepers}}
+[/spoiler]
+{{/categories}}
+".Trim();
       HostRuTrackerOrg = "rutracker.org";
     }
 
@@ -208,10 +264,15 @@ namespace TLO.local
 
     [XmlElement]
     public string ReportBottom { get; set; }
+
+    [XmlElement]
+    public string ReportSummaryTemplate { get; set; }
     
-    public string ReportCategories { get; set; }
+    [XmlElement]
+    public string ReportCategoryHeaderTemplate { get; set; }
     
-    public string ReportSummary { get; set; }
+    [XmlElement]
+    public string ReportCategoriesTemplate { get; set; }
 
     [XmlElement]
     public string HostRuTrackerOrg { get; set; }

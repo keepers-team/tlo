@@ -576,7 +576,7 @@ namespace TLO.local
                     backgroundWorker.ReportProgress((int) num1);
                 }
 
-                ClientLocalDB.Current.CreateReportByRootCategories();
+                Reports.CreateReportByRootCategories();
             }
             catch (Exception ex)
             {

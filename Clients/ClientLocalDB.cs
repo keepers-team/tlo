@@ -26,9 +26,9 @@ namespace TLO.local
     {
       get
       {
-        if (ClientLocalDB._current == null)
-          ClientLocalDB._current = new ClientLocalDB();
-        return ClientLocalDB._current;
+        if (_current == null)
+          _current = new ClientLocalDB();
+        return _current;
       }
     }
 
@@ -40,12 +40,17 @@ namespace TLO.local
       }
     }
 
+    public SQLiteCommand CreateCommand()
+    {
+      return _conn.CreateCommand();
+    }
+
     private ClientLocalDB()
     {
-      if (ClientLocalDB._logger == null)
-        ClientLocalDB._logger = LogManager.GetLogger("ClientServer");
+      if (_logger == null)
+        _logger = LogManager.GetLogger("ClientServer");
       bool flag = false;
-      if (!File.Exists(this.FileDatabase))
+      if (!File.Exists(FileDatabase))
         flag = true;
       try
       {
@@ -56,9 +61,9 @@ namespace TLO.local
         flag = true;
       }
       if (flag)
-        this.CreateDatabase();
-      this.SaveToDatabase();
-      this.UpdateDataBase();
+        CreateDatabase();
+      SaveToDatabase();
+      UpdateDataBase();
     }
 
     public void SaveToDatabase()
@@ -70,35 +75,35 @@ namespace TLO.local
       }
       try
       {
-        if (File.Exists(this.FileDatabase + ".tmp"))
-          File.Delete(this.FileDatabase + ".tmp");
-        using (SQLiteConnection destination = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) (this.FileDatabase + ".tmp"))))
+        if (File.Exists(FileDatabase + ".tmp"))
+          File.Delete(FileDatabase + ".tmp");
+        using (SQLiteConnection destination = new SQLiteConnection(string.Format("Data Source={0};Version=3;", FileDatabase + ".tmp")))
         {
           destination.Open();
-          this._conn.BackupDatabase(destination, "main", "main", -1, null, -1);
+          _conn.BackupDatabase(destination, "main", "main", -1, null, -1);
           destination.Close();
         }
       }
       catch (Exception ex)
       {
-        ClientLocalDB._logger.Error(ex.Message + "\r\n" + ex.StackTrace);
+        _logger.Error(ex.Message + "\r\n" + ex.StackTrace);
       }
-      if (!File.Exists(this.FileDatabase + ".tmp"))
+      if (!File.Exists(FileDatabase + ".tmp"))
         return;
       _conn?.Close();
-      if (File.Exists(this.FileDatabase))
-        File.Delete(this.FileDatabase);
-      File.Move(this.FileDatabase + ".tmp", this.FileDatabase);
-      this._conn = new DBConnectionCreator().Connection;
+      if (File.Exists(FileDatabase))
+        File.Delete(FileDatabase);
+      File.Move(FileDatabase + ".tmp", FileDatabase);
+      _conn = new DBConnectionCreator().Connection;
     }
 
     private void CreateDatabase()
     {
       _conn?.Close();
-      if (File.Exists(this.FileDatabase))
-        File.Delete(this.FileDatabase);
+      if (File.Exists(FileDatabase))
+        File.Delete(FileDatabase);
       _conn = new DBConnectionCreator().Connection;
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "\r\nCREATE TABLE Category(CategoryID INTEGER PRIMARY KEY ASC, ParentID INTEGER, OrderID INT, Name TEXT NOT NULL, FullName TEXT NOT NULL, IsEnable BIT, CountSeeders int, \r\n    TorrentClientUID TEXT, Folder TEXT, AutoDownloads INT, LastUpdateTopics DATETIME, LastUpdateStatus DATETIME, Label TEXT, ReportTopicID INT);\r\nCREATE TABLE Topic (TopicID INT PRIMARY KEY ASC, CategoryID INT, Name TEXT, Hash TEXT, Size INTEGER, Seeders INT, AvgSeeders DECIMAL(18,4), Status INT, IsActive BIT, IsDeleted BIT, IsKeep BIT, IsKeepers BIT, IsBlackList BIT, IsDownload BIT, RegTime DATETIME, PosterID INT);\r\nCREATE INDEX IX_Topic__Hash ON Topic (Hash);\r\nCREATE TABLE TopicStatusHystory (TopicID INT NOT NULL, Date DateTime NOT NULL, Seeders INT, PRIMARY KEY(TopicID ASC, Date ASC));\r\nCREATE TABLE TorrentClient(UID NVARCHAR(50) PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL, Type VARCHAR(50) NOT NULL, ServerName NVARCHAR(50) NOT NULL, ServerPort INT NOT NULL, UserName NVARCHAR(50), UserPassword NVARCHAR(50), LastReadHash DATETIME);\r\nCREATE TABLE Report(CategoryID INT NOT NULL, ReportNo INT NOT NULL, URL TEXT, Report TEXT, PRIMARY KEY(CategoryID ASC, ReportNo ASC));\r\nCREATE TABLE Keeper (KeeperName nvarchar(100) not null, CategoryID int not null, Count INT NOT NULL, Size DECIMAL(18,4) NOT NULL, PRIMARY KEY(KeeperName ASC, CategoryID ASC));\r\nCREATE TABLE KeeperToTopic(KeeperName NVARCHAR(50) NOT NULL, CategoryID INT NULL, TopicID INT NOT NULL, PRIMARY KEY(KeeperName ASC, TopicID ASC));\r\nCREATE TABLE User (UserID INT PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL);\r\n";
         command.ExecuteNonQuery();
@@ -107,9 +112,9 @@ namespace TLO.local
 
     public void ClearDatabase()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           HashSet<int> intSet = new HashSet<int>();
           command.Transaction = sqLiteTransaction;
@@ -121,7 +126,7 @@ namespace TLO.local
           command.ExecuteNonQuery();
         }
         sqLiteTransaction.Commit();
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.CommandText = "vacuum;";
           command.ExecuteNonQuery();
@@ -154,7 +159,7 @@ namespace TLO.local
 
         if (updated)
         {
-          this.SaveToDatabase();
+          SaveToDatabase();
         }
       }
     }
@@ -162,7 +167,7 @@ namespace TLO.local
     public IEnumerable<UserInfo> GetUsers()
     {
       List<UserInfo> userInfoList = new List<UserInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM User";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -175,16 +180,16 @@ namespace TLO.local
             });
         }
       }
-      return (IEnumerable<UserInfo>) userInfoList;
+      return userInfoList;
     }
 
     public void SaveUsers(IEnumerable<UserInfo> data)
     {
-      if (data == null || data.Count<UserInfo>() == 0)
+      if (data == null || data.Count() == 0)
         return;
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "INSERT OR REPLACE INTO User(UserID, Name) VALUES(@UserID, @Name);";
@@ -193,8 +198,8 @@ namespace TLO.local
           command.Prepare();
           foreach (UserInfo userInfo in data)
           {
-            command.Parameters[0].Value = (object) userInfo.UserID;
-            command.Parameters[1].Value = (object) (userInfo.Name ?? "<Удален>");
+            command.Parameters[0].Value = userInfo.UserID;
+            command.Parameters[1].Value = userInfo.Name ?? "<Удален>";
             command.ExecuteNonQuery();
           }
         }
@@ -205,7 +210,7 @@ namespace TLO.local
     public int[] GetNoUsers()
     {
       List<int> intList = new List<int>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT DISTINCT t.PosterID\r\nFROM \r\n     Topic AS t     \r\n     LEFT JOIN User AS u ON (t.PosterID = u.UserID)     \r\nWHERE\r\n     t.PosterID IS NOT NULL AND u.Name IS NULL";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -225,13 +230,13 @@ namespace TLO.local
 
     public void CategoriesSave(IEnumerable<Category> data, bool isLoad = false)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           HashSet<int> hash = new HashSet<int>();
           command.Transaction = sqLiteTransaction;
-          command.CommandText = string.Format("select CategoryID FROM Category WHERE CategoryID IN ({0})", (object) string.Join<int>(",", data.Select<Category, int>((Func<Category, int>) (x => x.CategoryID))));
+          command.CommandText = string.Format("select CategoryID FROM Category WHERE CategoryID IN ({0})", string.Join(",", data.Select(x => x.CategoryID)));
           using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
           {
             while (sqLiteDataReader.Read())
@@ -241,14 +246,14 @@ namespace TLO.local
           {
             command.CommandText = "UPDATE Category SET ParentID = @ParentID, OrderID = @OrderID, Name = @Name, FullName = @FullName WHERE CategoryID = @ID";
             IEnumerable<Category> source = data;
-            foreach (Category category in source.Where<Category>((Func<Category, bool>) (x => hash.Contains(x.CategoryID))))
+            foreach (Category category in source.Where(x => hash.Contains(x.CategoryID)))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@ID", (object) category.CategoryID);
-              command.Parameters.AddWithValue("@ParentID", (object) category.ParentID);
-              command.Parameters.AddWithValue("@OrderID", (object) category.OrderID);
-              command.Parameters.AddWithValue("@Name", (object) category.Name);
-              command.Parameters.AddWithValue("@FullName", string.IsNullOrWhiteSpace(category.FullName) ? (object) category.Name : (object) category.FullName);
+              command.Parameters.AddWithValue("@ID", category.CategoryID);
+              command.Parameters.AddWithValue("@ParentID", category.ParentID);
+              command.Parameters.AddWithValue("@OrderID", category.OrderID);
+              command.Parameters.AddWithValue("@Name", category.Name);
+              command.Parameters.AddWithValue("@FullName", string.IsNullOrWhiteSpace(category.FullName) ? category.Name : category.FullName);
               command.ExecuteNonQuery();
             }
           }
@@ -258,37 +263,37 @@ namespace TLO.local
             command.ExecuteNonQuery();
             command.CommandText = "UPDATE Category SET IsEnable = @IsEnable, Folder = @Folder, LastUpdateTopics = @LastUpdateTopics, LastUpdateStatus = @LastUpdateStatus, CountSeeders = @CountSeeders, TorrentClientUID = @TorrentClientUID, Label = @Label WHERE CategoryID = @ID";
             IEnumerable<Category> source = data;
-            foreach (Category category in source.Where<Category>((Func<Category, bool>) (x => hash.Contains(x.CategoryID))))
+            foreach (Category category in source.Where(x => hash.Contains(x.CategoryID)))
             {
               string str = string.Format("{0}|{1}|{2}|{3}", (object) category.Folder, (object) category.CreateSubFolder, category.IsSaveTorrentFiles ? (object) "1" : (object) "0", category.IsSaveWebPage ? (object) "1" : (object) "0");
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@ID", (object) category.CategoryID);
-              command.Parameters.AddWithValue("@IsEnable", (object) category.IsEnable);
-              command.Parameters.AddWithValue("@CountSeeders", (object) category.CountSeeders);
-              command.Parameters.AddWithValue("@TorrentClientUID", (object) category.TorrentClientUID.ToString());
-              command.Parameters.AddWithValue("@Folder", (object) str);
-              command.Parameters.AddWithValue("@LastUpdateTopics", (object) category.LastUpdateTopics);
-              command.Parameters.AddWithValue("@LastUpdateStatus", (object) category.LastUpdateStatus);
-              command.Parameters.AddWithValue("@Label", (object) category.Label);
+              command.Parameters.AddWithValue("@ID", category.CategoryID);
+              command.Parameters.AddWithValue("@IsEnable", category.IsEnable);
+              command.Parameters.AddWithValue("@CountSeeders", category.CountSeeders);
+              command.Parameters.AddWithValue("@TorrentClientUID", category.TorrentClientUID.ToString());
+              command.Parameters.AddWithValue("@Folder", str);
+              command.Parameters.AddWithValue("@LastUpdateTopics", category.LastUpdateTopics);
+              command.Parameters.AddWithValue("@LastUpdateStatus", category.LastUpdateStatus);
+              command.Parameters.AddWithValue("@Label", category.Label);
               command.ExecuteNonQuery();
             }
           }
           command.CommandText = "INSERT OR REPLACE INTO Category (CategoryID, ParentID, OrderID, Name, FullName, IsEnable, Folder, LastUpdateTopics, LastUpdateStatus, Label) \r\nVALUES(@ID, @ParentID, @OrderID, @Name, @FullName, @IsEnable, @Folder, @LastUpdateTopics, @LastUpdateStatus, @Label)";
           IEnumerable<Category> source1 = data;
-          foreach (Category category in source1.Where<Category>((Func<Category, bool>) (x => !hash.Contains(x.CategoryID))))
+          foreach (Category category in source1.Where(x => !hash.Contains(x.CategoryID)))
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@ID", (object) category.CategoryID);
-            command.Parameters.AddWithValue("@ParentID", (object) category.ParentID);
-            command.Parameters.AddWithValue("@OrderID", (object) category.OrderID);
-            command.Parameters.AddWithValue("@Name", (object) category.Name);
-            command.Parameters.AddWithValue("@FullName", string.IsNullOrWhiteSpace(category.FullName) ? (object) category.Name : (object) category.FullName);
-            command.Parameters.AddWithValue("@IsEnable", (object) category.IsEnable);
-            command.Parameters.AddWithValue("@CountSeeders", (object) category.CountSeeders);
-            command.Parameters.AddWithValue("@Folder", (object) category.Folder);
-            command.Parameters.AddWithValue("@LastUpdateTopics", (object) category.LastUpdateTopics);
-            command.Parameters.AddWithValue("@LastUpdateStatus", (object) category.LastUpdateStatus);
-            command.Parameters.AddWithValue("@Label", (object) category.Label);
+            command.Parameters.AddWithValue("@ID", category.CategoryID);
+            command.Parameters.AddWithValue("@ParentID", category.ParentID);
+            command.Parameters.AddWithValue("@OrderID", category.OrderID);
+            command.Parameters.AddWithValue("@Name", category.Name);
+            command.Parameters.AddWithValue("@FullName", string.IsNullOrWhiteSpace(category.FullName) ? category.Name : category.FullName);
+            command.Parameters.AddWithValue("@IsEnable", category.IsEnable);
+            command.Parameters.AddWithValue("@CountSeeders", category.CountSeeders);
+            command.Parameters.AddWithValue("@Folder", category.Folder);
+            command.Parameters.AddWithValue("@LastUpdateTopics", category.LastUpdateTopics);
+            command.Parameters.AddWithValue("@LastUpdateStatus", category.LastUpdateStatus);
+            command.Parameters.AddWithValue("@Label", category.Label);
             command.ExecuteNonQuery();
           }
         }
@@ -299,7 +304,7 @@ namespace TLO.local
     public List<Category> GetCategories()
     {
       List<Category> categoryList = new List<Category>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT CategoryID, ParentID, OrderID, Name, FullName, IsEnable, Folder, LastUpdateTopics, LastUpdateStatus, CountSeeders, TorrentClientUID, ReportTopicID, Label FROM Category";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -321,7 +326,7 @@ namespace TLO.local
               ReportList = sqLiteDataReader.IsDBNull(11) ? string.Empty : sqLiteDataReader.GetString(11),
               Label = sqLiteDataReader.IsDBNull(12) ? string.Empty : sqLiteDataReader.GetString(12)
             };
-            string str = sqLiteDataReader.IsDBNull(6) ? (string) null : sqLiteDataReader.GetString(6);
+            string str = sqLiteDataReader.IsDBNull(6) ? null : sqLiteDataReader.GetString(6);
             if (!string.IsNullOrWhiteSpace(str))
             {
               string[] strArray = str.Split('|');
@@ -350,7 +355,7 @@ namespace TLO.local
     public List<Category> GetCategoriesEnable(bool withUnknown = false)
     {
       List<Category> categoryList = new List<Category>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT CategoryID, ParentID, OrderID, Name, FullName, IsEnable, Folder, LastUpdateTopics, LastUpdateStatus, CountSeeders, TorrentClientUID, Label FROM Category WHERE IsEnable = 1 ORDER BY FullName";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -371,7 +376,7 @@ namespace TLO.local
               LastUpdateStatus = sqLiteDataReader.GetDateTime(8),
               Label = sqLiteDataReader.IsDBNull(11) ? string.Empty : sqLiteDataReader.GetString(11)
             };
-            string str = sqLiteDataReader.IsDBNull(6) ? (string) null : sqLiteDataReader.GetString(6);
+            string str = sqLiteDataReader.IsDBNull(6) ? null : sqLiteDataReader.GetString(6);
             if (!string.IsNullOrWhiteSpace(str))
             {
               string[] strArray = str.Split('|');
@@ -407,7 +412,7 @@ namespace TLO.local
 
     public void ResetFlagsTopicDownloads()
     {
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "UPDATE Topic SET IsKeep = 0, IsDownload = 0";
         command.ExecuteNonQuery();
@@ -417,23 +422,23 @@ namespace TLO.local
     public void SaveTopicInfo(List<TopicInfo> data, bool isUpdateTopic = false)
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           if (isUpdateTopic)
           {
             command.CommandText = "UPDATE Category SET LastUpdateTopics = @LastUpdateTopics WHERE CategoryID = @CategoryID";
-            foreach (int num in data.Select<TopicInfo, int>((Func<TopicInfo, int>) (x => x.CategoryID)).Distinct<int>())
+            foreach (int num in data.Select(x => x.CategoryID).Distinct())
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@CategoryID", (object) num);
-              command.Parameters.AddWithValue("@LastUpdateTopics", (object) DateTime.Now);
+              command.Parameters.AddWithValue("@CategoryID", num);
+              command.Parameters.AddWithValue("@LastUpdateTopics", DateTime.Now);
               command.ExecuteNonQuery();
             }
           }
-          command.CommandText = string.Format("SELECT TopicID FROM Topic WHERE TopicID IN ({0})", (object) string.Join<int>(",", data.Select<TopicInfo, int>((Func<TopicInfo, int>) (x => x.TopicID))));
+          command.CommandText = string.Format("SELECT TopicID FROM Topic WHERE TopicID IN ({0})", string.Join(",", data.Select(x => x.TopicID)));
           List<int> list = new List<int>();
           using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
           {
@@ -444,19 +449,19 @@ namespace TLO.local
           {
             command.CommandText = "UPDATE Topic SET CategoryID = @CategoryID, Name = @Name, Hash = @Hash, Size = @Size, Seeders = @Seeders, Status = @Status, IsDeleted = @IsDeleted, RegTime = @RegTime, PosterID = @PosterID WHERE TopicID = @TopicID;";
             List<TopicInfo> source = data;
-            foreach (TopicInfo topicInfo in source.Where<TopicInfo>((Func<TopicInfo, bool>) (x => list.Contains(x.TopicID))))
+            foreach (TopicInfo topicInfo in source.Where(x => list.Contains(x.TopicID)))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@TopicID", (object) topicInfo.TopicID);
-              command.Parameters.AddWithValue("@CategoryID", (object) topicInfo.CategoryID);
-              command.Parameters.AddWithValue("@Name", (object) topicInfo.Name2);
-              command.Parameters.AddWithValue("@Hash", (object) topicInfo.Hash);
-              command.Parameters.AddWithValue("@Size", (object) topicInfo.Size);
-              command.Parameters.AddWithValue("@Seeders", (object) topicInfo.Seeders);
-              command.Parameters.AddWithValue("@Status", (object) topicInfo.Status);
-              command.Parameters.AddWithValue("@IsDeleted", (object) 0);
-              command.Parameters.AddWithValue("@RegTime", (object) (topicInfo.RegTime < dateTime ? dateTime : topicInfo.RegTime));
-              command.Parameters.AddWithValue("@PosterID", (object) topicInfo.PosterID);
+              command.Parameters.AddWithValue("@TopicID", topicInfo.TopicID);
+              command.Parameters.AddWithValue("@CategoryID", topicInfo.CategoryID);
+              command.Parameters.AddWithValue("@Name", topicInfo.Name2);
+              command.Parameters.AddWithValue("@Hash", topicInfo.Hash);
+              command.Parameters.AddWithValue("@Size", topicInfo.Size);
+              command.Parameters.AddWithValue("@Seeders", topicInfo.Seeders);
+              command.Parameters.AddWithValue("@Status", topicInfo.Status);
+              command.Parameters.AddWithValue("@IsDeleted", 0);
+              command.Parameters.AddWithValue("@RegTime", topicInfo.RegTime < dateTime ? dateTime : topicInfo.RegTime);
+              command.Parameters.AddWithValue("@PosterID", topicInfo.PosterID);
               command.ExecuteNonQuery();
             }
           }
@@ -464,64 +469,64 @@ namespace TLO.local
           {
             command.CommandText = "UPDATE Topic SET CategoryID = @CategoryID, Name = @Name, Hash = @Hash, Size = @Size, Seeders = @Seeders, Status = @Status, IsDeleted = @IsDeleted, IsKeep = @IsKeep, IsKeepers = @IsKeepers, IsBlackList = @IsBlackList, IsDownload = @IsDownload WHERE TopicID = @TopicID;";
             List<TopicInfo> source = data;
-            foreach (TopicInfo topicInfo in source.Where<TopicInfo>((Func<TopicInfo, bool>) (x => list.Contains(x.TopicID))))
+            foreach (TopicInfo topicInfo in source.Where(x => list.Contains(x.TopicID)))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@TopicID", (object) topicInfo.TopicID);
-              command.Parameters.AddWithValue("@CategoryID", (object) topicInfo.CategoryID);
-              command.Parameters.AddWithValue("@Name", (object) topicInfo.Name2);
-              command.Parameters.AddWithValue("@Hash", (object) topicInfo.Hash);
-              command.Parameters.AddWithValue("@Size", (object) topicInfo.Size);
-              command.Parameters.AddWithValue("@Seeders", (object) topicInfo.Seeders);
-              command.Parameters.AddWithValue("@Status", (object) topicInfo.Status);
-              command.Parameters.AddWithValue("@IsDeleted", (object) 0);
-              command.Parameters.AddWithValue("@IsKeep", (object) topicInfo.IsKeep);
-              command.Parameters.AddWithValue("@IsKeepers", (object) topicInfo.IsKeeper);
-              command.Parameters.AddWithValue("@IsBlackList", (object) topicInfo.IsBlackList);
-              command.Parameters.AddWithValue("@IsDownload", (object) topicInfo.IsDownload);
+              command.Parameters.AddWithValue("@TopicID", topicInfo.TopicID);
+              command.Parameters.AddWithValue("@CategoryID", topicInfo.CategoryID);
+              command.Parameters.AddWithValue("@Name", topicInfo.Name2);
+              command.Parameters.AddWithValue("@Hash", topicInfo.Hash);
+              command.Parameters.AddWithValue("@Size", topicInfo.Size);
+              command.Parameters.AddWithValue("@Seeders", topicInfo.Seeders);
+              command.Parameters.AddWithValue("@Status", topicInfo.Status);
+              command.Parameters.AddWithValue("@IsDeleted", 0);
+              command.Parameters.AddWithValue("@IsKeep", topicInfo.IsKeep);
+              command.Parameters.AddWithValue("@IsKeepers", topicInfo.IsKeeper);
+              command.Parameters.AddWithValue("@IsBlackList", topicInfo.IsBlackList);
+              command.Parameters.AddWithValue("@IsDownload", topicInfo.IsDownload);
               command.ExecuteNonQuery();
             }
           }
           command.CommandText = "\r\nINSERT OR REPLACE INTO Topic (TopicID, CategoryID, Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, RegTime, PosterID)\r\nVALUES(@TopicID, @CategoryID, @Name, @Hash, @Size, @Seeders, @Status, @IsActive, @IsDeleted, @IsKeep, @IsKeepers, @IsBlackList, @IsDownload, @RegTime, @PosterID);";
           List<TopicInfo> source1 = data;
-          foreach (TopicInfo topicInfo in source1.Where<TopicInfo>((Func<TopicInfo, bool>) (x => !list.Contains(x.TopicID))))
+          foreach (TopicInfo topicInfo in source1.Where(x => !list.Contains(x.TopicID)))
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@TopicID", (object) topicInfo.TopicID);
-            command.Parameters.AddWithValue("@CategoryID", (object) topicInfo.CategoryID);
-            command.Parameters.AddWithValue("@Name", (object) topicInfo.Name2);
-            command.Parameters.AddWithValue("@Hash", (object) topicInfo.Hash);
-            command.Parameters.AddWithValue("@Size", (object) topicInfo.Size);
-            command.Parameters.AddWithValue("@Seeders", (object) topicInfo.Seeders);
-            command.Parameters.AddWithValue("@Status", (object) topicInfo.Status);
-            command.Parameters.AddWithValue("@IsActive", (object) 1);
-            command.Parameters.AddWithValue("@IsDeleted", (object) 0);
-            command.Parameters.AddWithValue("@IsKeep", (object) topicInfo.IsKeep);
-            command.Parameters.AddWithValue("@IsKeepers", (object) topicInfo.IsKeeper);
-            command.Parameters.AddWithValue("@IsBlackList", (object) topicInfo.IsBlackList);
-            command.Parameters.AddWithValue("@IsDownload", (object) topicInfo.IsDownload);
-            command.Parameters.AddWithValue("@RegTime", (object) (topicInfo.RegTime < dateTime ? dateTime : topicInfo.RegTime));
-            command.Parameters.AddWithValue("@PosterID", (object) topicInfo.PosterID);
+            command.Parameters.AddWithValue("@TopicID", topicInfo.TopicID);
+            command.Parameters.AddWithValue("@CategoryID", topicInfo.CategoryID);
+            command.Parameters.AddWithValue("@Name", topicInfo.Name2);
+            command.Parameters.AddWithValue("@Hash", topicInfo.Hash);
+            command.Parameters.AddWithValue("@Size", topicInfo.Size);
+            command.Parameters.AddWithValue("@Seeders", topicInfo.Seeders);
+            command.Parameters.AddWithValue("@Status", topicInfo.Status);
+            command.Parameters.AddWithValue("@IsActive", 1);
+            command.Parameters.AddWithValue("@IsDeleted", 0);
+            command.Parameters.AddWithValue("@IsKeep", topicInfo.IsKeep);
+            command.Parameters.AddWithValue("@IsKeepers", topicInfo.IsKeeper);
+            command.Parameters.AddWithValue("@IsBlackList", topicInfo.IsBlackList);
+            command.Parameters.AddWithValue("@IsDownload", topicInfo.IsDownload);
+            command.Parameters.AddWithValue("@RegTime", topicInfo.RegTime < dateTime ? dateTime : topicInfo.RegTime);
+            command.Parameters.AddWithValue("@PosterID", topicInfo.PosterID);
             command.ExecuteNonQuery();
           }
         }
         sqLiteTransaction.Commit();
       }
-      this.SaveStatus(data.Select<TopicInfo, int[]>((Func<TopicInfo, int[]>) (x => new int[2]
+      SaveStatus(data.Select(x => new int[2]
       {
         x.TopicID,
         x.Seeders
-      })).ToArray<int[]>(), true);
+      }).ToArray(), true);
     }
 
     internal void DeleteTopicsByCategoryId(int categoryID)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
-          command.Parameters.AddWithValue("@categoryID", (object) categoryID);
+          command.Parameters.AddWithValue("@categoryID", categoryID);
           command.CommandText = "UPDATE Topic SET IsDeleted = 1 WHERE CategoryID = @categoryID;";
           command.ExecuteNonQuery();
         }
@@ -531,13 +536,13 @@ namespace TLO.local
 
     public void ClearHistoryStatus()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.Parameters.Add("@Date", DbType.DateTime);
-          command.Parameters[0].Value = (object) DateTime.Now.Date.AddDays((double) -Settings.Current.CountDaysKeepHistory);
+          command.Parameters[0].Value = DateTime.Now.Date.AddDays(-Settings.Current.CountDaysKeepHistory);
           command.CommandText = "DELETE FROM TopicStatusHystory WHERE Date <= @Date;";
           command.ExecuteNonQuery();
         }
@@ -547,9 +552,9 @@ namespace TLO.local
 
     public void SaveStatus(int[][] data, bool isUpdateStatus = false)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "\r\nUPDATE Topic SET Seeders = @Seeders WHERE TopicID = @TopicID;\r\nINSERT OR REPLACE INTO TopicStatusHystory VALUES(@TopicID, @Date, @Seeders);\r\n";
@@ -559,11 +564,11 @@ namespace TLO.local
           command.Parameters.Add("@Date", DbType.DateTime);
           command.Parameters.Add("@TopicID", DbType.Int32);
           command.Parameters.Add("@Seeders", DbType.Int32);
-          command.Parameters[0].Value = (object) DateTime.Now;
+          command.Parameters[0].Value = DateTime.Now;
           foreach (int[] numArray in data)
           {
-            command.Parameters[1].Value = (object) numArray[0];
-            command.Parameters[2].Value = (object) numArray[1];
+            command.Parameters[1].Value = numArray[0];
+            command.Parameters[2].Value = numArray[1];
             command.ExecuteNonQuery();
           }
         }
@@ -575,10 +580,10 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "SELECT TopicID, CategoryID, Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, PosterID\r\nFROM Topic WHERE (CategoryID = @CategoryID OR @CategoryID = -1) AND IsDeleted = 0 AND Status NOT IN (7,4,11,5) and Hash IS NOT NULL";
-        command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
+        command.Parameters.AddWithValue("@CategoryID", categoyid);
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
           while (sqLiteDataReader.Read())
@@ -608,10 +613,10 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "SELECT TopicID, CategoryID, Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, PosterID\r\nFROM Topic WHERE (CategoryID = @CategoryID OR @CategoryID = -1) and Hash is null";
-        command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
+        command.Parameters.AddWithValue("@CategoryID", categoyid);
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
           while (sqLiteDataReader.Read())
@@ -641,7 +646,7 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = @"
 SELECT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
@@ -655,26 +660,26 @@ WHERE
     AND Status NOT IN (7,4,11,5)
 " + (
     countSeeders.HasValue
-      ? string.Format(" AND Seeders {1} {0}", (object) countSeeders.Value,
-        Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+      ? string.Format(" AND Seeders {1} {0}", countSeeders.Value,
+        Settings.Current.IsSelectLessOrEqual ? " <= " : " = ")
       : ""
   )
   + (avgCountSeeders.HasValue
-    ? string.Format(" AND AvgSeeders {1} {0}", (object) avgCountSeeders.Value,
-      Settings.Current.IsSelectLessOrEqual ? (object) " <= " : (object) " = ")
+    ? string.Format(" AND AvgSeeders {1} {0}", avgCountSeeders.Value,
+      Settings.Current.IsSelectLessOrEqual ? " <= " : " = ")
     : "")
-  + (isKeep.HasValue ? string.Format(" AND IsKeep = {0}", (object) (isKeep.Value ? 1 : 0)) : "")
+  + (isKeep.HasValue ? string.Format(" AND IsKeep = {0}", isKeep.Value ? 1 : 0) : "")
   + (isKeepers.HasValue
     ? string.Format(" AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}",
-      (object) (isKeepers.Value ? 1 : 0))
+      isKeepers.Value ? 1 : 0)
     : "")
-  + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", (object) (isDownload.Value ? 1 : 0)) : "")
-  + (isPoster.HasValue ? string.Format(" AND @UserName = u.Name", (object) (isPoster.Value ? 1 : 0)) : "")
-  + string.Format(" AND IsBlackList = {0}", (object) (!isBlack.HasValue || !isBlack.Value ? 0 : 1))
+  + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", isDownload.Value ? 1 : 0) : "")
+  + (isPoster.HasValue ? string.Format(" AND @UserName = u.Name", isPoster.Value ? 1 : 0) : "")
+  + string.Format(" AND IsBlackList = {0}", !isBlack.HasValue || !isBlack.Value ? 0 : 1)
   + " AND IsDeleted = 0 GROUP BY t.TopicID HAVING t.TopicID IS NOT NULL ORDER BY t.Seeders, t.Name";
-        command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
-        command.Parameters.AddWithValue("@RegTime", (object) regTime);
-        command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? (object) "-" : (object) Settings.Current.KeeperName);
+        command.Parameters.AddWithValue("@CategoryID", categoyid);
+        command.Parameters.AddWithValue("@RegTime", regTime);
+        command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? "-" : Settings.Current.KeeperName);
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
           while (sqLiteDataReader.Read())
@@ -702,18 +707,18 @@ WHERE
 
     public void SetTorrentClientHash(List<TopicInfo> data)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "UPDATE Topic SET IsDownload = @IsDownload, IsKeep = @IsKeep WHERE Hash = @Hash;";
           foreach (TopicInfo topicInfo in data)
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@Hash", (object) topicInfo.Hash);
-            command.Parameters.AddWithValue("@IsDownload", (object) topicInfo.IsDownload);
-            command.Parameters.AddWithValue("@IsKeep", (object) topicInfo.IsKeep);
+            command.Parameters.AddWithValue("@Hash", topicInfo.Hash);
+            command.Parameters.AddWithValue("@IsDownload", topicInfo.IsDownload);
+            command.Parameters.AddWithValue("@IsKeep", topicInfo.IsKeep);
             command.ExecuteNonQuery();
           }
         }
@@ -723,51 +728,51 @@ WHERE
 
     public void SaveTorrentClients(IEnumerable<TorrentClientInfo> data, bool isUpdateList = false)
     {
-      List<TorrentClientInfo> tc = this.GetTorrentClients();
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      List<TorrentClientInfo> tc = GetTorrentClients();
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           if (isUpdateList)
           {
             command.CommandText = "DELETE FROM TorrentClient WHERE UID = @UID";
             List<TorrentClientInfo> source = tc;
-            foreach (TorrentClientInfo torrentClientInfo in source.Where<TorrentClientInfo>((Func<TorrentClientInfo, bool>) (x => !data.Select<TorrentClientInfo, Guid>((Func<TorrentClientInfo, Guid>) (y => y.UID)).Contains<Guid>(x.UID))))
+            foreach (TorrentClientInfo torrentClientInfo in source.Where(x => !data.Select(y => y.UID).Contains(x.UID)))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@UID", (object) torrentClientInfo.UID.ToString());
+              command.Parameters.AddWithValue("@UID", torrentClientInfo.UID.ToString());
               command.ExecuteNonQuery();
             }
           }
           command.CommandText = "UPDATE TorrentClient SET Name = @Name, Type = @Type, ServerName = @ServerName, ServerPort = @ServerPort, UserName = @UserName, UserPassword = @UserPassword, LastReadHash = @LastReadHash WHERE UID = @UID";
           IEnumerable<TorrentClientInfo> source1 = data;
-          foreach (TorrentClientInfo torrentClientInfo in source1.Where<TorrentClientInfo>((Func<TorrentClientInfo, bool>) (x => tc.Select<TorrentClientInfo, Guid>((Func<TorrentClientInfo, Guid>) (y => y.UID)).Contains<Guid>(x.UID))))
+          foreach (TorrentClientInfo torrentClientInfo in source1.Where(x => tc.Select(y => y.UID).Contains(x.UID)))
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@UID", (object) torrentClientInfo.UID.ToString());
-            command.Parameters.AddWithValue("@Name", (object) torrentClientInfo.Name);
-            command.Parameters.AddWithValue("@Type", (object) torrentClientInfo.Type);
-            command.Parameters.AddWithValue("@ServerName", (object) torrentClientInfo.ServerName);
-            command.Parameters.AddWithValue("@ServerPort", (object) torrentClientInfo.ServerPort);
-            command.Parameters.AddWithValue("@UserName", (object) torrentClientInfo.UserName);
-            command.Parameters.AddWithValue("@UserPassword", (object) torrentClientInfo.UserPassword);
-            command.Parameters.AddWithValue("@LastReadHash", (object) torrentClientInfo.LastReadHash);
+            command.Parameters.AddWithValue("@UID", torrentClientInfo.UID.ToString());
+            command.Parameters.AddWithValue("@Name", torrentClientInfo.Name);
+            command.Parameters.AddWithValue("@Type", torrentClientInfo.Type);
+            command.Parameters.AddWithValue("@ServerName", torrentClientInfo.ServerName);
+            command.Parameters.AddWithValue("@ServerPort", torrentClientInfo.ServerPort);
+            command.Parameters.AddWithValue("@UserName", torrentClientInfo.UserName);
+            command.Parameters.AddWithValue("@UserPassword", torrentClientInfo.UserPassword);
+            command.Parameters.AddWithValue("@LastReadHash", torrentClientInfo.LastReadHash);
             command.ExecuteNonQuery();
           }
           command.CommandText = "INSERT INTO TorrentClient (UID, Name, Type, ServerName, ServerPort, UserName, UserPassword, LastReadHash) VALUES(@UID, @Name, @Type, @ServerName, @ServerPort, @UserName, @UserPassword, @LastReadHash)";
           IEnumerable<TorrentClientInfo> source2 = data;
-          foreach (TorrentClientInfo torrentClientInfo in source2.Where<TorrentClientInfo>((Func<TorrentClientInfo, bool>) (x => !tc.Select<TorrentClientInfo, Guid>((Func<TorrentClientInfo, Guid>) (y => y.UID)).Contains<Guid>(x.UID))))
+          foreach (TorrentClientInfo torrentClientInfo in source2.Where(x => !tc.Select(y => y.UID).Contains(x.UID)))
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@UID", (object) torrentClientInfo.UID.ToString());
-            command.Parameters.AddWithValue("@Name", (object) torrentClientInfo.Name);
-            command.Parameters.AddWithValue("@Type", (object) torrentClientInfo.Type);
-            command.Parameters.AddWithValue("@ServerName", (object) torrentClientInfo.ServerName);
-            command.Parameters.AddWithValue("@ServerPort", (object) torrentClientInfo.ServerPort);
-            command.Parameters.AddWithValue("@UserName", (object) torrentClientInfo.UserName);
-            command.Parameters.AddWithValue("@UserPassword", (object) torrentClientInfo.UserPassword);
-            command.Parameters.AddWithValue("@LastReadHash", (object) torrentClientInfo.LastReadHash);
+            command.Parameters.AddWithValue("@UID", torrentClientInfo.UID.ToString());
+            command.Parameters.AddWithValue("@Name", torrentClientInfo.Name);
+            command.Parameters.AddWithValue("@Type", torrentClientInfo.Type);
+            command.Parameters.AddWithValue("@ServerName", torrentClientInfo.ServerName);
+            command.Parameters.AddWithValue("@ServerPort", torrentClientInfo.ServerPort);
+            command.Parameters.AddWithValue("@UserName", torrentClientInfo.UserName);
+            command.Parameters.AddWithValue("@UserPassword", torrentClientInfo.UserPassword);
+            command.Parameters.AddWithValue("@LastReadHash", torrentClientInfo.LastReadHash);
             command.ExecuteNonQuery();
           }
         }
@@ -778,7 +783,7 @@ WHERE
     public List<TorrentClientInfo> GetTorrentClients()
     {
       List<TorrentClientInfo> torrentClientInfoList = new List<TorrentClientInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM TorrentClient";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -804,16 +809,16 @@ WHERE
     {
       if (data == null)
         return;
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandTimeout = 60000;
           foreach (KeyValuePair<string, Tuple<int, List<int>>> keyValuePair in data)
           {
             KeyValuePair<string, Tuple<int, List<int>>> dt = keyValuePair;
-            int[] array = dt.Value.Item2.Distinct<int>().ToArray<int>();
+            int[] array = dt.Value.Item2.Distinct().ToArray();
             List<int>[] intListArray = new List<int>[array.Length % 500 == 0 ? array.Length / 500 : array.Length / 500 + 1];
             for (int index1 = 0; index1 < array.Length; ++index1)
             {
@@ -825,8 +830,8 @@ WHERE
             foreach (List<int> source in intListArray)
             {
               command.Parameters.Clear();
-              command.CommandText = "INSERT OR REPLACE INTO KeeperToTopic(KeeperName, CategoryID, TopicID)\r\n" + string.Join("UNION ", source.Select<int, string>((Func<int, string>) (x => string.Format("SELECT @KeeperName, {2}, {1}\r\n", (object) dt.Key, (object) x, (object) dt.Value.Item1))));
-              command.Parameters.AddWithValue("@KeeperName", (object) dt.Key.Replace("<wbr>", "").Trim());
+              command.CommandText = "INSERT OR REPLACE INTO KeeperToTopic(KeeperName, CategoryID, TopicID)\r\n" + string.Join("UNION ", source.Select(x => string.Format("SELECT @KeeperName, {2}, {1}\r\n", dt.Key, x, dt.Value.Item1)));
+              command.Parameters.AddWithValue("@KeeperName", dt.Key.Replace("<wbr>", "").Trim());
               command.ExecuteNonQuery();
             }
           }
@@ -837,9 +842,9 @@ WHERE
 
     private void SaveKeepStatus(string keepName, List<Tuple<int, int, Decimal>> data)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "INSERT OR REPLACE INTO Keeper VALUES(@KeeperName, @CategoryID, @Count, @Size)";
@@ -853,10 +858,10 @@ WHERE
             return;
           foreach (Tuple<int, int, Decimal> tuple in data)
           {
-            command.Parameters[0].Value = (object) keepName.Replace("<wbr>", "").Trim();
-            command.Parameters[1].Value = (object) tuple.Item1;
-            command.Parameters[2].Value = (object) tuple.Item2;
-            command.Parameters[3].Value = (object) Math.Round(tuple.Item3, 2);
+            command.Parameters[0].Value = keepName.Replace("<wbr>", "").Trim();
+            command.Parameters[1].Value = tuple.Item1;
+            command.Parameters[2].Value = tuple.Item2;
+            command.Parameters[3].Value = Math.Round(tuple.Item3, 2);
             command.ExecuteNonQuery();
           }
         }
@@ -866,13 +871,13 @@ WHERE
 
     public void ClearReports()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "UPDATE Report SET Report = @Report WHERE ReportNo <> 0";
-          command.Parameters.AddWithValue("@Report", (object) "Удалено");
+          command.Parameters.AddWithValue("@Report", "Удалено");
           command.ExecuteNonQuery();
         }
         sqLiteTransaction.Commit();
@@ -882,12 +887,12 @@ WHERE
     public List<Tuple<int, string, int, Decimal>> GetStatisticsByAllUsers()
     {
       List<Tuple<int, string, int, Decimal>> tupleList = new List<Tuple<int, string, int, Decimal>>();
-      bool flag = this.GetTorrentClients().Any<TorrentClientInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      bool flag = GetTorrentClients().Any();
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "INSERT OR REPLACE INTO Keeper SELECT 'All', CategoryID, COUNT(*) Cnt, SUM(Size) / 1073741824.0 Size FROM Topic WHERE IsDeleted = 0 AND CategoryID <> 0 GROUP BY CategoryID;\r\nINSERT OR REPLACE INTO Keeper SELECT kt.KeeperName, kt.CategoryID, COUNT(*),  CAST(SUM(t.Size) / 1073741824.0  AS NUMERIC(18,4)) Size \r\n    FROM KeeperToTopic AS kt JOIN Topic AS t ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @KeeperName) group by kt.KeeperName, kt.CategoryID;\r\nINSERT OR REPLACE INTO Keeper SELECT @KeeperName, CategoryID,  COUNT(*) Cnt, CAST(SUM(Size) / 1073741824.0 AS NUMERIC(18,4)) Size FROM Topic \r\n        WHERE IsDeleted = 0 AND IsKeep = 1 AND (Seeders <= @Seeders OR @Seeders = -1) AND Status NOT IN (7, 4,11,5) AND IsBlackList = 0 GROUP BY CategoryID;\r\n";
-        command.Parameters.AddWithValue("@KeeperName", flag ? (object) Settings.Current.KeeperName : (object) "<no>");
-        command.Parameters.AddWithValue("@Seeders", (object) Settings.Current.CountSeedersReport);
+        command.Parameters.AddWithValue("@KeeperName", flag ? Settings.Current.KeeperName : "<no>");
+        command.Parameters.AddWithValue("@Seeders", Settings.Current.CountSeedersReport);
         command.ExecuteNonQuery();
         command.CommandText = "SELECT KeeperName, CategoryID, Count, Size FROM Keeper";
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
@@ -903,24 +908,24 @@ WHERE
     {
       foreach (KeyValuePair<int, Dictionary<int, string>> report in reports)
       {
-        int num = report.Value.Keys.Max<int>((Func<int, int>) (x => x));
+        int num = report.Value.Keys.Max(x => x);
         report.Value.Add(num + 1, "Резерв");
         report.Value.Add(num + 2, "Резерв");
       }
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
-          Dictionary<Tuple<int, int>, Tuple<string, string>> reps = this.GetReports(new int?());
-          if (reports.Any<KeyValuePair<int, Dictionary<int, string>>>((Func<KeyValuePair<int, Dictionary<int, string>>, bool>) (x => !x.Value.ContainsKey(0))))
+          Dictionary<Tuple<int, int>, Tuple<string, string>> reps = GetReports(new int?());
+          if (reports.Any(x => !x.Value.ContainsKey(0)))
           {
             command.CommandText = "UPDATE Report SET Report = @Report WHERE CategoryID = @CategoryID AND ReportNo <> 0";
             foreach (KeyValuePair<int, Dictionary<int, string>> report in reports)
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@CategoryID", (object) report.Key);
-              command.Parameters.AddWithValue("@Report", (object) "Резерв");
+              command.Parameters.AddWithValue("@CategoryID", report.Key);
+              command.Parameters.AddWithValue("@Report", "Резерв");
               command.ExecuteNonQuery();
             }
           }
@@ -929,12 +934,12 @@ WHERE
           {
             KeyValuePair<int, Dictionary<int, string>> r1 = report;
             Dictionary<int, string> source = r1.Value;
-            foreach (KeyValuePair<int, string> keyValuePair in source.Where<KeyValuePair<int, string>>((Func<KeyValuePair<int, string>, bool>) (x => reps.ContainsKey(new Tuple<int, int>(r1.Key, x.Key)))))
+            foreach (KeyValuePair<int, string> keyValuePair in source.Where(x => reps.ContainsKey(new Tuple<int, int>(r1.Key, x.Key))))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@CategoryID", (object) r1.Key);
-              command.Parameters.AddWithValue("@ReportNo", (object) keyValuePair.Key);
-              command.Parameters.AddWithValue("@Report", (object) keyValuePair.Value);
+              command.Parameters.AddWithValue("@CategoryID", r1.Key);
+              command.Parameters.AddWithValue("@ReportNo", keyValuePair.Key);
+              command.Parameters.AddWithValue("@Report", keyValuePair.Value);
               command.ExecuteNonQuery();
             }
           }
@@ -943,13 +948,13 @@ WHERE
           {
             KeyValuePair<int, Dictionary<int, string>> r1 = report;
             Dictionary<int, string> source = r1.Value;
-            foreach (KeyValuePair<int, string> keyValuePair in source.Where<KeyValuePair<int, string>>((Func<KeyValuePair<int, string>, bool>) (x => !reps.ContainsKey(new Tuple<int, int>(r1.Key, x.Key)))))
+            foreach (KeyValuePair<int, string> keyValuePair in source.Where(x => !reps.ContainsKey(new Tuple<int, int>(r1.Key, x.Key))))
             {
               command.Parameters.Clear();
-              command.Parameters.AddWithValue("@CategoryID", (object) r1.Key);
-              command.Parameters.AddWithValue("@ReportNo", (object) keyValuePair.Key);
-              command.Parameters.AddWithValue("@URL", (object) string.Empty);
-              command.Parameters.AddWithValue("@Report", (object) keyValuePair.Value);
+              command.Parameters.AddWithValue("@CategoryID", r1.Key);
+              command.Parameters.AddWithValue("@ReportNo", keyValuePair.Key);
+              command.Parameters.AddWithValue("@URL", string.Empty);
+              command.Parameters.AddWithValue("@Report", keyValuePair.Value);
               command.ExecuteNonQuery();
             }
           }
@@ -961,13 +966,13 @@ WHERE
     public Dictionary<Tuple<int, int>, Tuple<string, string>> GetReports(int? categoryID = null)
     {
       Dictionary<Tuple<int, int>, Tuple<string, string>> dictionary = new Dictionary<Tuple<int, int>, Tuple<string, string>>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM Report";
         if (categoryID.HasValue)
         {
           command.CommandText += " WHERE CategoryID = @CategoryID";
-          command.Parameters.AddWithValue("@CategoryID", (object) categoryID.Value);
+          command.Parameters.AddWithValue("@CategoryID", categoryID.Value);
         }
         using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
         {
@@ -983,9 +988,9 @@ WHERE
 
     public void SaveSettingsReport(List<Tuple<int, int, string>> result)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "SELECT DISTINCT CategoryID FROM Report WHERE ReportNo = 0";
@@ -1002,19 +1007,19 @@ WHERE
           command.Prepare();
           foreach (Tuple<int, int, string> tuple in result)
           {
-            command.Parameters["@CategoryID"].Value = (object) tuple.Item1;
-            command.Parameters["@ReportNo"].Value = (object) tuple.Item2;
-            command.Parameters["@url"].Value = (object) tuple.Item3;
+            command.Parameters["@CategoryID"].Value = tuple.Item1;
+            command.Parameters["@ReportNo"].Value = tuple.Item2;
+            command.Parameters["@url"].Value = tuple.Item3;
             command.ExecuteNonQuery();
           }
           command.CommandText = "INSERT OR REPLACE INTO Report VALUES(@CategoryID, @ReportNo, @URL, '')";
           command.Prepare();
           List<Tuple<int, int, string>> source = result;
-          foreach (Tuple<int, int, string> tuple in source.Where<Tuple<int, int, string>>((Func<Tuple<int, int, string>, bool>) (x => !filter.Contains(x.Item1))))
+          foreach (Tuple<int, int, string> tuple in source.Where(x => !filter.Contains(x.Item1)))
           {
-            command.Parameters["@CategoryID"].Value = (object) tuple.Item1;
-            command.Parameters["@ReportNo"].Value = (object) tuple.Item2;
-            command.Parameters["@url"].Value = (object) tuple.Item3;
+            command.Parameters["@CategoryID"].Value = tuple.Item1;
+            command.Parameters["@ReportNo"].Value = tuple.Item2;
+            command.Parameters["@url"].Value = tuple.Item3;
             command.ExecuteNonQuery();
           }
         }
@@ -1024,9 +1029,9 @@ WHERE
 
     public void UpdateStatistics()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SQLiteTransaction sqLiteTransaction = _conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SQLiteCommand command = _conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           List<Decimal[]> numArrayList = new List<Decimal[]>();
@@ -1036,8 +1041,8 @@ WHERE
           foreach (Decimal[] numArray in numArrayList)
           {
             command.Parameters.Clear();
-            command.Parameters.AddWithValue("@TopicID", (object) numArray[0]);
-            command.Parameters.AddWithValue("@Seeders", (object) numArray[1]);
+            command.Parameters.AddWithValue("@TopicID", numArray[0]);
+            command.Parameters.AddWithValue("@Seeders", numArray[1]);
             command.ExecuteNonQuery();
           }
         }
@@ -1047,99 +1052,10 @@ WHERE
 
     public void ClearKeepers()
     {
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SQLiteCommand command = _conn.CreateCommand())
       {
         command.CommandText = "DELETE FROM Keeper;\r\nDELETE FROM KeeperToTopic;\r\nUPDATE Report SET Report = '' WHERE ReportNo = 0";
         command.ExecuteNonQuery();
-      }
-    }
-
-    public void CreateReportByRootCategories()
-    {
-      try
-      {
-        using (SQLiteCommand command = this._conn.CreateCommand())
-        {
-          this.GetStatisticsByAllUsers();
-          Dictionary<int, Dictionary<int, string>> reports = new Dictionary<int, Dictionary<int, string>>();
-          Dictionary<int, Tuple<string, Decimal, Decimal>> source1 = new Dictionary<int, Tuple<string, Decimal, Decimal>>();
-          Dictionary<Tuple<int, string>, Tuple<string, Decimal, Decimal>> dictionary1 = new Dictionary<Tuple<int, string>, Tuple<string, Decimal, Decimal>>();
-          Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> dictionary2 = new Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>();
-          List<Tuple<int, int, string, Decimal, Decimal>> tupleList = new List<Tuple<int, int, string, Decimal, Decimal>>();
-          command.CommandText = "\r\nSELECT c.CategoryID, c.FullName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.ParentID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName\r\nORDER BY c.FullName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-          {
-            while (sqLiteDataReader.Read())
-              source1.Add(sqLiteDataReader.GetInt32(0), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(1), sqLiteDataReader.GetDecimal(2), sqLiteDataReader.GetDecimal(3)));
-          }
-          command.CommandText = "\r\nSELECT c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.ParentID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName, k.KeeperName\r\nORDER BY c.FullName, k.KeeperName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-          {
-            while (sqLiteDataReader.Read())
-              dictionary1.Add(new Tuple<int, string>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(2)), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(1), sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
-          }
-          command.CommandText = "\r\nSELECT t.ParentID, c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.CategoryID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      t.ParentID, c.FullName, k.KeeperName, c.CategoryID\r\nORDER BY c.FullName, k.KeeperName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-          {
-            while (sqLiteDataReader.Read())
-              dictionary2.Add(new Tuple<int, string, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(3), sqLiteDataReader.GetInt32(1)), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(2), sqLiteDataReader.GetDecimal(4), sqLiteDataReader.GetDecimal(5)));
-          }
-          command.CommandText = "\r\nSELECT t.ParentID, c.CategoryID, c.FullName,SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.CategoryID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName\r\nORDER BY c.FullName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-          {
-            while (sqLiteDataReader.Read())
-              tupleList.Add(new Tuple<int, int, string, Decimal, Decimal>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetInt32(1), sqLiteDataReader.GetString(2), sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
-          }
-          foreach (int num1 in source1.Select<KeyValuePair<int, Tuple<string, Decimal, Decimal>>, int>((Func<KeyValuePair<int, Tuple<string, Decimal, Decimal>>, int>) (x => x.Key)))
-          {
-            int c = num1;
-            StringBuilder stringBuilder1 = new StringBuilder();
-            StringBuilder stringBuilder2 = stringBuilder1;
-            string format = "[hr]\r\n[hr]\r\n[b][color=darkgreen][align=center][size=16]Статистика раздела: {0}[/size][/align][/color][/b][hr]\r\n[hr]\r\n\r\n";
-            DateTime dateTime = DateTime.Now;
-            dateTime = dateTime.Date;
-            string str = dateTime.ToString("dd.MM.yyyy");
-            stringBuilder2.AppendFormat(format, (object) str);
-            stringBuilder1.AppendFormat("Всего: {0} шт. ({1:0.00} Гб.)\r\n\r\n", (object) source1[c].Item2, (object) source1[c].Item3);
-            stringBuilder1.AppendLine("[hr]");
-            stringBuilder1.AppendLine("[size=12][b]По хранителям:[/b][/size]");
-            int num2 = 1;
-            Dictionary<Tuple<int, string>, Tuple<string, Decimal, Decimal>> source2 = dictionary1;
-            foreach (KeyValuePair<Tuple<int, string>, Tuple<string, Decimal, Decimal>> keyValuePair1 in source2.Where<KeyValuePair<Tuple<int, string>, Tuple<string, Decimal, Decimal>>>((Func<KeyValuePair<Tuple<int, string>, Tuple<string, Decimal, Decimal>>, bool>) (x => x.Key.Item1 == c)))
-            {
-              KeyValuePair<Tuple<int, string>, Tuple<string, Decimal, Decimal>> k = keyValuePair1;
-              stringBuilder1.AppendFormat("[spoiler=\"{0}. {1} - {2} шт. ({3:0.00} Гб.)\"]\r\n", (object) num2, (object) k.Key.Item2, (object) k.Value.Item2, (object) k.Value.Item3);
-              Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> source3 = dictionary2;
-              foreach (KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> keyValuePair2 in source3.Where<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>>((Func<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>, bool>) (x =>
-              {
-                if (x.Key.Item2 == k.Key.Item2)
-                  return x.Key.Item1 == c;
-                return false;
-              })))
-                stringBuilder1.AppendFormat("{0} - {1} шт. ({2:0.00} Гб.)\r\n", (object) keyValuePair2.Value.Item1, (object) keyValuePair2.Value.Item2, (object) keyValuePair2.Value.Item3);
-              stringBuilder1.AppendLine("[/spoiler]");
-              ++num2;
-            }
-            stringBuilder1.AppendLine("[hr]");
-            stringBuilder1.AppendLine("[size=12][b]По форумам:[/b][/size]");
-            List<Tuple<int, int, string, Decimal, Decimal>> source4 = tupleList;
-            foreach (Tuple<int, int, string, Decimal, Decimal> tuple in (IEnumerable<Tuple<int, int, string, Decimal, Decimal>>) source4.Where<Tuple<int, int, string, Decimal, Decimal>>((Func<Tuple<int, int, string, Decimal, Decimal>, bool>) (x => x.Item1 == c)).OrderBy<Tuple<int, int, string, Decimal, Decimal>, string>((Func<Tuple<int, int, string, Decimal, Decimal>, string>) (x => x.Item3)))
-            {
-              Tuple<int, int, string, Decimal, Decimal> k = tuple;
-              stringBuilder1.AppendFormat("[spoiler=\"{0} - {1} шт. ({2:0.00} Гб.)\"]\r\n", (object) k.Item3, (object) k.Item4, (object) k.Item5);
-              Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> source3 = dictionary2;
-              foreach (KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> keyValuePair in (IEnumerable<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>>) source3.Where<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>>((Func<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>, bool>) (x => x.Key.Item3 == k.Item2)).OrderBy<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>, string>((Func<KeyValuePair<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>, string>) (x => x.Key.Item2)))
-                stringBuilder1.AppendFormat("{0} - {1} шт. ({2:0.00} Гб.)\r\n", (object) keyValuePair.Key.Item2, (object) keyValuePair.Value.Item2, (object) keyValuePair.Value.Item3);
-              stringBuilder1.AppendLine("[/spoiler]");
-            }
-            reports.Add(c, new Dictionary<int, string>());
-            reports[c].Add(0, stringBuilder1.ToString().Replace("<wbr>", "").Trim());
-          }
-          this.SaveReports(reports);
-        }
-      }
-      catch (Exception ex)
-      {
       }
     }
   }

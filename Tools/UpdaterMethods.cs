@@ -127,7 +127,7 @@ namespace TLO.local.Tools
             if (client == null)
                 return;
             UpdateHashFromClients(client);
-            ClientLocalDB.Current.CreateReportByRootCategories();
+            Reports.CreateReportByRootCategories();
         }
     }
 }

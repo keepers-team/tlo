@@ -1,7 +1,7 @@
-﻿namespace TLO.local {
-    using System;
-    
-    
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace TLO.local {
     /// <summary>
     ///   Класс ресурса со строгой типизацией для поиска локализованных строк и т.д.
     /// </summary>
@@ -9,7 +9,7 @@
                 /// <summary> 
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary> 
         /// Clean up any resources being used.
@@ -59,6 +59,6 @@
 
         #endregion
 
-        private System.Windows.Forms.Panel panel1;
+        private Panel panel1;
     }
 }
