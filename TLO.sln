@@ -2,7 +2,7 @@
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TLO.local", "TLO.local.csproj", "{CA8B075B-1558-4D79-B98E-79F05B0EBA06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TLO", "TLO.csproj", "{CA8B075B-1558-4D79-B98E-79F05B0EBA06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

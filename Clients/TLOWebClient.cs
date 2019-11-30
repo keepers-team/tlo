@@ -1,113 +1,118 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: TLO.local.TLOWebClient
-// Assembly: TLO.local, Version=2.6.5944.27906, Culture=neutral, PublicKeyToken=null
-// MVID: E76CFDB0-1920-4151-9DD8-5FF51DE7CC23
-// Assembly location: C:\Users\root\Downloads\TLO_2.6.2.21\TLO.local.exe
-
-using NLog;
-using System;
+﻿using System;
 using System.Net;
 using System.Text;
 using MihaZupan;
+using NLog;
 
-namespace TLO.local
+namespace TLO.Clients
 {
-  internal class TLOWebClient : WebClient
-  {
-    private string _UserAgent = string.Empty;
-    private string _Accept = string.Empty;
-    private static Logger _logger;
-    private bool _IsJson;
-
-    public TLOWebClient()
-      : this((Encoding) null, (string) null, (string) null, false)
+    internal class TloWebClient : WebClient
     {
-    }
+        private static Logger _logger;
+        private readonly string _accept = string.Empty;
+        private readonly string _userAgent;
+        private bool _isJson;
+        private readonly bool _enableProxy;
 
-    public TLOWebClient(Encoding encoding)
-      : this(encoding, (string) null, (string) null, false)
-    {
-    }
-
-    public TLOWebClient(Encoding encoding, string userAgent, string accept, bool isJson = false)
-    {
-      if (TLOWebClient._logger == null)
-        TLOWebClient._logger = LogManager.GetCurrentClassLogger();
-      Encoding encoding1;
-      if (encoding != null)
-        encoding1 = encoding;
-      else
-        encoding = encoding1 = Encoding.UTF8;
-      this.Encoding = encoding1;
-      this._UserAgent = string.IsNullOrWhiteSpace(userAgent) ? "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0" : userAgent;
-      this._Accept = string.IsNullOrWhiteSpace(accept) ? "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" : accept;
-      this.CookieContainer = new CookieContainer();
-      this._IsJson = isJson;
-    }
-
-    public TLOWebClient(string userAgent)
-    {
-      this._UserAgent = userAgent;
-    }
-
-    public CookieContainer CookieContainer { get; private set; }
-
-    protected override WebRequest GetWebRequest(Uri address)
-    {
-      HttpWebRequest webRequest = (HttpWebRequest) base.GetWebRequest(address);
-      if (webRequest != null && Settings.Current.Proxy != "")
-      {
-        if (Settings.Current.Proxy.Contains("http://"))
+        public TloWebClient(bool enableProxy = false)
+            : this(null, null, null, enableProxy: enableProxy)
         {
-          webRequest.Proxy = new WebProxy(Settings.Current.Proxy);
         }
-        else
+
+        public TloWebClient(Encoding encoding)
+            : this(encoding, null, null)
         {
-          var uri = new Uri(Settings.Current.Proxy);
-          webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
         }
-      }
-      webRequest.Accept = this._IsJson ? "application/json" : this._Accept;
-      webRequest.UserAgent = this._UserAgent;
-      webRequest.Headers.Add("Accept-Encoding", "gzip, deflate");
-      webRequest.Headers.Add("Accept-Language", "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3");
-      if (this._IsJson)
-      {
-        webRequest.Headers.Add("X-Request", "JSON");
-        webRequest.Headers.Add("X-Requested-With", "XMLHttpRequest");
-      }
-      webRequest.ContentType = "application/x-www-form-urlencoded";
-      webRequest.KeepAlive = true;
-      webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-      webRequest.Headers.Add("Pragma", "no-cache");
-      webRequest.Timeout = 60000;
-      if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
-      {
-        string[] strArray = address.AbsoluteUri.Split(new char[1]
+
+        public TloWebClient(Encoding encoding, string userAgent, string accept, bool isJson = false,
+            bool enableProxy = false)
         {
-          '='
-        }, StringSplitOptions.RemoveEmptyEntries);
-        this.CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
-        webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", (object) strArray[1], Settings.Current.HostRuTrackerOrg);
-      }
-      webRequest.CookieContainer = this.CookieContainer;
-      if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
-      {
-        webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
-      }
-      return (WebRequest) webRequest;
-    }
+            if (_logger == null)
+                _logger = LogManager.GetCurrentClassLogger();
+            Encoding encoding1;
+            if (encoding != null)
+                encoding1 = encoding;
+            else
+                encoding = encoding1 = Encoding.UTF8;
+            Encoding = encoding1;
+            _userAgent = string.IsNullOrWhiteSpace(userAgent)
+                ? "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0"
+                : userAgent;
+            _accept = string.IsNullOrWhiteSpace(accept)
+                ? "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                : accept;
+            CookieContainer = new CookieContainer();
+            _isJson = isJson;
+            _enableProxy = enableProxy;
+        }
 
-    public string GetString(string url)
-    {
-      this._IsJson = false;
-      return this.DownloadString(url);
-    }
+        public TloWebClient(string userAgent)
+        {
+            _userAgent = userAgent;
+        }
 
-    public string GetJson(string url)
-    {
-      this._IsJson = true;
-      return this.DownloadString(url);
+        public CookieContainer CookieContainer { get; }
+
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var webRequest = (HttpWebRequest) base.GetWebRequest(address);
+            if (webRequest != null && Settings.Current.UseProxy == true && _enableProxy)
+            {
+                var proxy = Settings.Current.SelectedProxy;
+                if (proxy.Contains("http://"))
+                {
+                    webRequest.Proxy = new WebProxy(proxy);
+                }
+                else
+                {
+                    var uri = new Uri(proxy);
+                    webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
+                }
+            }
+
+            webRequest.Accept = _isJson ? "application/json" : _accept;
+            webRequest.UserAgent = _userAgent;
+            webRequest.Headers.Add("Accept-Encoding", "gzip, deflate");
+            webRequest.Headers.Add("Accept-Language", "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3");
+            if (_isJson)
+            {
+                webRequest.Headers.Add("X-Request", "JSON");
+                webRequest.Headers.Add("X-Requested-With", "XMLHttpRequest");
+            }
+
+            webRequest.ContentType = "application/x-www-form-urlencoded";
+            webRequest.KeepAlive = true;
+            webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            webRequest.Headers.Add("Pragma", "no-cache");
+            webRequest.Timeout = 60000;
+            if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
+            {
+                var strArray = address.AbsoluteUri.Split(new char[1]
+                {
+                    '='
+                }, StringSplitOptions.RemoveEmptyEntries);
+                CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
+                webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", strArray[1],
+                    Settings.Current.HostRuTrackerOrg);
+            }
+
+            webRequest.CookieContainer = CookieContainer;
+            if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
+                webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+
+            return webRequest;
+        }
+
+        public string GetString(string url)
+        {
+            _isJson = false;
+            return DownloadString(url);
+        }
+
+        public string GetJson(string url)
+        {
+            _isJson = true;
+            return DownloadString(url);
+        }
     }
-  }
 }
