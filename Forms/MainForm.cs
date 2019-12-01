@@ -32,6 +32,7 @@ namespace TLO.Forms
         public MainForm()
         {
             InitializeComponent();
+            DataBindings.Add(new Binding("Size", Properties.Settings.Default, "WindowSize", true, DataSourceUpdateMode.OnPropertyChanged));
             menuTimerSetting.CheckStateChanged += (sender, args) =>
             {
                 if (menuTimerSetting.Checked)
