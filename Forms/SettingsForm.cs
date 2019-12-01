@@ -1,25 +1,41 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: TLO.local.SettingsForm
-// Assembly: TLO.local, Version=2.6.5944.27906, Culture=neutral, PublicKeyToken=null
-// MVID: E76CFDB0-1920-4151-9DD8-5FF51DE7CC23
-// Assembly location: C:\Users\root\Downloads\TLO_2.6.2.21\TLO.local.exe
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using TLO.Clients;
+using TLO.Info;
+using TLO.Tools;
 
-namespace TLO.local
+namespace TLO.Forms
 {
-    partial class SettingsForm : Form
+    internal sealed partial class SettingsForm : Form
     {
-        private BindingSource _TorrentClientsSource = new BindingSource();
-        private BindingSource _CategoriesSource = new BindingSource();
+        private readonly BindingSource _categoriesSource;
+        private readonly BindingSource _torrentClientsSource;
+        private BindingSource _proxyListSource;
 
         public SettingsForm()
         {
             InitializeComponent();
+            var current = Settings.Current;
+            _proxyListSource = new BindingSource {DataSource = current.ProxyList};
+            if (current.UseProxy == true)
+            {
+                useProxyCheckBox.CheckState = CheckState.Checked;
+                ProxyListBox.DataSource = _proxyListSource;
+                ProxyListBox.SelectedItem = current.SelectedProxy;
+            }
+            else
+            {
+                useProxyCheckBox.CheckState = CheckState.Unchecked;
+            }
+
+            ProxySettingsSync();
+            ProxyAddButton.Click += (sender, args) => { _proxyListSource.Add(proxyInput.Text); };
+            useProxyCheckBox.CheckStateChanged += (sender, args) => ProxySettingsSync();
+            ProxyListBox.SelectedValueChanged += (sender, args) => ProxySettingsSync();
+//            ProxyListBox.DataSource = new BindingSource {DataSource = ProxySource.getList()};
             _tbTorrentClientName.Enabled = false;
             _cbTorrentClientType.Enabled = false;
             _tbTorrentClientHostIP.Enabled = false;
@@ -29,22 +45,17 @@ namespace TLO.local
             dgwTorrentClients.AutoGenerateColumns = false;
             dgwTorrentClients.ClearSelection();
             dgwTorrentClients.DataSource = null;
-            _TorrentClientsSource = new BindingSource();
-            _TorrentClientsSource.DataSource = ClientLocalDB.Current.GetTorrentClients();
-            dgwTorrentClients.DataSource = _TorrentClientsSource;
+            _torrentClientsSource = new BindingSource {DataSource = ClientLocalDb.Current.GetTorrentClients()};
+            dgwTorrentClients.DataSource = _torrentClientsSource;
             dgwCategories.AutoGenerateColumns = false;
             dgwCategories.ClearSelection();
             dgwCategories.DataSource = null;
-            _CategoriesSource = new BindingSource();
-            _CategoriesSource.DataSource = ClientLocalDB.Current.GetCategoriesEnable();
-            dgwCategories.DataSource = _CategoriesSource;
-            if (_CategoriesSource.Count > 0)
-                _CategoriesSource.Position = 0;
-            if (_TorrentClientsSource.Count > 0)
-                _TorrentClientsSource.Position = 0;
+            _categoriesSource = new BindingSource {DataSource = ClientLocalDb.Current.GetCategoriesEnable()};
+            dgwCategories.DataSource = _categoriesSource;
+            if (_categoriesSource.Count > 0) _categoriesSource.Position = 0;
+            if (_torrentClientsSource.Count > 0) _torrentClientsSource.Position = 0;
             forumPages1.LoadSettings();
             CreatePageAllCategories();
-            Settings current = Settings.Current;
             _appKeeperName.Text = current.KeeperName;
             _appKeeperPass.Text = current.KeeperPass;
             _appIsUpdateStatistics.Checked = current.IsUpdateStatistics;
@@ -56,38 +67,27 @@ namespace TLO.local
             {
                 CheckState checkState;
                 if (Settings.Current.LoadDBInMemory == null)
-                {
                     checkState = CheckState.Indeterminate;
-                }
-                else if ((bool)current.LoadDBInMemory)
-                {
+                else if (current.LoadDBInMemory != null && (bool) current.LoadDBInMemory)
                     checkState = CheckState.Checked;
-                }
                 else
-                {
                     checkState = CheckState.Unchecked;
-                }
 
                 _dbLoadInMemoryCheckbox.AutoSize = true;
                 _dbLoadInMemoryCheckbox.Checked = current.LoadDBInMemory.GetValueOrDefault(false);
                 _dbLoadInMemoryCheckbox.CheckState = checkState;
             }
-            proxyInput.Text = current.Proxy;
             DisableCertVerifyCheck.Checked = current.DisableServerCertVerify.GetValueOrDefault(false);
-            DisableCertVerifyCheck.CheckState = current.DisableServerCertVerify.GetValueOrDefault(false) ?
-                CheckState.Checked : CheckState.Unchecked;
+            DisableCertVerifyCheck.CheckState = current.DisableServerCertVerify.GetValueOrDefault(false)
+                ? CheckState.Checked
+                : CheckState.Unchecked;
             if (current.ApiHost != "")
-            {
-                foreach (String item in apiHosts.Items)
-                {
+                foreach (string item in apiHosts.Items)
                     if (item == current.ApiHost)
-                    {
                         apiHosts.SelectedItem = item;
-                    }
-                }
-            }
-            NumericUpDown appLogLevel = _appLogLevel;
-            int? logLevel = current.LogLevel;
+
+            var appLogLevel = _appLogLevel;
+            var logLevel = current.LogLevel;
             int num1;
             if (!logLevel.HasValue)
             {
@@ -99,7 +99,7 @@ namespace TLO.local
                 num1 = logLevel.Value;
             }
 
-            Decimal num2 = num1;
+            decimal num2 = num1;
             appLogLevel.Value = num2;
             _appIsNotSaveStatistics.Checked = current.IsNotSaveStatistics;
             _appReportTop1.Text = current.ReportTop1;
@@ -111,29 +111,54 @@ namespace TLO.local
             reportHeaderTemplate.Text = current.ReportCategoryHeaderTemplate;
         }
 
+        public new Point Location
+        {
+            get => base.Location;
+            set
+            {
+                if (
+                    value.X > 0 &&
+                    value.Y > 0 &&
+                    value.X < SystemInformation.VirtualScreen.Size.Width - 100 &&
+                    value.Y < SystemInformation.VirtualScreen.Size.Height - 100
+                )
+                    base.Location = value;
+            }
+        }
+
         private void _Focus_Enter(object sender, EventArgs e)
         {
-            if (_TorrentClientsSource.Current != null)
+            if (_torrentClientsSource.Current != null)
             {
-                TorrentClientInfo current = _TorrentClientsSource.Current as TorrentClientInfo;
+                var current = _torrentClientsSource.Current as TorrentClientInfo;
                 if (sender == _tbTorrentClientName)
+                {
                     current.Name = _tbTorrentClientName.Text;
+                }
                 else if (sender == _cbTorrentClientType)
+                {
                     current.Type = _cbTorrentClientType.Text;
+                }
                 else if (sender == _tbTorrentClientHostIP)
+                {
                     current.ServerName = _tbTorrentClientHostIP.Text;
+                }
                 else if (sender == _tbTorrentClientPort)
                 {
-                    int result = 0;
+                    var result = 0;
                     if (int.TryParse(_tbTorrentClientPort.Text, out result))
                         current.ServerPort = result;
                     else
                         _tbTorrentClientPort.Text = "0";
                 }
                 else if (sender == _tbTorrentClientUserName)
+                {
                     current.UserName = _tbTorrentClientUserName.Text;
+                }
                 else if (sender == _tbTorrentClientUserPassword)
+                {
                     current.UserPassword = _tbTorrentClientUserPassword.Text;
+                }
                 else if (sender == _tcrbCurrent && _tcrbCurrent.Checked)
                 {
                     current.ServerName = "127.0.0.1";
@@ -146,47 +171,57 @@ namespace TLO.local
                 }
             }
 
-            if (_CategoriesSource.Current == null)
+            if (_categoriesSource.Current == null)
                 return;
-            Category current1 = _CategoriesSource.Current as Category;
+            var current1 = _categoriesSource.Current as Category;
             if (sender == _CategoriesCbTorrentClient)
             {
-                TorrentClientInfo selectedItem = _CategoriesCbTorrentClient.SelectedItem as TorrentClientInfo;
+                var selectedItem = _CategoriesCbTorrentClient.SelectedItem as TorrentClientInfo;
                 if (selectedItem == null)
                     return;
                 current1.TorrentClientUID = selectedItem.UID;
             }
             else if (sender == _CategoriesCbStartCountSeeders)
             {
-                int result = 0;
+                var result = 0;
                 if (!int.TryParse(_CategoriesCbStartCountSeeders.SelectedItem as string, out result))
                     return;
                 current1.CountSeeders = result;
             }
             else if (sender == _CategoriesTbFolderDownloads)
+            {
                 current1.Folder = _CategoriesTbFolderDownloads.Text;
+            }
             else if (sender == _cbIsSaveTorrentFile)
+            {
                 current1.IsSaveTorrentFiles = _cbIsSaveTorrentFile.Checked;
+            }
             else if (sender == _cbIsSaveWebPage)
+            {
                 current1.IsSaveWebPage = _cbIsSaveWebPage.Checked;
+            }
             else if (sender == _cbSubFolder)
             {
-                string selectedItem = _cbSubFolder.SelectedItem as string;
+                var selectedItem = _cbSubFolder.SelectedItem as string;
                 if (string.IsNullOrWhiteSpace(selectedItem))
                     return;
-                if (!(selectedItem == "Не нужен"))
+                if (selectedItem != "Не нужен")
                 {
-                    if (!(selectedItem == "С ID топика"))
+                    if (selectedItem != "С ID топика")
                     {
-                        if (!(selectedItem == "Запрашивать"))
+                        if (selectedItem != "Запрашивать")
                             return;
                         current1.CreateSubFolder = 2;
                     }
                     else
+                    {
                         current1.CreateSubFolder = 1;
+                    }
                 }
                 else
+                {
                     current1.CreateSubFolder = 0;
+                }
             }
             else
             {
@@ -202,7 +237,7 @@ namespace TLO.local
         {
             if (sender == dgwTorrentClients)
             {
-                if (_TorrentClientsSource.Current == null)
+                if (_torrentClientsSource.Current == null)
                 {
                     _tbTorrentClientName.Enabled = false;
                     _cbTorrentClientType.Enabled = false;
@@ -222,7 +257,7 @@ namespace TLO.local
                 }
                 else
                 {
-                    TorrentClientInfo current = _TorrentClientsSource.Current as TorrentClientInfo;
+                    var current = _torrentClientsSource.Current as TorrentClientInfo;
                     _tbTorrentClientName.Enabled = true;
                     _cbTorrentClientType.Enabled = true;
                     _tbTorrentClientHostIP.Enabled = true;
@@ -251,7 +286,7 @@ namespace TLO.local
 
             if (sender == dgwCategories)
             {
-                if (_CategoriesSource.Current == null)
+                if (_categoriesSource.Current == null)
                 {
                     _CategoriesTbCategoryID.Text = string.Empty;
                     _CategoriesTbFullName.Text = string.Empty;
@@ -260,11 +295,11 @@ namespace TLO.local
                 }
                 else
                 {
-                    Category obj = _CategoriesSource.Current as Category;
+                    var obj = _categoriesSource.Current as Category;
                     _CategoriesTbCategoryID.Text = obj.CategoryID.ToString();
                     _CategoriesTbFullName.Text = obj.FullName;
                     _CategoriesCbStartCountSeeders.Enabled = true;
-                    ComboBox startCountSeeders = _CategoriesCbStartCountSeeders;
+                    var startCountSeeders = _CategoriesCbStartCountSeeders;
                     int num;
                     string str;
                     if (obj.CountSeeders < 0)
@@ -280,7 +315,7 @@ namespace TLO.local
                     startCountSeeders.SelectedItem = str;
                     _CategoriesTbFolderDownloads.Text = obj.Folder;
                     _CategoriesCbTorrentClient.DataSource = null;
-                    _CategoriesCbTorrentClient.DataSource = _TorrentClientsSource.DataSource;
+                    _CategoriesCbTorrentClient.DataSource = _torrentClientsSource.DataSource;
                     _CategoriesCbTorrentClient.SelectedItem =
                         (_CategoriesCbTorrentClient.DataSource as List<TorrentClientInfo>)
                         .Where(x => x.UID == obj.TorrentClientUID)
@@ -313,272 +348,245 @@ namespace TLO.local
                 _appIsUpdateStatistics.Enabled = false;
             }
             else
+            {
                 _appIsUpdateStatistics.Enabled = true;
+            }
         }
-
-        private bool hasChanges;
 
         private void ClickButtons(object sender, EventArgs e)
         {
             Cursor.Current = Cursors.WaitCursor;
-            try
+            if (sender == _btTorrentClientAdd)
             {
-                if (sender == _btTorrentClientAdd)
-                {
-                    _TorrentClientsSource.Add(new TorrentClientInfo());
-                    _TorrentClientsSource.Position = _TorrentClientsSource.Count;
-                }
-                else if (sender == _btTorrentClientDelete)
-                {
-                    if (_TorrentClientsSource.Current == null)
-                        return;
-                    TorrentClientInfo current = _TorrentClientsSource.Current as TorrentClientInfo;
-                    if (MessageBox.Show("Вы хотите удалить из списка torrent-клиент \"" + current.Name + "\"?",
-                            "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) ==
-                        DialogResult.Yes)
-                        _TorrentClientsSource.Remove(current);
-                }
+                _torrentClientsSource.Add(new TorrentClientInfo());
+                _torrentClientsSource.Position = _torrentClientsSource.Count;
             }
-            catch
+            else if (sender == _btTorrentClientDelete)
             {
+                if (_torrentClientsSource.Current == null)
+                    return;
+                var current = _torrentClientsSource.Current as TorrentClientInfo;
+                if (MessageBox.Show("Вы хотите удалить из списка torrent-клиент \"" + current.Name + "\"?",
+                        "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) ==
+                    DialogResult.Yes)
+                    _torrentClientsSource.Remove(current);
             }
 
-            if (sender == _dbLoadInMemoryCheckbox)
+            if (sender == _btCategoryAdd)
             {
-                hasChanges = true;
-            }
-
-            try
-            {
-                if (sender == _btCategoryAdd)
+                var dialog = new SelectCategory();
+                dialog.Read();
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    SelectCategory dialog = new SelectCategory();
-                    dialog.Read();
-                    if (dialog.ShowDialog() == DialogResult.OK)
+                    if (dialog.SelectedCategories.Count() > 0)
                     {
-                        if (dialog.SelectedCategories.Count() > 0)
+                        dialog.SelectedCategories.ForEach(x =>
                         {
-                            dialog.SelectedCategories.ForEach(x =>
-                            {
-                                x.IsEnable = true;
-                                _CategoriesSource.Add(x);
-                            });
-                            _CategoriesSource.Position = _CategoriesSource.Count;
-                        }
+                            x.IsEnable = true;
+                            _categoriesSource.Add(x);
+                        });
+                        _categoriesSource.Position = _categoriesSource.Count;
+                    }
 
-                        if (dialog.SelectedCategory == null)
-                            return;
-                        if ((_CategoriesSource.DataSource as List<Category>).Any(
-                            x => x.CategoryID == dialog.SelectedCategory.CategoryID))
-                        {
-                            int num = (int) MessageBox.Show("Выбранная категория уже присутствует");
-                        }
+                    if (dialog.SelectedCategory == null)
+                        return;
+                    if ((_categoriesSource.DataSource as List<Category>).Any(
+                        x => x.CategoryID == dialog.SelectedCategory.CategoryID))
+                    {
+                        var num = (int) MessageBox.Show("Выбранная категория уже присутствует");
+                    }
+                    else
+                    {
+                        dialog.SelectedCategory.IsEnable = true;
+                        _categoriesSource.Add(dialog.SelectedCategory);
+                        _categoriesSource.Position = _categoriesSource.Count;
+                    }
+                }
+            }
+            else if (sender == _btCategoryRemove)
+            {
+                if (_categoriesSource.Current == null)
+                    return;
+                var current = _categoriesSource.Current as Category;
+                if (MessageBox.Show("Удалить из обработки раздел \"" + current.Name + "\"?", "Подтверждение",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                    _categoriesSource.Remove(current);
+            }
+            else if (sender == _CategoriesBtSelectFolder)
+            {
+                if (_categoriesSource.Current == null)
+                    return;
+                var current = _categoriesSource.Current as Category;
+                var folderBrowserDialog = new FolderBrowserDialog();
+                folderBrowserDialog.SelectedPath =
+                    string.IsNullOrWhiteSpace(current.Folder) ? "c:\\" : current.Folder;
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    current.Folder = folderBrowserDialog.SelectedPath;
+                    _CategoriesTbFolderDownloads.Text = current.Folder;
+                }
+            }
+
+
+            if (sender == _btSave)
+            {
+                ClientLocalDb.Current.SaveTorrentClients(
+                    _torrentClientsSource.DataSource as List<TorrentClientInfo>, true);
+                ClientLocalDb.Current.CategoriesSave(
+                    _categoriesSource.DataSource as List<Category>);
+                forumPages1.Save();
+                DialogResult = DialogResult.OK;
+                var current = Settings.Current;
+                current.KeeperName = _appKeeperName.Text;
+                current.KeeperPass = _appKeeperPass.Text;
+                current.IsUpdateStatistics = _appIsUpdateStatistics.Checked;
+                current.CountDaysKeepHistory = (int) _appCountDaysKeepHistory.Value;
+                current.PeriodRunAndStopTorrents = (int) _appPeriodRunAndStopTorrents.Value;
+                current.CountSeedersReport = (int) _appCountSeedersReport.Value;
+                current.IsAvgCountSeeders = _appIsAvgCountSeeders.Checked;
+                current.IsSelectLessOrEqual = _appSelectLessOrEqual.Checked;
+                current.LogLevel = (int) _appLogLevel.Value;
+                current.IsNotSaveStatistics = _appIsNotSaveStatistics.Checked;
+                current.ReportTop1 = _appReportTop1.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportTop2 = _appReportTop2.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportLine = _appReportLine.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportBottom = _appReportBottom.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportCategoryHeaderTemplate =
+                    reportHeaderTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportCategoriesTemplate =
+                    categoryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                current.ReportSummaryTemplate =
+                    summaryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+                if (_dbLoadInMemoryCheckbox.CheckState != CheckState.Indeterminate)
+                    current.LoadDBInMemory = _dbLoadInMemoryCheckbox.Checked;
+
+                current.UseProxy = useProxyCheckBox.Checked;
+                current.SelectedProxy = ProxyListBox.SelectedItem?.ToString();
+                current.ProxyList.Clear();
+                foreach (var item in ProxyListBox.Items)
+                {
+                    current.ProxyList.Add((string) item);
+                }
+
+                current.DisableServerCertVerify = DisableCertVerifyCheck.Checked;
+                current.ApiHost = apiHosts.SelectedItem?.ToString();
+                current.Save();
+                ClientLocalDb.Current.Reconnect();
+                Close();
+            }
+            else if (sender == _btCancel)
+            {
+                DialogResult = DialogResult.Cancel;
+                Close();
+            }
+            else
+            {
+                if (_btCheck != sender)
+                    return;
+                var stringList = new List<string>();
+                foreach (var torrentClientInfo in _torrentClientsSource.DataSource as List<TorrentClientInfo>)
+                    try
+                    {
+                        var torrentClient = torrentClientInfo.Create();
+                        if (torrentClient == null)
+                            stringList.Add(
+                                $"Торрент-клиент \"{torrentClientInfo.Name}\": Не удалось определить тип torrent-клиента");
                         else
-                        {
-                            dialog.SelectedCategory.IsEnable = true;
-                            _CategoriesSource.Add(dialog.SelectedCategory);
-                            _CategoriesSource.Position = _CategoriesSource.Count;
-                        }
+                            torrentClient.Ping();
                     }
-                }
-                else if (sender == _btCategoryRemove)
-                {
-                    if (_CategoriesSource.Current == null)
-                        return;
-                    Category current = _CategoriesSource.Current as Category;
-                    if (MessageBox.Show("Удалить из обработки раздел \"" + current.Name + "\"?", "Подтверждение",
-                            MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
-                        _CategoriesSource.Remove(current);
-                }
-                else if (sender == _CategoriesBtSelectFolder)
-                {
-                    if (_CategoriesSource.Current == null)
-                        return;
-                    Category current = _CategoriesSource.Current as Category;
-                    FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-                    folderBrowserDialog.SelectedPath =
-                        string.IsNullOrWhiteSpace(current.Folder) ? "c:\\" : current.Folder;
-                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                    catch
                     {
-                        current.Folder = folderBrowserDialog.SelectedPath;
-                        _CategoriesTbFolderDownloads.Text = current.Folder;
-                    }
-                }
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                if (sender == _btSave)
-                {
-                    ClientLocalDB.Current.SaveTorrentClients(
-                        _TorrentClientsSource.DataSource as List<TorrentClientInfo>, true);
-                    ClientLocalDB.Current.CategoriesSave(
-                        _CategoriesSource.DataSource as List<Category>);
-                    forumPages1.Save();
-                    DialogResult = DialogResult.OK;
-                    Settings current = Settings.Current;
-                    current.KeeperName = _appKeeperName.Text;
-                    current.KeeperPass = _appKeeperPass.Text;
-                    current.IsUpdateStatistics = _appIsUpdateStatistics.Checked;
-                    current.CountDaysKeepHistory = (int) _appCountDaysKeepHistory.Value;
-                    current.PeriodRunAndStopTorrents = (int) _appPeriodRunAndStopTorrents.Value;
-                    current.CountSeedersReport = (int) _appCountSeedersReport.Value;
-                    current.IsAvgCountSeeders = _appIsAvgCountSeeders.Checked;
-                    current.IsSelectLessOrEqual = _appSelectLessOrEqual.Checked;
-                    current.LogLevel = (int) _appLogLevel.Value;
-                    current.IsNotSaveStatistics = _appIsNotSaveStatistics.Checked;
-                    current.ReportTop1 = _appReportTop1.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportTop2 = _appReportTop2.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportLine = _appReportLine.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportBottom = _appReportBottom.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportCategoryHeaderTemplate = reportHeaderTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportCategoriesTemplate = categoryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    current.ReportSummaryTemplate = summaryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                    if (_dbLoadInMemoryCheckbox.CheckState != CheckState.Indeterminate)
-                    {
-                        current.LoadDBInMemory = _dbLoadInMemoryCheckbox.Checked;
-                    }
-                    current.Proxy = proxyInput.Text;
-                    current.DisableServerCertVerify = DisableCertVerifyCheck.Checked;
-                    current.ApiHost = apiHosts.SelectedItem.ToString();
-                    current.Save();
-                    ClientLocalDB.Current.SaveToDatabase();
-                    Close();
-                    if (hasChanges)
-                    {
-                        MessageBox.Show("Для вступления изменений в силу может потребоваться перезапустить программу.",
-                            "Внимание");
-                    }
-                }
-                else if (sender == _btCancel)
-                {
-                    DialogResult = DialogResult.Cancel;
-                    Close();
-                }
-                else
-                {
-                    if (_btCheck != sender)
-                        return;
-                    List<string> stringList = new List<string>();
-                    foreach (TorrentClientInfo torrentClientInfo in
-                        _TorrentClientsSource.DataSource as List<TorrentClientInfo>)
-                    {
-                        try
-                        {
-                            ITorrentClient torrentClient = torrentClientInfo.Create();
-                            if (torrentClient == null)
-                                stringList.Add(string.Format(
-                                    "Торрент-клиент \"{0}\": Не удалось определить тип torrent-клиента",
-                                    torrentClientInfo.Name));
-                            else
-                                torrentClient.Ping();
-                        }
-                        catch
-                        {
-                            stringList.Add(string.Format("Не удалось подключиться к торрент-клиенту \"{0}\"",
-                                torrentClientInfo.Name));
-                        }
+                        stringList.Add($"Не удалось подключиться к торрент-клиенту \"{torrentClientInfo.Name}\"");
                     }
 
-                    foreach (string text in stringList)
-                    {
-                        int num = (int) MessageBox.Show(text, "Проверка");
-                    }
+                foreach (var text in stringList) MessageBox.Show(text, "Проверка");
 
-                    int num1 = (int) MessageBox.Show("Подключение к torrent-клиентам проверено.", "Проверка");
-                }
-            }
-            catch (Exception ex)
-            {
-                Cursor.Current = Cursors.Default;
-                int num = (int) MessageBox.Show(ex.Message);
+                MessageBox.Show("Подключение к torrent-клиентам проверено.", "Проверка");
             }
         }
 
         private void CreatePageAllCategories()
         {
             Control control = panel2;
-            Dictionary<int, Category> dictionary1 = ClientLocalDB.Current.GetCategories()
-                .ToDictionary(x => x.CategoryID,
-                    x => x);
-            Dictionary<int, Category> categoriesEnable = ClientLocalDB.Current.GetCategoriesEnable()
-                .ToDictionary(x => x.CategoryID,
-                    x => x);
-            categoriesEnable.ToDictionary(
-                x => x.Key,
-                x => x.Value.ParentID);
-            for (int index = 0; index < 3; ++index)
-            {
-                foreach (Category category in categoriesEnable.Values.ToArray())
-                {
+            var dictionary1 = ClientLocalDb.Current.GetCategories().ToDictionary(x => x.CategoryID, x => x);
+            var categoriesEnable = ClientLocalDb.Current.GetCategoriesEnable().ToDictionary(x => x.CategoryID, x => x);
+            categoriesEnable.ToDictionary(x => x.Key, x => x.Value.ParentID);
+            for (var index = 0; index < 3; ++index)
+                foreach (var category in categoriesEnable.Values.ToArray())
                     if (!categoriesEnable.ContainsKey(category.ParentID) && dictionary1.ContainsKey(category.ParentID))
                         categoriesEnable.Add(dictionary1[category.ParentID].CategoryID, dictionary1[category.ParentID]);
-                }
-            }
 
-            for (int index = 0; index < 3; ++index)
+            for (var index = 0; index < 3; ++index)
             {
-                List<Category> list = dictionary1.Values.ToList();
-                foreach (Category category1 in categoriesEnable.Values.ToList())
+                var list = dictionary1.Values.ToList();
+                foreach (var category1 in categoriesEnable.Values.ToList())
                 {
-                    Category c = category1;
-                    foreach (Category category2 in list.Where(x =>
-                    {
-                        if (!categoriesEnable.ContainsKey(x.CategoryID))
-                            return x.ParentID == c.CategoryID;
-                        return false;
-                    }).ToArray())
-                    {
+                    var c = category1;
+                    foreach (var category2 in list
+                        .Where(x => !categoriesEnable.ContainsKey(x.CategoryID) && x.ParentID == c.CategoryID)
+                        .ToArray())
                         if (!categoriesEnable.ContainsKey(category2.CategoryID) &&
                             dictionary1.ContainsKey(category2.CategoryID))
                             categoriesEnable.Add(category2.CategoryID, category2);
-                    }
                 }
             }
 
-            Dictionary<int, string> dictionary2 = ClientLocalDB.Current.GetReports(new int?())
-                .Where(
-                    x =>
-                    {
-                        if (x.Key.Item2 == 0)
-                            return (uint) x.Key.Item1 > 0U;
-                        return false;
-                    }).ToDictionary(
-                    x => x.Key.Item1,
-                    x => x.Value.Item1);
-            int num = 0;
-            int y1 = 10;
-            foreach (Category category in categoriesEnable.Values.OrderBy(
-                x => x.FullName))
+            var dictionary2 = ClientLocalDb.Current.GetReports(new int?())
+                .Where(x => x.Key.Item2 == 0 && (uint) x.Key.Item1 > 0U)
+                .ToDictionary(x => x.Key.Item1, x => x.Value.Item1);
+            var num = 0;
+            var y1 = 10;
+            foreach (var category in categoriesEnable.Values.OrderBy(x => x.FullName))
             {
-                Label label1 = new Label();
-                label1.AutoSize = true;
-                label1.Location = new Point(3, y1);
-                label1.Size = new Size(35, 13);
-                label1.TabIndex = num;
-                label1.Text = category.FullName;
-                control.Controls.Add(label1);
-                int y2 = y1 + 16;
-                Label label2 = new Label();
-                label2.Location = new Point(6, y2);
-                label2.Size = new Size(123, 20);
-                label2.Text = "Списки хранимого";
-                control.Controls.Add(label2);
+                var label1Local = new Label();
+                label1Local.AutoSize = true;
+                label1Local.Location = new Point(3, y1);
+                label1Local.Size = new Size(35, 13);
+                label1Local.TabIndex = num;
+                label1Local.Text = category.FullName;
+                control.Controls.Add(label1Local);
+                var y2 = y1 + 16;
+                var label2Local = new Label();
+                label2Local.Location = new Point(6, y2);
+                label2Local.Size = new Size(123, 20);
+                label2Local.Text = "Списки хранимого";
+                control.Controls.Add(label2Local);
                 ++num;
-                TextBox textBox = new TextBox();
+                var textBox = new TextBox();
                 textBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
                 textBox.Location = new Point(135, y2);
                 textBox.Size = new Size(panel1.Size.Width - 135, 20);
                 textBox.TabIndex = num;
-                textBox.Text =
-                    !string.IsNullOrWhiteSpace(category.ReportList) || !dictionary2.ContainsKey(category.CategoryID)
-                        ? category.ReportList
-                        : dictionary2[category.CategoryID];
+                textBox.Text = !string.IsNullOrWhiteSpace(category.ReportList) ||
+                               !dictionary2.ContainsKey(category.CategoryID)
+                    ? category.ReportList
+                    : dictionary2[category.CategoryID];
                 control.Controls.Add(textBox);
                 y1 = y2 + 26;
+            }
+        }
+
+        private void FormLoaded(object sender, EventArgs eventArgs)
+        {
+            DataBindings.Add(new Binding("Location", Properties.Settings.Default,
+                "SettingsWindowLocation", true, DataSourceUpdateMode.OnPropertyChanged));
+            DataBindings.Add(new Binding("Size", Properties.Settings.Default,
+                "SettingsWindowSize", true, DataSourceUpdateMode.OnPropertyChanged));
+        }
+
+        private void ProxySettingsSync()
+        {
+            if (useProxyCheckBox.CheckState == CheckState.Checked)
+            {
+                ProxyListBox.Enabled = true;
+                proxyInput.Enabled = true;
+                ProxyAddButton.Enabled = true;
+            }
+            else
+            {
+                ProxyListBox.Enabled = false;
+                proxyInput.Enabled = false;
+                ProxyAddButton.Enabled = false;
             }
         }
     }

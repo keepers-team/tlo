@@ -1,26 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Web;
 using Stubble.Core;
 using Stubble.Core.Builders;
+using TLO.Clients;
+using TLO.Info;
 
-namespace TLO.local
+namespace TLO
 {
     internal static class Reports
     {
         private static StubbleVisitorRenderer _stubble;
 
-        public static StubbleVisitorRenderer Stubble
+        private static StubbleVisitorRenderer Stubble
         {
             get
             {
-                if (_stubble != null)
-                {
-                    return _stubble;
-                }
+                if (_stubble != null) return _stubble;
 
                 var stubble = new StubbleBuilder()
                     .Configure(settings =>
@@ -36,12 +34,12 @@ namespace TLO.local
 
         public static void CreateReports()
         {
-            ClientLocalDB.Current.ClearReports();
+            ClientLocalDb.Current.ClearReports();
 
-            var categories = ClientLocalDB.Current.GetCategoriesEnable();
-            var currReports = ClientLocalDB.Current.GetReports(new int?());
+            var categories = ClientLocalDb.Current.GetCategoriesEnable();
+            var currReports = ClientLocalDb.Current.GetReports(new int?());
             var reports = new Dictionary<int, Dictionary<int, string>>();
-            var allStatistics = ClientLocalDB.Current
+            var allStatistics = ClientLocalDb.Current
                 .GetStatisticsByAllUsers()
                 .Where(x => !string.IsNullOrWhiteSpace(x.Item2))
                 .ToArray();
@@ -60,7 +58,7 @@ namespace TLO.local
 
             var summaryReportTemplate = Settings.Current.ReportSummaryTemplate;
             var categoriesList = new List<object>();
-            var summaryReportData = new Dictionary<string, object>()
+            var summaryReportData = new Dictionary<string, object>
             {
                 {"today", DateTime.Now.ToString("dd.MM.yyyy")},
                 {"summary_topics_count", summaryTopicsAmount},
@@ -82,7 +80,7 @@ namespace TLO.local
                     url = null;
 
                 categoriesList.Add(
-                    new Dictionary<string, object>()
+                    new Dictionary<string, object>
                     {
                         {
                             "url",
@@ -90,7 +88,7 @@ namespace TLO.local
                         },
                         {"category_name", category.FullName},
                         {"topics_count", st.Item3},
-                        {"topics_size", st.Item4.ToString("N")},
+                        {"topics_size", st.Item4.ToString("N")}
                     }
                 );
             }
@@ -100,7 +98,7 @@ namespace TLO.local
             reports.Add(0, new Dictionary<int, string>());
             reports[0].Add(0, summaryReportRendered);
 
-            ClientLocalDB.Current.SaveReports(reports);
+            ClientLocalDb.Current.SaveReports(reports);
 
             reports.Clear();
 
@@ -113,7 +111,7 @@ namespace TLO.local
                 if (st.Count() != 0 && all != null)
                 {
                     var keepersList = new List<object>();
-                    var reportHeader = new Dictionary<string, object>()
+                    var reportHeader = new Dictionary<string, object>
                     {
                         {"category_uri", "viewforum.php?f=" + category.CategoryID},
                         {"category_name", category.Name},
@@ -132,7 +130,7 @@ namespace TLO.local
                     {
                         ++num;
                         keepersList.Add(
-                            new Dictionary<string, string>()
+                            new Dictionary<string, string>
                             {
                                 {"keeper_number", num.ToString()},
                                 {
@@ -142,7 +140,7 @@ namespace TLO.local
                                 },
                                 {"keeper_username", tuple2.Item2.Replace("<wbr>", "")},
                                 {"keep_topics_count", tuple2.Item3.ToString()},
-                                {"keep_topics_size", tuple2.Item4.ToString("N")},
+                                {"keep_topics_size", tuple2.Item4.ToString("N")}
                             }
                         );
                     }
@@ -154,7 +152,7 @@ namespace TLO.local
                 }
             }
 
-            ClientLocalDB.Current.SaveReports(reports);
+            ClientLocalDb.Current.SaveReports(reports);
             reports.Clear();
             var format1 = Settings.Current.ReportTop1.Replace("%%CreateDate%%", "{0}")
                               .Replace("%%CountTopics%%", "{1}").Replace("%%SizeTopics%%", "{2}") + "\r\n";
@@ -176,7 +174,7 @@ namespace TLO.local
                 var key = 0;
                 stringBuilder2.Clear();
                 stringBuilder3.Clear();
-                var array3 = ClientLocalDB.Current.GetTopicsByCategory(category.CategoryID).Where(
+                var array3 = ClientLocalDb.Current.GetTopicsByCategory(category.CategoryID).Where(
                     x =>
                     {
                         if (x.IsKeep && (x.Seeders <= Settings.Current.CountSeedersReport ||
@@ -241,27 +239,25 @@ namespace TLO.local
                 }
             }
 
-            ClientLocalDB.Current.SaveReports(reports);
+            ClientLocalDb.Current.SaveReports(reports);
         }
 
         public static void CreateReportByRootCategories()
         {
-            try
+            // TODO вынести запросы обратно в клиент
+            using (var command = ClientLocalDb.Current.CreateCommand())
             {
-                // TODO вынести запросы обратно в клиент
-                using (SQLiteCommand command = ClientLocalDB.Current.CreateCommand())
-                {
-                    ClientLocalDB.Current.GetStatisticsByAllUsers();
-                    Dictionary<int, Dictionary<int, string>> reports = new Dictionary<int, Dictionary<int, string>>();
-                    Dictionary<int, Tuple<string, decimal, decimal>> source1 =
-                        new Dictionary<int, Tuple<string, decimal, decimal>>();
-                    Dictionary<Tuple<int, string>, Tuple<string, decimal, decimal>> dictionary1 =
-                        new Dictionary<Tuple<int, string>, Tuple<string, decimal, decimal>>();
-                    Dictionary<Tuple<int, string, int>, Tuple<string, decimal, decimal>> dictionary2 =
-                        new Dictionary<Tuple<int, string, int>, Tuple<string, decimal, decimal>>();
-                    List<Tuple<int, int, string, decimal, decimal>> tupleList =
-                        new List<Tuple<int, int, string, decimal, decimal>>();
-                    command.CommandText = @"
+                ClientLocalDb.Current.GetStatisticsByAllUsers();
+                var reports = new Dictionary<int, Dictionary<int, string>>();
+                var source1 =
+                    new Dictionary<int, Tuple<string, decimal, decimal>>();
+                var dictionary1 =
+                    new Dictionary<Tuple<int, string>, Tuple<string, decimal, decimal>>();
+                var dictionary2 =
+                    new Dictionary<Tuple<int, string, int>, Tuple<string, decimal, decimal>>();
+                var tupleList =
+                    new List<Tuple<int, int, string, decimal, decimal>>();
+                command.CommandText = @"
 SELECT c.CategoryID, c.FullName, SUM(Count)Count, SUM(Size)Size
 FROM
     (
@@ -273,15 +269,15 @@ FROM
 GROUP BY
       c.CategoryID, c.FullName
 ORDER BY c.FullName";
-                    using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-                    {
-                        while (sqLiteDataReader.Read())
-                            source1.Add(sqLiteDataReader.GetInt32(0),
-                                new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(1),
-                                    sqLiteDataReader.GetDecimal(2), sqLiteDataReader.GetDecimal(3)));
-                    }
+                using (var sqLiteDataReader = command.ExecuteReader())
+                {
+                    while (sqLiteDataReader.Read())
+                        source1.Add(sqLiteDataReader.GetInt32(0),
+                            new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(1),
+                                sqLiteDataReader.GetDecimal(2), sqLiteDataReader.GetDecimal(3)));
+                }
 
-                    command.CommandText = @"
+                command.CommandText = @"
 SELECT c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size
 FROM
     (
@@ -293,16 +289,16 @@ FROM
 GROUP BY
       c.CategoryID, c.FullName, k.KeeperName
 ORDER BY c.FullName, k.KeeperName";
-                    using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-                    {
-                        while (sqLiteDataReader.Read())
-                            dictionary1.Add(
-                                new Tuple<int, string>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(2)),
-                                new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(1),
-                                    sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
-                    }
+                using (var sqLiteDataReader = command.ExecuteReader())
+                {
+                    while (sqLiteDataReader.Read())
+                        dictionary1.Add(
+                            new Tuple<int, string>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(2)),
+                            new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(1),
+                                sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
+                }
 
-                    command.CommandText = @"
+                command.CommandText = @"
 SELECT t.ParentID, c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size
 FROM
     (
@@ -314,17 +310,17 @@ FROM
 GROUP BY
       t.ParentID, c.FullName, k.KeeperName, c.CategoryID
 ORDER BY c.FullName, k.KeeperName";
-                    using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-                    {
-                        while (sqLiteDataReader.Read())
-                            dictionary2.Add(
-                                new Tuple<int, string, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(3),
-                                    sqLiteDataReader.GetInt32(1)),
-                                new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(2),
-                                    sqLiteDataReader.GetDecimal(4), sqLiteDataReader.GetDecimal(5)));
-                    }
+                using (var sqLiteDataReader = command.ExecuteReader())
+                {
+                    while (sqLiteDataReader.Read())
+                        dictionary2.Add(
+                            new Tuple<int, string, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(3),
+                                sqLiteDataReader.GetInt32(1)),
+                            new Tuple<string, decimal, decimal>(sqLiteDataReader.GetString(2),
+                                sqLiteDataReader.GetDecimal(4), sqLiteDataReader.GetDecimal(5)));
+                }
 
-                    command.CommandText = @"
+                command.CommandText = @"
 SELECT t.ParentID, c.CategoryID, c.FullName,SUM(Count)Count, SUM(Size)Size
 FROM
     (
@@ -337,92 +333,84 @@ GROUP BY
       c.CategoryID, c.FullName
 ORDER BY c.FullName";
 
-                    using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
-                    {
-                        while (sqLiteDataReader.Read())
-                            tupleList.Add(new Tuple<int, int, string, decimal, decimal>(sqLiteDataReader.GetInt32(0),
-                                sqLiteDataReader.GetInt32(1), sqLiteDataReader.GetString(2),
-                                sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
-                    }
-
-                    var rootCategoryReportTemplate = Settings.Current.ReportCategoriesTemplate;
-                    foreach (int num1 in source1.Select(x => x.Key))
-                    {
-                        int c = num1;
-                        var rootCategoryReportData = new Dictionary<string, object>()
-                        {
-                            {"today", DateTime.Now.ToString("dd.MM.yyyy")},
-                            {"topics_count", source1[c].Item2},
-                            {"topics_size", source1[c].Item3.ToString("N")},
-                            {"keepers", new List<object>()},
-                            {"categories", new List<object>()},
-                        };
-                        int num2 = 1;
-                        Dictionary<Tuple<int, string>, Tuple<string, decimal, decimal>> source2 = dictionary1;
-                        foreach (KeyValuePair<Tuple<int, string>, Tuple<string, decimal, decimal>> keyValuePair1 in
-                            source2.Where(x => x.Key.Item1 == c))
-                        {
-                            var categoriesList = new List<object>();
-                            KeyValuePair<Tuple<int, string>, Tuple<string, decimal, decimal>> k = keyValuePair1;
-                            ((List<object>) rootCategoryReportData["keepers"]).Add(new Dictionary<string, object>()
-                            {
-                                {"keeper_number", num2},
-                                {"keeper_username", k.Key.Item2},
-                                {"keep_topics_count", k.Value.Item2},
-                                {"keep_topics_size", k.Value.Item3.ToString("N")},
-                                {"categories", categoriesList}
-                            });
-
-                            Dictionary<Tuple<int, string, int>, Tuple<string, decimal, decimal>> source3 = dictionary2;
-                            foreach (KeyValuePair<Tuple<int, string, int>, Tuple<string, decimal, decimal>>
-                                keyValuePair2 in source3.Where(x => x.Key.Item2 == k.Key.Item2 && x.Key.Item1 == c))
-                            {
-                                categoriesList.Add(new Dictionary<string, object>()
-                                {
-                                    {"keep_category_name", keyValuePair2.Value.Item1},
-                                    {"keep_category_topics_count", keyValuePair2.Value.Item2},
-                                    {"keep_category_topics_size", keyValuePair2.Value.Item3.ToString("N")},
-                                });
-                            }
-
-                            ++num2;
-                        }
-
-                        List<Tuple<int, int, string, decimal, decimal>> source4 = tupleList;
-                        foreach (Tuple<int, int, string, decimal, decimal> tuple in source4.Where(x => x.Item1 == c)
-                            .OrderBy(x => x.Item3))
-                        {
-                            Tuple<int, int, string, decimal, decimal> k = tuple;
-                            var keepersList = new List<object>();
-                            ((List<object>) rootCategoryReportData["categories"]).Add(new Dictionary<string, object>()
-                            {
-                                {"category_name", k.Item3},
-                                {"topics_count", k.Item4},
-                                {"topics_size", k.Item5.ToString("N")},
-                                {"keepers", keepersList},
-                            });
-                            Dictionary<Tuple<int, string, int>, Tuple<string, decimal, decimal>> source3 = dictionary2;
-                            foreach (KeyValuePair<Tuple<int, string, int>, Tuple<string, decimal, decimal>> keyValuePair
-                                in source3.Where(x => x.Key.Item3 == k.Item2).OrderBy(x => x.Key.Item2))
-                            {
-                                keepersList.Add(new Dictionary<string, object>()
-                                {
-                                    {"keeper_username", keyValuePair.Key.Item2},
-                                    {"keep_topics_count", keyValuePair.Value.Item2},
-                                    {"keep_topics_size", keyValuePair.Value.Item3.ToString("N")},
-                                });
-                            }
-                        }
-
-                        reports.Add(c, new Dictionary<int, string>());
-                        reports[c].Add(0, Stubble.Render(rootCategoryReportTemplate, rootCategoryReportData));
-                    }
-
-                    ClientLocalDB.Current.SaveReports(reports);
+                using (var sqLiteDataReader = command.ExecuteReader())
+                {
+                    while (sqLiteDataReader.Read())
+                        tupleList.Add(new Tuple<int, int, string, decimal, decimal>(sqLiteDataReader.GetInt32(0),
+                            sqLiteDataReader.GetInt32(1), sqLiteDataReader.GetString(2),
+                            sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
                 }
-            }
-            catch (Exception ex)
-            {
+
+                var rootCategoryReportTemplate = Settings.Current.ReportCategoriesTemplate;
+                foreach (var num1 in source1.Select(x => x.Key))
+                {
+                    var c = num1;
+                    var rootCategoryReportData = new Dictionary<string, object>
+                    {
+                        {"today", DateTime.Now.ToString("dd.MM.yyyy")},
+                        {"topics_count", source1[c].Item2},
+                        {"topics_size", source1[c].Item3.ToString("N")},
+                        {"keepers", new List<object>()},
+                        {"categories", new List<object>()}
+                    };
+                    var num2 = 1;
+                    var source2 = dictionary1;
+                    foreach (var keyValuePair1 in
+                        source2.Where(x => x.Key.Item1 == c))
+                    {
+                        var categoriesList = new List<object>();
+                        var k = keyValuePair1;
+                        ((List<object>) rootCategoryReportData["keepers"]).Add(new Dictionary<string, object>
+                        {
+                            {"keeper_number", num2},
+                            {"keeper_username", k.Key.Item2},
+                            {"keep_topics_count", k.Value.Item2},
+                            {"keep_topics_size", k.Value.Item3.ToString("N")},
+                            {"categories", categoriesList}
+                        });
+
+                        var source3 = dictionary2;
+                        foreach (var
+                            keyValuePair2 in source3.Where(x => x.Key.Item2 == k.Key.Item2 && x.Key.Item1 == c))
+                            categoriesList.Add(new Dictionary<string, object>
+                            {
+                                {"keep_category_name", keyValuePair2.Value.Item1},
+                                {"keep_category_topics_count", keyValuePair2.Value.Item2},
+                                {"keep_category_topics_size", keyValuePair2.Value.Item3.ToString("N")}
+                            });
+
+                        ++num2;
+                    }
+
+                    var source4 = tupleList;
+                    foreach (var tuple in source4.Where(x => x.Item1 == c)
+                        .OrderBy(x => x.Item3))
+                    {
+                        var k = tuple;
+                        var keepersList = new List<object>();
+                        ((List<object>) rootCategoryReportData["categories"]).Add(new Dictionary<string, object>
+                        {
+                            {"category_name", k.Item3},
+                            {"topics_count", k.Item4},
+                            {"topics_size", k.Item5.ToString("N")},
+                            {"keepers", keepersList}
+                        });
+                        var source3 = dictionary2;
+                        foreach (var keyValuePair
+                            in source3.Where(x => x.Key.Item3 == k.Item2).OrderBy(x => x.Key.Item2))
+                            keepersList.Add(new Dictionary<string, object>
+                            {
+                                {"keeper_username", keyValuePair.Key.Item2},
+                                {"keep_topics_count", keyValuePair.Value.Item2},
+                                {"keep_topics_size", keyValuePair.Value.Item3.ToString("N")}
+                            });
+                    }
+
+                    reports.Add(c, new Dictionary<int, string>());
+                    reports[c].Add(0, Stubble.Render(rootCategoryReportTemplate, rootCategoryReportData));
+                }
+
+                ClientLocalDb.Current.SaveReports(reports);
             }
         }
     }
