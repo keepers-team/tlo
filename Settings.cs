@@ -148,6 +148,8 @@ namespace TLO
 
         [XmlElement] public bool? UseProxy { get; set; }
         
+        [XmlElement] public bool? SystemProxy { get; set; }
+        
         [XmlElement] public string SelectedProxy { get; set; }
         
         [XmlArray] public List<string> ProxyList { get; set; }
@@ -219,6 +221,7 @@ namespace TLO
                     _lastWriteTime = File.GetLastWriteTime(FileSettings);
                     LoadDBInMemory = settings.LoadDBInMemory;
                     UseProxy = settings.UseProxy;
+                    SystemProxy = settings.SystemProxy;
                     SelectedProxy = settings.SelectedProxy;
                     ProxyList = settings.ProxyList;
                     ApiHost = settings.ApiHost;
@@ -243,7 +246,7 @@ namespace TLO
                 str = Assembly.GetEntryAssembly().ManifestModule.Name;
             var loggingConfiguration = new LoggingConfiguration();
             var fileTarget = new FileTarget();
-            fileTarget.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${message}";
+            fileTarget.Layout = "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${logger}\t${message}";
             loggingConfiguration.AddTarget("logfile", fileTarget);
             fileTarget.FileName = Path.Combine(Folder, str + ".log");
             fileTarget.Encoding = Encoding.UTF8;
@@ -253,7 +256,7 @@ namespace TLO
                 var coloredConsoleTarget = new ColoredConsoleTarget();
                 loggingConfiguration.AddTarget("console", coloredConsoleTarget);
                 coloredConsoleTarget.Layout =
-                    "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${message}\t${file}:${line}";
+                    "${date:format=yyyy-MM-dd HH\\:mm\\:ss}\t${level}\t${logger}\t${message}\t${file}:${line}";
                 var loggingRule = new LoggingRule("*", NLog.LogLevel.Debug, coloredConsoleTarget);
                 loggingConfiguration.LoggingRules.Add(loggingRule);
             }

@@ -88,12 +88,23 @@ namespace TLO.Forms {
             this._tbTorrentClientName = new System.Windows.Forms.TextBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.label47 = new System.Windows.Forms.Label();
+            this.showNotificationInTray = new System.Windows.Forms.CheckBox();
+            this.showTrayIcon = new System.Windows.Forms.CheckBox();
+            this.closeToTray = new System.Windows.Forms.CheckBox();
+            this.hideToTray = new System.Windows.Forms.CheckBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.connectionCheck = new System.Windows.Forms.Label();
+            this.SystemProxy = new System.Windows.Forms.CheckBox();
             this.ProxyAddButton = new System.Windows.Forms.Button();
             this.ProxyListBox = new System.Windows.Forms.ListBox();
+            this.DisableCertVerifyCheck = new System.Windows.Forms.CheckBox();
             this.useProxyCheckBox = new System.Windows.Forms.CheckBox();
             this.label41 = new System.Windows.Forms.Label();
+            this.apiHosts = new System.Windows.Forms.ComboBox();
             this.proxyInput = new System.Windows.Forms.TextBox();
+            this.label42 = new System.Windows.Forms.Label();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
             this.label9 = new System.Windows.Forms.Label();
             this._appCountSeedersReport = new System.Windows.Forms.NumericUpDown();
@@ -102,12 +113,9 @@ namespace TLO.Forms {
             this.label46 = new System.Windows.Forms.Label();
             this._dbLoadInMemoryCheckbox = new System.Windows.Forms.CheckBox();
             this._appIsNotSaveStatistics = new System.Windows.Forms.CheckBox();
-            this.DisableCertVerifyCheck = new System.Windows.Forms.CheckBox();
             this.label23 = new System.Windows.Forms.Label();
-            this.apiHosts = new System.Windows.Forms.ComboBox();
             this._appLogLevel = new System.Windows.Forms.NumericUpDown();
             this.label21 = new System.Windows.Forms.Label();
-            this.label42 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this._appSelectLessOrEqual = new System.Windows.Forms.CheckBox();
             this.label12 = new System.Windows.Forms.Label();
@@ -167,6 +175,7 @@ namespace TLO.Forms {
             ((System.ComponentModel.ISupportInitialize)(this.dgwTorrentClients)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.groupBox10.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.groupBox8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this._appCountSeedersReport)).BeginInit();
@@ -783,6 +792,7 @@ namespace TLO.Forms {
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.groupBox10);
             this.tabPage2.Controls.Add(this.groupBox9);
             this.tabPage2.Controls.Add(this.groupBox8);
             this.tabPage2.Controls.Add(this.groupBox4);
@@ -796,23 +806,119 @@ namespace TLO.Forms {
             this.tabPage2.Text = "Основные настройки";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // groupBox10
+            // 
+            this.groupBox10.Controls.Add(this.label47);
+            this.groupBox10.Controls.Add(this.showNotificationInTray);
+            this.groupBox10.Controls.Add(this.showTrayIcon);
+            this.groupBox10.Controls.Add(this.closeToTray);
+            this.groupBox10.Controls.Add(this.hideToTray);
+            this.groupBox10.Location = new System.Drawing.Point(8, 477);
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.Size = new System.Drawing.Size(367, 108);
+            this.groupBox10.TabIndex = 18;
+            this.groupBox10.TabStop = false;
+            this.groupBox10.Text = "Трей";
+            // 
+            // label47
+            // 
+            this.label47.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.label47.Location = new System.Drawing.Point(3, 62);
+            this.label47.Name = "label47";
+            this.label47.Size = new System.Drawing.Size(353, 43);
+            this.label47.TabIndex = 21;
+            this.label47.Text = "Если включить сворачивание или закрытие в трей, то кнопка в панели задач соответс" +
+    "твенно будет исчезать, так как программа будет переходить в трей.";
+            // 
+            // showNotificationInTray
+            // 
+            this.showNotificationInTray.AutoSize = true;
+            this.showNotificationInTray.Checked = global::TLO.Properties.Settings.Default.NotificationInTray;
+            this.showNotificationInTray.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::TLO.Properties.Settings.Default, "NotificationInTray", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.showNotificationInTray.Location = new System.Drawing.Point(176, 40);
+            this.showNotificationInTray.Name = "showNotificationInTray";
+            this.showNotificationInTray.Size = new System.Drawing.Size(131, 17);
+            this.showNotificationInTray.TabIndex = 20;
+            this.showNotificationInTray.Text = "Уведомления в трее";
+            this.showNotificationInTray.UseVisualStyleBackColor = true;
+            // 
+            // showTrayIcon
+            // 
+            this.showTrayIcon.AutoSize = true;
+            this.showTrayIcon.Checked = global::TLO.Properties.Settings.Default.ShowInTray;
+            this.showTrayIcon.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::TLO.Properties.Settings.Default, "ShowInTray", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.showTrayIcon.Location = new System.Drawing.Point(8, 17);
+            this.showTrayIcon.Name = "showTrayIcon";
+            this.showTrayIcon.Size = new System.Drawing.Size(162, 17);
+            this.showTrayIcon.TabIndex = 19;
+            this.showTrayIcon.Text = "Показывать значок в трее";
+            this.showTrayIcon.UseVisualStyleBackColor = true;
+            // 
+            // closeToTray
+            // 
+            this.closeToTray.AutoSize = true;
+            this.closeToTray.Checked = global::TLO.Properties.Settings.Default.CloseToTray;
+            this.closeToTray.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::TLO.Properties.Settings.Default, "CloseToTray", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.closeToTray.Location = new System.Drawing.Point(176, 17);
+            this.closeToTray.Name = "closeToTray";
+            this.closeToTray.Size = new System.Drawing.Size(117, 17);
+            this.closeToTray.TabIndex = 1;
+            this.closeToTray.Text = "Закрывать в трей";
+            this.closeToTray.UseVisualStyleBackColor = true;
+            // 
+            // hideToTray
+            // 
+            this.hideToTray.AutoSize = true;
+            this.hideToTray.Checked = global::TLO.Properties.Settings.Default.HideToTray;
+            this.hideToTray.DataBindings.Add(new System.Windows.Forms.Binding("Checked", global::TLO.Properties.Settings.Default, "HideToTray", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.hideToTray.Location = new System.Drawing.Point(6, 40);
+            this.hideToTray.Name = "hideToTray";
+            this.hideToTray.Size = new System.Drawing.Size(126, 17);
+            this.hideToTray.TabIndex = 0;
+            this.hideToTray.Text = "Сворачивать в трей";
+            this.hideToTray.UseVisualStyleBackColor = true;
+            // 
             // groupBox9
             // 
+            this.groupBox9.Controls.Add(this.connectionCheck);
+            this.groupBox9.Controls.Add(this.SystemProxy);
             this.groupBox9.Controls.Add(this.ProxyAddButton);
             this.groupBox9.Controls.Add(this.ProxyListBox);
+            this.groupBox9.Controls.Add(this.DisableCertVerifyCheck);
             this.groupBox9.Controls.Add(this.useProxyCheckBox);
             this.groupBox9.Controls.Add(this.label41);
+            this.groupBox9.Controls.Add(this.apiHosts);
             this.groupBox9.Controls.Add(this.proxyInput);
-            this.groupBox9.Location = new System.Drawing.Point(381, 84);
+            this.groupBox9.Controls.Add(this.label42);
+            this.groupBox9.Location = new System.Drawing.Point(382, 446);
             this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(590, 71);
+            this.groupBox9.Size = new System.Drawing.Size(590, 139);
             this.groupBox9.TabIndex = 17;
             this.groupBox9.TabStop = false;
-            this.groupBox9.Text = "Прокси";
+            this.groupBox9.Text = "Сеть и прокси";
+            // 
+            // connectionCheck
+            // 
+            this.connectionCheck.AutoSize = true;
+            this.connectionCheck.BackColor = System.Drawing.Color.DarkOrange;
+            this.connectionCheck.Location = new System.Drawing.Point(9, 120);
+            this.connectionCheck.Name = "connectionCheck";
+            this.connectionCheck.Size = new System.Drawing.Size(73, 13);
+            this.connectionCheck.TabIndex = 29;
+            this.connectionCheck.Text = "Состояние: ?";
+            // 
+            // SystemProxy
+            // 
+            this.SystemProxy.Location = new System.Drawing.Point(183, 57);
+            this.SystemProxy.Name = "SystemProxy";
+            this.SystemProxy.Size = new System.Drawing.Size(165, 21);
+            this.SystemProxy.TabIndex = 28;
+            this.SystemProxy.Text = "Системный прокси";
+            this.SystemProxy.UseVisualStyleBackColor = true;
             // 
             // ProxyAddButton
             // 
-            this.ProxyAddButton.Location = new System.Drawing.Point(322, 44);
+            this.ProxyAddButton.Location = new System.Drawing.Point(322, 90);
             this.ProxyAddButton.Name = "ProxyAddButton";
             this.ProxyAddButton.Size = new System.Drawing.Size(29, 22);
             this.ProxyAddButton.TabIndex = 27;
@@ -822,15 +928,25 @@ namespace TLO.Forms {
             // ProxyListBox
             // 
             this.ProxyListBox.FormattingEnabled = true;
-            this.ProxyListBox.Location = new System.Drawing.Point(357, 9);
+            this.ProxyListBox.Location = new System.Drawing.Point(357, 55);
             this.ProxyListBox.Name = "ProxyListBox";
             this.ProxyListBox.Size = new System.Drawing.Size(227, 56);
             this.ProxyListBox.TabIndex = 26;
             // 
+            // DisableCertVerifyCheck
+            // 
+            this.DisableCertVerifyCheck.AutoSize = true;
+            this.DisableCertVerifyCheck.Location = new System.Drawing.Point(262, 32);
+            this.DisableCertVerifyCheck.Name = "DisableCertVerifyCheck";
+            this.DisableCertVerifyCheck.Size = new System.Drawing.Size(247, 17);
+            this.DisableCertVerifyCheck.TabIndex = 23;
+            this.DisableCertVerifyCheck.Text = "Выключить проверку сертификата сервера";
+            this.DisableCertVerifyCheck.UseVisualStyleBackColor = true;
+            // 
             // useProxyCheckBox
             // 
             this.useProxyCheckBox.AutoSize = true;
-            this.useProxyCheckBox.Location = new System.Drawing.Point(9, 19);
+            this.useProxyCheckBox.Location = new System.Drawing.Point(9, 59);
             this.useProxyCheckBox.Name = "useProxyCheckBox";
             this.useProxyCheckBox.Size = new System.Drawing.Size(138, 17);
             this.useProxyCheckBox.TabIndex = 24;
@@ -840,11 +956,23 @@ namespace TLO.Forms {
             // label41
             // 
             this.label41.AutoSize = true;
-            this.label41.Location = new System.Drawing.Point(6, 49);
+            this.label41.Location = new System.Drawing.Point(6, 90);
             this.label41.Name = "label41";
             this.label41.Size = new System.Drawing.Size(171, 13);
             this.label41.TabIndex = 19;
             this.label41.Text = "Добавить прокси (https, socks5):";
+            // 
+            // apiHosts
+            // 
+            this.apiHosts.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.apiHosts.FormattingEnabled = true;
+            this.apiHosts.Items.AddRange(new object[] {
+            "api.t-ru.org",
+            "api.rutracker.org"});
+            this.apiHosts.Location = new System.Drawing.Point(9, 32);
+            this.apiHosts.Name = "apiHosts";
+            this.apiHosts.Size = new System.Drawing.Size(243, 21);
+            this.apiHosts.TabIndex = 21;
             // 
             // proxyInput
             // 
@@ -854,10 +982,19 @@ namespace TLO.Forms {
             this.proxyInput.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.proxyInput.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
             this.proxyInput.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.proxyInput.Location = new System.Drawing.Point(183, 44);
+            this.proxyInput.Location = new System.Drawing.Point(183, 90);
             this.proxyInput.Name = "proxyInput";
             this.proxyInput.Size = new System.Drawing.Size(133, 22);
             this.proxyInput.TabIndex = 18;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(6, 16);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(109, 13);
+            this.label42.TabIndex = 20;
+            this.label42.Text = "Хост API рутрекера:";
             // 
             // groupBox8
             // 
@@ -918,12 +1055,9 @@ namespace TLO.Forms {
             this.groupBox4.Controls.Add(this.label46);
             this.groupBox4.Controls.Add(this._dbLoadInMemoryCheckbox);
             this.groupBox4.Controls.Add(this._appIsNotSaveStatistics);
-            this.groupBox4.Controls.Add(this.DisableCertVerifyCheck);
             this.groupBox4.Controls.Add(this.label23);
-            this.groupBox4.Controls.Add(this.apiHosts);
             this.groupBox4.Controls.Add(this._appLogLevel);
             this.groupBox4.Controls.Add(this.label21);
-            this.groupBox4.Controls.Add(this.label42);
             this.groupBox4.Controls.Add(this.label20);
             this.groupBox4.Controls.Add(this._appSelectLessOrEqual);
             this.groupBox4.Controls.Add(this.label12);
@@ -932,7 +1066,7 @@ namespace TLO.Forms {
             this.groupBox4.Controls.Add(this.label11);
             this.groupBox4.Location = new System.Drawing.Point(8, 161);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(367, 424);
+            this.groupBox4.Size = new System.Drawing.Size(367, 310);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Настройки программы";
@@ -969,16 +1103,6 @@ namespace TLO.Forms {
             this._appIsNotSaveStatistics.UseVisualStyleBackColor = true;
             this._appIsNotSaveStatistics.Click += new System.EventHandler(this.SelectionChanged);
             // 
-            // DisableCertVerifyCheck
-            // 
-            this.DisableCertVerifyCheck.AutoSize = true;
-            this.DisableCertVerifyCheck.Location = new System.Drawing.Point(6, 336);
-            this.DisableCertVerifyCheck.Name = "DisableCertVerifyCheck";
-            this.DisableCertVerifyCheck.Size = new System.Drawing.Size(247, 17);
-            this.DisableCertVerifyCheck.TabIndex = 23;
-            this.DisableCertVerifyCheck.Text = "Выключить проверку сертификата сервера";
-            this.DisableCertVerifyCheck.UseVisualStyleBackColor = true;
-            // 
             // label23
             // 
             this.label23.ForeColor = System.Drawing.SystemColors.ControlDark;
@@ -986,21 +1110,8 @@ namespace TLO.Forms {
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(355, 42);
             this.label23.TabIndex = 15;
-            this.label23.Text = "Отвечает за подробность ведения текстового лога. 0 - ошибки/предупреждения, 1 - +" +
-    "информационные сообщения, 2 - + отладочные сообщения, 3 - + шаги выполнения прог" +
-    "раммы";
-            // 
-            // apiHosts
-            // 
-            this.apiHosts.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.apiHosts.FormattingEnabled = true;
-            this.apiHosts.Items.AddRange(new object[] {
-            "api.t-ru.org",
-            "api.rutracker.org"});
-            this.apiHosts.Location = new System.Drawing.Point(118, 309);
-            this.apiHosts.Name = "apiHosts";
-            this.apiHosts.Size = new System.Drawing.Size(243, 21);
-            this.apiHosts.TabIndex = 21;
+            this.label23.Text = "Отвечает за подробность ведения текстового лога. 0 - ошибки, 1 - информационные л" +
+    "оги, 2 -  подробные логи, 3 - все логи а также ответы от сервера.";
             // 
             // _appLogLevel
             // 
@@ -1022,15 +1133,6 @@ namespace TLO.Forms {
             this.label21.Size = new System.Drawing.Size(231, 13);
             this.label21.TabIndex = 13;
             this.label21.Text = "Уровень ведения логов (значение от 0 до 3)";
-            // 
-            // label42
-            // 
-            this.label42.AutoSize = true;
-            this.label42.Location = new System.Drawing.Point(3, 312);
-            this.label42.Name = "label42";
-            this.label42.Size = new System.Drawing.Size(109, 13);
-            this.label42.TabIndex = 20;
-            this.label42.Text = "Хост API рутрекера:";
             // 
             // label20
             // 
@@ -1268,7 +1370,7 @@ namespace TLO.Forms {
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(926, 490);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(893, 490);
             this.tableLayoutPanel1.TabIndex = 59;
             // 
             // label17
@@ -1288,7 +1390,7 @@ namespace TLO.Forms {
             this.categoryReportTemplate.Multiline = true;
             this.categoryReportTemplate.Name = "categoryReportTemplate";
             this.categoryReportTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.categoryReportTemplate.Size = new System.Drawing.Size(920, 79);
+            this.categoryReportTemplate.Size = new System.Drawing.Size(887, 79);
             this.categoryReportTemplate.TabIndex = 56;
             // 
             // reportHeaderTemplate
@@ -1298,7 +1400,7 @@ namespace TLO.Forms {
             this.reportHeaderTemplate.Multiline = true;
             this.reportHeaderTemplate.Name = "reportHeaderTemplate";
             this.reportHeaderTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.reportHeaderTemplate.Size = new System.Drawing.Size(302, 79);
+            this.reportHeaderTemplate.Size = new System.Drawing.Size(291, 79);
             this.reportHeaderTemplate.TabIndex = 58;
             // 
             // label44
@@ -1318,7 +1420,7 @@ namespace TLO.Forms {
             this._appReportLine.Multiline = true;
             this._appReportLine.Name = "_appReportLine";
             this._appReportLine.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportLine.Size = new System.Drawing.Size(920, 79);
+            this._appReportLine.Size = new System.Drawing.Size(887, 79);
             this._appReportLine.TabIndex = 33;
             // 
             // summaryReportTemplate
@@ -1329,13 +1431,13 @@ namespace TLO.Forms {
             this.summaryReportTemplate.Multiline = true;
             this.summaryReportTemplate.Name = "summaryReportTemplate";
             this.summaryReportTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.summaryReportTemplate.Size = new System.Drawing.Size(920, 79);
+            this.summaryReportTemplate.Size = new System.Drawing.Size(887, 79);
             this.summaryReportTemplate.TabIndex = 54;
             // 
             // label45
             // 
             this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(619, 98);
+            this.label45.Location = new System.Drawing.Point(597, 98);
             this.label45.Name = "label45";
             this.label45.Size = new System.Drawing.Size(234, 13);
             this.label45.TabIndex = 57;
@@ -1362,7 +1464,7 @@ namespace TLO.Forms {
             // label31
             // 
             this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(311, 98);
+            this.label31.Location = new System.Drawing.Point(300, 98);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(232, 13);
             this.label31.TabIndex = 43;
@@ -1371,21 +1473,21 @@ namespace TLO.Forms {
             // _appReportTop1
             // 
             this._appReportTop1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._appReportTop1.Location = new System.Drawing.Point(311, 114);
+            this._appReportTop1.Location = new System.Drawing.Point(300, 114);
             this._appReportTop1.Multiline = true;
             this._appReportTop1.Name = "_appReportTop1";
             this._appReportTop1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportTop1.Size = new System.Drawing.Size(302, 79);
+            this._appReportTop1.Size = new System.Drawing.Size(291, 79);
             this._appReportTop1.TabIndex = 40;
             // 
             // _appReportTop2
             // 
             this._appReportTop2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._appReportTop2.Location = new System.Drawing.Point(619, 114);
+            this._appReportTop2.Location = new System.Drawing.Point(597, 114);
             this._appReportTop2.Multiline = true;
             this._appReportTop2.Name = "_appReportTop2";
             this._appReportTop2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportTop2.Size = new System.Drawing.Size(304, 79);
+            this._appReportTop2.Size = new System.Drawing.Size(293, 79);
             this._appReportTop2.TabIndex = 41;
             // 
             // label32
@@ -1405,7 +1507,7 @@ namespace TLO.Forms {
             this._appReportBottom.Multiline = true;
             this._appReportBottom.Name = "_appReportBottom";
             this._appReportBottom.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportBottom.Size = new System.Drawing.Size(920, 79);
+            this._appReportBottom.Size = new System.Drawing.Size(887, 79);
             this._appReportBottom.TabIndex = 44;
             // 
             // label39
@@ -1624,6 +1726,8 @@ namespace TLO.Forms {
             ((System.ComponentModel.ISupportInitialize)(this.dgwTorrentClients)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
+            this.groupBox10.ResumeLayout(false);
+            this.groupBox10.PerformLayout();
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
             this.groupBox8.ResumeLayout(false);
@@ -1768,8 +1872,16 @@ namespace TLO.Forms {
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.GroupBox groupBox9;
         private System.Windows.Forms.CheckBox useProxyCheckBox;
-        private ListBox ProxyListBox;
-        private Button ProxyAddButton;
-        private Label label46;
+        private System.Windows.Forms.Label label46;
+        private System.Windows.Forms.Button ProxyAddButton;
+        private System.Windows.Forms.ListBox ProxyListBox;
+        private System.Windows.Forms.CheckBox SystemProxy;
+        private GroupBox groupBox10;
+        private CheckBox showTrayIcon;
+        private CheckBox closeToTray;
+        private CheckBox hideToTray;
+        private CheckBox showNotificationInTray;
+        private Label label47;
+        private Label connectionCheck;
     }
 }

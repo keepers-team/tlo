@@ -458,7 +458,6 @@ namespace TLO.Clients
 
         private string DownloadArchivePage(string page)
         {
-            var empty = string.Empty;
             var tloWebClient = new TloWebClient(enableProxy: true);
             return tloWebClient.DownloadString(page);
         }

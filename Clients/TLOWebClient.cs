@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using MihaZupan;
 using NLog;
@@ -58,15 +61,22 @@ namespace TLO.Clients
             var webRequest = (HttpWebRequest) base.GetWebRequest(address);
             if (webRequest != null && Settings.Current.UseProxy == true && _enableProxy)
             {
-                var proxy = Settings.Current.SelectedProxy;
-                if (proxy.Contains("http://"))
+                if (Settings.Current.SystemProxy == true)
                 {
-                    webRequest.Proxy = new WebProxy(proxy);
+                    webRequest.Proxy = WebRequest.GetSystemWebProxy();
                 }
                 else
                 {
-                    var uri = new Uri(proxy);
-                    webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
+                    var proxy = Settings.Current.SelectedProxy;
+                    if (proxy.Contains("http://"))
+                    {
+                        webRequest.Proxy = new WebProxy(proxy);
+                    }
+                    else
+                    {
+                        var uri = new Uri(proxy);
+                        webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
+                    }
                 }
             }
 
@@ -101,6 +111,71 @@ namespace TLO.Clients
                 webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
 
             return webRequest;
+        }
+
+        protected override WebResponse GetWebResponse(WebRequest request)
+        {
+            WebResponse response;
+            try
+            {
+                response = base.GetWebResponse(request);
+            }
+            catch (Exception e)
+            {
+                if (!(e.InnerException is WebException))
+                {
+                    throw;
+                }
+
+                logResponse((HttpWebResponse) request.GetResponse());
+
+                throw;
+            }
+
+            logResponse((HttpWebResponse) response);
+
+            return response;
+        }
+
+
+        private static void logResponse(HttpWebResponse response)
+        {
+            var webResponse = response;
+            var responseStream = webResponse.GetResponseStream();
+            var headersText = "";
+            var items = Enumerable
+                .Range(0, webResponse.Headers.Count)
+                .SelectMany(i => webResponse.Headers.GetValues(i)
+                    .Select(v => Tuple.Create(webResponse.Headers.GetKey(i), v))
+                );
+            foreach (var header in items)
+            {
+                headersText += $"{header.Item1}: {header.Item2}\r\n";
+            }
+
+            if (responseStream != null)
+            {
+                var reader = new StreamReader(responseStream);
+                var text = reader.ReadToEnd();
+                Stream stremReplace = new MemoryStream(text.Length);
+                var writer = new StreamWriter(stremReplace);
+                writer.AutoFlush = true;
+                writer.Write(text);
+                stremReplace.Seek(0, SeekOrigin.Begin);
+                var fieldInfo = webResponse
+                    .GetType()
+                    .GetField("m_ConnectStream",
+                        BindingFlags.Instance | BindingFlags.NonPublic
+                    );
+                if (fieldInfo != null) fieldInfo.SetValue(webResponse, stremReplace);
+                var httpWebResponse = webResponse;
+                _logger.Trace(
+                    $"\r\nHTTP/{httpWebResponse.ProtocolVersion} {httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
+                    headersText +
+                    "\r\n\r\n" +
+                    text);
+                reader.Close();
+            }
         }
 
         public string GetString(string url)
