@@ -8,8 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using System.Drawing;
-
 namespace TLO.Properties {
     
     
@@ -28,9 +26,7 @@ namespace TLO.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::System.Drawing.Point WindowLocation {
-            get
-            {
-                if (this["WindowLocation"] == null) return Point.Empty;
+            get {
                 return ((global::System.Drawing.Point)(this["WindowLocation"]));
             }
             set {
@@ -68,6 +64,54 @@ namespace TLO.Properties {
             }
             set {
                 this["SettingsWindowSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowInTray {
+            get {
+                return ((bool)(this["ShowInTray"]));
+            }
+            set {
+                this["ShowInTray"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool HideToTray {
+            get {
+                return ((bool)(this["HideToTray"]));
+            }
+            set {
+                this["HideToTray"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CloseToTray {
+            get {
+                return ((bool)(this["CloseToTray"]));
+            }
+            set {
+                this["CloseToTray"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool NotificationInTray {
+            get {
+                return ((bool)(this["NotificationInTray"]));
+            }
+            set {
+                this["NotificationInTray"] = value;
             }
         }
     }

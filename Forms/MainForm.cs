@@ -24,7 +24,6 @@ namespace TLO.Forms
 
         private readonly string _headText;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly NotifyIcon _notifyIcon;
         private readonly Timer _tmr;
         private readonly BindingSource _topicsSource = new BindingSource();
         private DateTime _lastRunTimer = DateTime.Now;
@@ -32,7 +31,6 @@ namespace TLO.Forms
         public MainForm()
         {
             InitializeComponent();
-            DataBindings.Add(new Binding("Size", Properties.Settings.Default, "WindowSize", true, DataSourceUpdateMode.OnPropertyChanged));
             menuTimerSetting.CheckStateChanged += (sender, args) =>
             {
                 if (menuTimerSetting.Checked)
@@ -45,6 +43,36 @@ namespace TLO.Forms
                     if (_tmr.Enabled) _tmr.Stop();
                 }
             };
+            var locationBinding = new Binding("Location", Properties.Settings.Default,
+                "WindowLocation", true, DataSourceUpdateMode.OnPropertyChanged);
+            var sizeBinding = new Binding("Size", Properties.Settings.Default,
+                "WindowSize", true, DataSourceUpdateMode.OnPropertyChanged);
+            locationBinding.ControlUpdateMode = ControlUpdateMode.Never;
+            sizeBinding.ControlUpdateMode = ControlUpdateMode.Never;
+            var bindingAdded = false;
+
+            void SyncBindings()
+            {
+                if (WindowState == FormWindowState.Normal)
+                {
+                    if (bindingAdded) return;
+                    DataBindings.Add(locationBinding);
+                    DataBindings.Add(sizeBinding);
+                    bindingAdded = true;
+                }
+                else
+                {
+                    if (!bindingAdded) return;
+                    DataBindings.Remove(locationBinding);
+                    DataBindings.Remove(sizeBinding);
+                    bindingAdded = false;
+                }
+            }
+
+            Resize += (sender, args) => { SyncBindings(); };
+            HandleCreated += (sender, args) => Location = Properties.Settings.Default.WindowLocation;
+            HandleCreated += (sender, args) => SyncBindings();
+
             _DateRegistration.Value = DateTime.Now.AddDays(-30.0);
             Text = _headText =
                 $"TLO {FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion}";
@@ -61,32 +89,17 @@ namespace TLO.Forms
             _dataGridTopicsList.ClearSelection();
             _dataGridTopicsList.DataSource = _topicsSource;
             Disposed += MainForm_Disposed;
-            Resize += MainForm_Resize;
             _tmr = new Timer();
             _tmr.Tick += tmr_Tick;
             _tmr.Interval = 1000;
             _tmr.Start();
-            IsClose = false;
-            _notifyIcon = new NotifyIcon
-            {
-                Icon = (Icon) new ComponentResourceManager(typeof(MainForm)).GetObject("$this.Icon"),
-                ContextMenu = new ContextMenu(new[]
-                {
-                    new MenuItem(@"Показать", notifyIcon_MouseDoubleClick),
-                    new MenuItem(@"Скрыть", DoClose),
-                    new MenuItem(@"Закрыть", DoQuit)
-                }),
-                Visible = true
-            };
-            _notifyIcon.MouseClick += notifyIcon_MouseDoubleClick;
+
+            TrayObject.TrayIcon.ContextMenu.MenuItems.Add(new MenuItem(@"Закрыть", DoQuit));
             WriteReports();
         }
 
-        private bool IsClose { get; set; }
-
-        public new Point Location
+        private new Point Location
         {
-            get => base.Location;
             set
             {
                 if (
@@ -203,8 +216,7 @@ namespace TLO.Forms
                 }
                 else if (sender == ExitToolStripMenuItem)
                 {
-                    IsClose = true;
-                    Close();
+                    Application.Exit();
                 }
                 else if (sender == _btSaveToFile)
                 {
@@ -229,7 +241,7 @@ namespace TLO.Forms
             if (_backgroundWorkers.Count > 0)
             {
                 Text = $@"{_headText} (Выполняются задачи...)";
-                _notifyIcon.Text = $@"{_headText} (Выполняются задачи...)";
+                TrayObject.TrayIcon.Text = $@"{_headText} (Выполняются задачи...)";
             }
             else
             {
@@ -240,7 +252,12 @@ namespace TLO.Forms
                 if (timeSpan.TotalSeconds > 0.0)
                 {
                     Text = $"{_headText} ({timeSpan:hh\\:mm\\:ss})";
-                    _notifyIcon.Text = $"{_headText} ({timeSpan:hh\\:mm\\:ss})";
+                    TrayObject.TrayIcon.BalloonTipText =
+                        TrayObject.TrayIcon.Text = $"{_headText} ({timeSpan:hh\\:mm\\:ss})";
+                    if (Properties.Settings.Default.NotificationInTray)
+                    {
+                        TrayObject.TrayIcon.ShowBalloonTip(7);
+                    }
                 }
                 else
                 {
@@ -291,28 +308,9 @@ namespace TLO.Forms
             _tmr.Dispose();
         }
 
-        private void MainForm_Resize(object sender, EventArgs e)
-        {
-            if (WindowState != FormWindowState.Minimized)
-                return;
-            Hide();
-        }
-
-        private void notifyIcon_MouseDoubleClick(object sender, EventArgs e)
-        {
-            Show();
-            WindowState = FormWindowState.Normal;
-        }
-
-        private void DoClose(object sender, EventArgs e)
-        {
-            Close();
-        }
-
         private void DoQuit(object sender, EventArgs e)
         {
-            IsClose = true;
-            Close();
+            Application.Exit();
         }
 
         private void SelectionChanged(object sender, EventArgs e)
@@ -734,19 +732,6 @@ namespace TLO.Forms
 
             toolStripProgressBar1.Value =
                 e.ProgressPercentage < 0 || e.ProgressPercentage > 100 ? 100 : e.ProgressPercentage;
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            if (!IsClose)
-            {
-                e.Cancel = true;
-                WindowState = FormWindowState.Minimized;
-            }
-            else
-            {
-                _notifyIcon.Visible = false;
-            }
         }
 
         private void _dgvReportDownloads_CellDoubleClick(object sender, DataGridViewCellEventArgs e)

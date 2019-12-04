@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
+using NLog;
 using TLO.Clients;
 using TLO.Info;
-using TLO.Tools;
 
 namespace TLO.Forms
 {
@@ -19,23 +20,6 @@ namespace TLO.Forms
         {
             InitializeComponent();
             var current = Settings.Current;
-            _proxyListSource = new BindingSource {DataSource = current.ProxyList};
-            if (current.UseProxy == true)
-            {
-                useProxyCheckBox.CheckState = CheckState.Checked;
-                ProxyListBox.DataSource = _proxyListSource;
-                ProxyListBox.SelectedItem = current.SelectedProxy;
-            }
-            else
-            {
-                useProxyCheckBox.CheckState = CheckState.Unchecked;
-            }
-
-            ProxySettingsSync();
-            ProxyAddButton.Click += (sender, args) => { _proxyListSource.Add(proxyInput.Text); };
-            useProxyCheckBox.CheckStateChanged += (sender, args) => ProxySettingsSync();
-            ProxyListBox.SelectedValueChanged += (sender, args) => ProxySettingsSync();
-//            ProxyListBox.DataSource = new BindingSource {DataSource = ProxySource.getList()};
             _tbTorrentClientName.Enabled = false;
             _cbTorrentClientType.Enabled = false;
             _tbTorrentClientHostIP.Enabled = false;
@@ -109,6 +93,27 @@ namespace TLO.Forms
             summaryReportTemplate.Text = current.ReportSummaryTemplate;
             categoryReportTemplate.Text = current.ReportCategoriesTemplate;
             reportHeaderTemplate.Text = current.ReportCategoryHeaderTemplate;
+            _proxyListSource = new BindingSource {DataSource = current.ProxyList};
+            ProxyListBox.DataSource = _proxyListSource;
+            ProxyListBox.SelectedItem = current.SelectedProxy;
+            if (current.UseProxy == true)
+            {
+                useProxyCheckBox.CheckState = CheckState.Checked;
+                if (current.SystemProxy == true)
+                {
+                    SystemProxy.CheckState = CheckState.Checked;
+                }
+            }
+            else
+            {
+                useProxyCheckBox.CheckState = CheckState.Unchecked;
+            }
+
+            ProxyAddButton.Click += (sender, args) => { _proxyListSource.Add(proxyInput.Text); };
+            useProxyCheckBox.CheckStateChanged += (sender, args) => ProxySettingsSync();
+            SystemProxy.CheckStateChanged += (sender, args) => ProxySettingsSync();
+            ProxyListBox.SelectedValueChanged += (sender, args) => ProxySettingsSync();
+            ProxySettingsSync();
         }
 
         public new Point Location
@@ -436,40 +441,7 @@ namespace TLO.Forms
                     _categoriesSource.DataSource as List<Category>);
                 forumPages1.Save();
                 DialogResult = DialogResult.OK;
-                var current = Settings.Current;
-                current.KeeperName = _appKeeperName.Text;
-                current.KeeperPass = _appKeeperPass.Text;
-                current.IsUpdateStatistics = _appIsUpdateStatistics.Checked;
-                current.CountDaysKeepHistory = (int) _appCountDaysKeepHistory.Value;
-                current.PeriodRunAndStopTorrents = (int) _appPeriodRunAndStopTorrents.Value;
-                current.CountSeedersReport = (int) _appCountSeedersReport.Value;
-                current.IsAvgCountSeeders = _appIsAvgCountSeeders.Checked;
-                current.IsSelectLessOrEqual = _appSelectLessOrEqual.Checked;
-                current.LogLevel = (int) _appLogLevel.Value;
-                current.IsNotSaveStatistics = _appIsNotSaveStatistics.Checked;
-                current.ReportTop1 = _appReportTop1.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportTop2 = _appReportTop2.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportLine = _appReportLine.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportBottom = _appReportBottom.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportCategoryHeaderTemplate =
-                    reportHeaderTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportCategoriesTemplate =
-                    categoryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                current.ReportSummaryTemplate =
-                    summaryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
-                if (_dbLoadInMemoryCheckbox.CheckState != CheckState.Indeterminate)
-                    current.LoadDBInMemory = _dbLoadInMemoryCheckbox.Checked;
-
-                current.UseProxy = useProxyCheckBox.Checked;
-                current.SelectedProxy = ProxyListBox.SelectedItem?.ToString();
-                current.ProxyList.Clear();
-                foreach (var item in ProxyListBox.Items)
-                {
-                    current.ProxyList.Add((string) item);
-                }
-
-                current.DisableServerCertVerify = DisableCertVerifyCheck.Checked;
-                current.ApiHost = apiHosts.SelectedItem?.ToString();
+                var current = setSettings();
                 current.Save();
                 ClientLocalDb.Current.Reconnect();
                 Close();
@@ -503,6 +475,46 @@ namespace TLO.Forms
 
                 MessageBox.Show("Подключение к torrent-клиентам проверено.", "Проверка");
             }
+        }
+
+        private Settings setSettings()
+        {
+            var current = Settings.Current;
+            current.KeeperName = _appKeeperName.Text;
+            current.KeeperPass = _appKeeperPass.Text;
+            current.IsUpdateStatistics = _appIsUpdateStatistics.Checked;
+            current.CountDaysKeepHistory = (int) _appCountDaysKeepHistory.Value;
+            current.PeriodRunAndStopTorrents = (int) _appPeriodRunAndStopTorrents.Value;
+            current.CountSeedersReport = (int) _appCountSeedersReport.Value;
+            current.IsAvgCountSeeders = _appIsAvgCountSeeders.Checked;
+            current.IsSelectLessOrEqual = _appSelectLessOrEqual.Checked;
+            current.LogLevel = (int) _appLogLevel.Value;
+            current.IsNotSaveStatistics = _appIsNotSaveStatistics.Checked;
+            current.ReportTop1 = _appReportTop1.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportTop2 = _appReportTop2.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportLine = _appReportLine.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportBottom = _appReportBottom.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportCategoryHeaderTemplate =
+                reportHeaderTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportCategoriesTemplate =
+                categoryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            current.ReportSummaryTemplate =
+                summaryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
+            if (_dbLoadInMemoryCheckbox.CheckState != CheckState.Indeterminate)
+                current.LoadDBInMemory = _dbLoadInMemoryCheckbox.Checked;
+
+            current.UseProxy = useProxyCheckBox.Checked;
+            current.SystemProxy = SystemProxy.Checked;
+            current.SelectedProxy = ProxyListBox.SelectedItem?.ToString();
+            current.ProxyList.Clear();
+            foreach (var item in ProxyListBox.Items)
+            {
+                current.ProxyList.Add((string) item);
+            }
+
+            current.DisableServerCertVerify = DisableCertVerifyCheck.Checked;
+            current.ApiHost = apiHosts.SelectedItem?.ToString();
+            return current;
         }
 
         private void CreatePageAllCategories()
@@ -576,18 +588,63 @@ namespace TLO.Forms
 
         private void ProxySettingsSync()
         {
+            setSettings();
             if (useProxyCheckBox.CheckState == CheckState.Checked)
             {
-                ProxyListBox.Enabled = true;
-                proxyInput.Enabled = true;
-                ProxyAddButton.Enabled = true;
+                SystemProxy.Enabled = true;
+                if (SystemProxy.CheckState != CheckState.Checked)
+                {
+                    ProxyListBox.Enabled = true;
+                    proxyInput.Enabled = true;
+                    ProxyAddButton.Enabled = true;
+                }
+                else
+                {
+                    ProxyListBox.Enabled = false;
+                    proxyInput.Enabled = false;
+                    ProxyAddButton.Enabled = false;
+                }
             }
             else
             {
+                SystemProxy.Enabled = false;
                 ProxyListBox.Enabled = false;
                 proxyInput.Enabled = false;
                 ProxyAddButton.Enabled = false;
             }
+
+            connectionCheck.Text = "Состояние: ПРОВЕРЯЕМ...";
+            connectionCheck.BackColor = Color.Orange;
+            new Thread(o =>
+            {
+                try
+                {
+                    var page = new TloWebClient(true)
+                        .DownloadString(string.Format(
+                        "https://{1}/forum/profile.php?mode=viewprofile&u={0}",
+                        Settings.Current.KeeperName,
+                        Settings.Current.HostRuTrackerOrg
+                    )).Replace("<wbr>", "");
+                    if (!page.Contains(Settings.Current.KeeperName))
+                    {
+                        connectionCheck.Text = "Состояние: ПЛОХОЙ ОТВЕТ";
+                        connectionCheck.BackColor = Color.Red;
+                    }
+                    else
+                    {
+                        connectionCheck.Text = "Состояние: РАБОТАЕТ";
+                        connectionCheck.BackColor = Color.Green;
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogManager.GetLogger("ConnectionCheck").Trace(e.Message);
+                    if (e.InnerException != null)
+                        LogManager.GetLogger("ConnectionCheck").Trace(e.InnerException.Message);
+                    connectionCheck.Text = "Состояние: ОШИБКА";
+                    connectionCheck.BackColor = Color.Red;
+                }
+            }).Start();
         }
     }
 }

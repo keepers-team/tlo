@@ -13,7 +13,10 @@ namespace TLO
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new MainForm());
+                var mainForm = new MainForm();
+                new WindowTrayAssociation(mainForm).SyncSettings();
+                Application.ApplicationExit += (sender, args) => TrayObject.TrayIcon.Dispose();
+                Application.Run(mainForm);
             }
             catch (Exception ex)
             {
