@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -88,6 +89,15 @@ namespace TLO
 ".Trim();
             HostRuTrackerOrg = "rutracker.org";
             ProxyList = new List<string>();
+            WindowSize = Size.Empty;
+            WindowLocation = Point.Empty;
+            SettingsWindowSize = Size.Empty;
+            SettingsWindowLocation = Point.Empty;
+            ShowInTray = false;
+            HideToTray = false;
+            CloseToTray = false;
+            NotificationInTray = false;
+            DontRunCopy = true;
         }
 
         private static string FileSettings => Path.Combine(Folder, "TLO.Settings.xml");
@@ -106,57 +116,41 @@ namespace TLO
             }
         }
 
-        [XmlElement] public int? LogLevel { get; set; }
-
-        [XmlAttribute] public string KeeperName { get; set; }
-
-        [XmlAttribute] public string KeeperPass { get; set; }
-
-        [XmlAttribute] public bool IsUpdateStatistics { get; set; }
-
-        [XmlAttribute] public int CountDaysKeepHistory { get; set; }
-
-        [XmlAttribute] public int PeriodRunAndStopTorrents { get; set; }
-
-        [XmlAttribute] public int CountSeedersReport { get; set; }
-
-        [XmlAttribute] public bool IsAvgCountSeeders { get; set; }
-
-        [XmlAttribute] public bool IsSelectLessOrEqual { get; set; }
-
-        [XmlAttribute] public bool IsNotSaveStatistics { get; set; }
-
-        [XmlAttribute] public DateTime LastUpdateTopics { get; set; }
-
-        [XmlElement] public string ReportTop1 { get; set; }
-
-        [XmlElement] public string ReportTop2 { get; set; }
-
-        [XmlElement] public string ReportLine { get; set; }
-
-        [XmlElement] public string ReportBottom { get; set; }
-
-        [XmlElement] public string ReportSummaryTemplate { get; set; }
-
-        [XmlElement] public string ReportCategoryHeaderTemplate { get; set; }
-
-        [XmlElement] public string ReportCategoriesTemplate { get; set; }
-
-        [XmlElement] public string HostRuTrackerOrg { get; set; }
-
-        [XmlElement] public bool? LoadDBInMemory { get; set; }
-
-        [XmlElement] public bool? UseProxy { get; set; }
-        
-        [XmlElement] public bool? SystemProxy { get; set; }
-        
-        [XmlElement] public string SelectedProxy { get; set; }
-        
-        [XmlArray] public List<string> ProxyList { get; set; }
-
-        [XmlElement] public bool? DisableServerCertVerify { get; set; }
-
-        [XmlElement] public string ApiHost { get; set; }
+        [XmlElement] public int? LogLevel;
+        [XmlAttribute] public string KeeperName;
+        [XmlAttribute] public string KeeperPass;
+        [XmlAttribute] public bool IsUpdateStatistics;
+        [XmlAttribute] public int CountDaysKeepHistory;
+        [XmlAttribute] public int PeriodRunAndStopTorrents;
+        [XmlAttribute] public int CountSeedersReport;
+        [XmlAttribute] public bool IsAvgCountSeeders;
+        [XmlAttribute] public bool IsSelectLessOrEqual;
+        [XmlAttribute] public bool IsNotSaveStatistics;
+        [XmlAttribute] public DateTime LastUpdateTopics;
+        [XmlElement] public string ReportTop1;
+        [XmlElement] public string ReportTop2;
+        [XmlElement] public string ReportLine;
+        [XmlElement] public string ReportBottom;
+        [XmlElement] public string ReportSummaryTemplate;
+        [XmlElement] public string ReportCategoryHeaderTemplate;
+        [XmlElement] public string ReportCategoriesTemplate;
+        [XmlElement] public string HostRuTrackerOrg;
+        [XmlElement] public bool? LoadDBInMemory;
+        [XmlElement] public bool? UseProxy;
+        [XmlElement] public bool? SystemProxy;
+        [XmlElement] public string SelectedProxy;
+        [XmlArray] public List<string> ProxyList;
+        [XmlElement] public bool? DisableServerCertVerify;
+        [XmlElement] public string ApiHost;
+        [XmlElement] public Size WindowSize;
+        [XmlElement] public Point WindowLocation;
+        [XmlElement] public Size SettingsWindowSize;
+        [XmlElement] public Point SettingsWindowLocation;
+        [XmlElement] public bool ShowInTray;
+        [XmlElement] public bool HideToTray;
+        [XmlElement] public bool CloseToTray;
+        [XmlElement] public bool NotificationInTray;
+        [XmlElement] public bool DontRunCopy;
 
         public void Save()
         {
@@ -226,6 +220,15 @@ namespace TLO
                     ProxyList = settings.ProxyList;
                     ApiHost = settings.ApiHost;
                     DisableServerCertVerify = settings.DisableServerCertVerify;
+                    WindowSize = settings.WindowSize;
+                    WindowLocation = settings.WindowLocation;
+                    SettingsWindowSize = settings.WindowSize;
+                    SettingsWindowLocation = settings.SettingsWindowLocation;
+                    ShowInTray = settings.ShowInTray;
+                    HideToTray = settings.HideToTray;
+                    CloseToTray = settings.CloseToTray;
+                    NotificationInTray = settings.NotificationInTray;
+                    DontRunCopy = settings.DontRunCopy;
                 }
             }
         }

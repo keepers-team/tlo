@@ -88,12 +88,15 @@ namespace TLO.Forms
             _dataGridTopicsList.AutoGenerateColumns = false;
             _dataGridTopicsList.ClearSelection();
             _dataGridTopicsList.DataSource = _topicsSource;
+            Type dgvType = _dataGridTopicsList.GetType();
+            PropertyInfo pi = dgvType.GetProperty("DoubleBuffered",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            pi.SetValue(_dataGridTopicsList, true, null);
             Disposed += MainForm_Disposed;
             _tmr = new Timer();
             _tmr.Tick += tmr_Tick;
             _tmr.Interval = 1000;
             _tmr.Start();
-
             TrayObject.TrayIcon.ContextMenu.MenuItems.Add(new MenuItem(@"Закрыть", DoQuit));
             WriteReports();
         }
@@ -216,7 +219,7 @@ namespace TLO.Forms
                 }
                 else if (sender == ExitToolStripMenuItem)
                 {
-                    Application.Exit();
+                    DoQuit(sender, e);
                 }
                 else if (sender == _btSaveToFile)
                 {

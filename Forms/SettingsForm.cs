@@ -61,6 +61,7 @@ namespace TLO.Forms
                 _dbLoadInMemoryCheckbox.Checked = current.LoadDBInMemory.GetValueOrDefault(false);
                 _dbLoadInMemoryCheckbox.CheckState = checkState;
             }
+            closeProgramCopies.CheckState = current.DontRunCopy ? CheckState.Checked : CheckState.Unchecked;
             DisableCertVerifyCheck.Checked = current.DisableServerCertVerify.GetValueOrDefault(false);
             DisableCertVerifyCheck.CheckState = current.DisableServerCertVerify.GetValueOrDefault(false)
                 ? CheckState.Checked
@@ -503,7 +504,7 @@ namespace TLO.Forms
                 summaryReportTemplate.Text.Replace("\n", "\r\n").Replace("\r\r", "\r");
             if (_dbLoadInMemoryCheckbox.CheckState != CheckState.Indeterminate)
                 current.LoadDBInMemory = _dbLoadInMemoryCheckbox.Checked;
-
+            current.DontRunCopy = closeProgramCopies.Checked;
             current.UseProxy = useProxyCheckBox.Checked;
             current.SystemProxy = SystemProxy.Checked;
             current.SelectedProxy = ProxyListBox.SelectedItem?.ToString();
@@ -621,21 +622,27 @@ namespace TLO.Forms
             {
                 try
                 {
-                    var page = new TloWebClient(true)
+                    var page = new TloWebClient(useProxyCheckBox.Checked)
                         .DownloadString(string.Format(
-                        "https://{1}/forum/profile.php?mode=viewprofile&u={0}",
-                        Settings.Current.KeeperName,
-                        Settings.Current.HostRuTrackerOrg
-                    )).Replace("<wbr>", "");
-                    if (!page.Contains(Settings.Current.KeeperName))
+                            "https://{1}/forum/profile.php?mode=viewprofile&u={0}",
+                            Settings.Current.KeeperName,
+                            Settings.Current.HostRuTrackerOrg
+                        )).Replace("<wbr>", "");
+                    if (!page.ToLower().Contains(Settings.Current.KeeperName.ToLower()))
                     {
-                        connectionCheck.Text = "Состояние: ПЛОХОЙ ОТВЕТ";
-                        connectionCheck.BackColor = Color.Red;
+                        connectionCheck.Invoke(new Action(() =>
+                        {
+                            connectionCheck.Text = "Состояние: ПЛОХОЙ ОТВЕТ";
+                            connectionCheck.BackColor = Color.Red;
+                        }));
                     }
                     else
                     {
-                        connectionCheck.Text = "Состояние: РАБОТАЕТ";
-                        connectionCheck.BackColor = Color.Green;
+                        connectionCheck.Invoke(new Action(() =>
+                        {
+                            connectionCheck.Text = "Состояние: РАБОТАЕТ";
+                            connectionCheck.BackColor = Color.Green;
+                        }));
                     }
                 }
                 catch (Exception e)
@@ -643,8 +650,11 @@ namespace TLO.Forms
                     LogManager.GetLogger("ConnectionCheck").Trace(e.Message);
                     if (e.InnerException != null)
                         LogManager.GetLogger("ConnectionCheck").Trace(e.InnerException.Message);
-                    connectionCheck.Text = "Состояние: ОШИБКА";
-                    connectionCheck.BackColor = Color.Red;
+                    connectionCheck.Invoke(new Action(() =>
+                    {
+                        connectionCheck.Text = "Состояние: ОШИБКА";
+                        connectionCheck.BackColor = Color.Red;
+                    }));
                 }
             }).Start();
         }

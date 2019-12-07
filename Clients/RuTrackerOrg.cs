@@ -480,7 +480,7 @@ namespace TLO.Clients
                 {
                     if (_webClient == null)
                     {
-                        tloWebClient = new TloWebClient();
+                        tloWebClient = new TloWebClient(enableProxy: true);
                         var s = string.Format("login_username={0}&login_password={1}&login={2}",
                             HttpUtility.UrlEncode(_userName, Encoding.GetEncoding(1251)),
                             HttpUtility.UrlEncode(_userPass, Encoding.GetEncoding(1251)), "Вход");
@@ -646,7 +646,7 @@ namespace TLO.Clients
                 var numArray = new byte[0];
                 var empty = string.Empty;
                 if (_webClient == null)
-                    _webClient = new TloWebClient();
+                    _webClient = new TloWebClient(enableProxy: true);
                 byte[] bytes;
                 try
                 {
@@ -674,7 +674,7 @@ namespace TLO.Clients
         public void SavePage(string topicId, string folder)
         {
             var str =
-                new TloWebClient().DownloadString(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}",
+                new TloWebClient(enableProxy: true).DownloadString(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}",
                     topicId));
             if (str.Contains("Тема не найдена"))
                 return;

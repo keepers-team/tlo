@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using MihaZupan;
 using NLog;
 
 namespace TLO.Clients
@@ -59,25 +58,14 @@ namespace TLO.Clients
         protected override WebRequest GetWebRequest(Uri address)
         {
             var webRequest = (HttpWebRequest) base.GetWebRequest(address);
-            if (webRequest != null && Settings.Current.UseProxy == true && _enableProxy)
+            if (webRequest == null)
             {
-                if (Settings.Current.SystemProxy == true)
-                {
-                    webRequest.Proxy = WebRequest.GetSystemWebProxy();
-                }
-                else
-                {
-                    var proxy = Settings.Current.SelectedProxy;
-                    if (proxy.Contains("http://"))
-                    {
-                        webRequest.Proxy = new WebProxy(proxy);
-                    }
-                    else
-                    {
-                        var uri = new Uri(proxy);
-                        webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
-                    }
-                }
+                throw new Exception("Empty WebRequest");
+            }
+
+            if (!_enableProxy)
+            {
+                webRequest.Proxy = new WebProxy();
             }
 
             webRequest.Accept = _isJson ? "application/json" : _accept;
@@ -115,6 +103,7 @@ namespace TLO.Clients
 
         protected override WebResponse GetWebResponse(WebRequest request)
         {
+            _logger.Trace($"Go to '{request.RequestUri}'");
             WebResponse response;
             try
             {
@@ -168,7 +157,11 @@ namespace TLO.Clients
                     read += readed;
                 } while (read < length);
 
-                var text = Encoding.GetEncoding(1251).GetString(buffer);
+                _logger.Trace($"Charset {response.CharacterSet}");
+
+                var text = response.CharacterSet != null && response.CharacterSet.ToLower().Contains("1251")
+                    ? Encoding.GetEncoding(1251).GetString(buffer)
+                    : Encoding.GetEncoding("UTF-8").GetString(buffer);
 
                 streamReplace.Seek(0, SeekOrigin.Begin);
 

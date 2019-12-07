@@ -60,7 +60,7 @@ namespace TLO
 
             _form.FormClosing += (sender, args) =>
             {
-                if (Properties.Settings.Default.CloseToTray)
+                if (Properties.Settings.Default.CloseToTray && args.CloseReason == CloseReason.UserClosing)
                 {
                     _form.Hide();
                     _form.ShowInTaskbar = false;
