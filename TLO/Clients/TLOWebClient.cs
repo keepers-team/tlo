@@ -1,6 +1,5 @@
-﻿﻿using System;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -83,31 +82,28 @@ namespace TLO.Clients
             webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             webRequest.Headers.Add("Pragma", "no-cache");
             webRequest.Timeout = 60000;
-//            if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
-//            {
-//                var strArray = address.AbsoluteUri.Split(new char[1]
-//                {
-//                    '='
-//                }, StringSplitOptions.RemoveEmptyEntries);
-//                CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
-//                webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", strArray[1],
-//                    Settings.Current.HostRuTrackerOrg);
-//            }
 
             webRequest.CookieContainer = CookieContainer;
             if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
                 webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+
+            logRequest(webRequest);
 
             return webRequest;
         }
 
         protected override WebResponse GetWebResponse(WebRequest request)
         {
-            _logger.Trace($"Go to '{request.RequestUri}'");
             WebResponse response;
             try
             {
                 response = base.GetWebResponse(request);
+            }
+            catch (WebException e)
+            {
+                logResponse((HttpWebResponse) e.Response);
+
+                throw;
             }
             catch (Exception e)
             {
@@ -127,20 +123,30 @@ namespace TLO.Clients
         }
 
 
+        private static void logRequest(WebRequest webRequest)
+        {
+            var request = webRequest as HttpWebRequest;
+
+            var body = "";
+            try
+            {
+                body = new StreamReader(request.GetRequestStream()).ReadToEnd();
+            }
+            catch (Exception e)
+            {
+                body = e.Message;
+            }
+
+            _logger.Trace(
+                $"\r\n\r\nSENDING HTTP REQUEST {request.RequestUri}\r\n{request.Method} {request.RequestUri.PathAndQuery} HTTP/{request.ProtocolVersion}\r\n" +
+                request.Headers + "\r\n\r\n" + body
+            );
+        }
+
         private static void logResponse(HttpWebResponse response)
         {
             var webResponse = response;
             var responseStream = webResponse.GetResponseStream();
-            var headersText = "";
-            var items = Enumerable
-                .Range(0, webResponse.Headers.Count)
-                .SelectMany(i => webResponse.Headers.GetValues(i)
-                    .Select(v => Tuple.Create(webResponse.Headers.GetKey(i), v))
-                );
-            foreach (var header in items)
-            {
-                headersText += $"{header.Item1}: {header.Item2}\r\n";
-            }
 
             if (responseStream != null)
             {
@@ -173,9 +179,10 @@ namespace TLO.Clients
                     );
                 if (fieldInfo != null) fieldInfo.SetValue(webResponse, streamReplace);
                 var httpWebResponse = webResponse;
+                webResponse.Headers["Set-Cookie"] = "--HIDDEN FOR SECURITY REASONS--";
                 _logger.Trace(
-                    $"\r\nHTTP/{httpWebResponse.ProtocolVersion} {httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
-                    headersText +
+                    $"\r\n\r\nRECEIVED HTTP RESPONSE\r\nHTTP/{httpWebResponse.ProtocolVersion} {(int) httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
+                    webResponse.Headers +
                     "\r\n\r\n" +
                     text);
             }

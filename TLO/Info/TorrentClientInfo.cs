@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using TLO.Clients;
 
 namespace TLO.Info
@@ -9,13 +9,15 @@ namespace TLO.Info
         {
             UID = Guid.NewGuid();
             Name = string.Empty;
-            Type = "uTorrent";
+            Type = UTorrentClient.ClientId;
             ServerName = string.Empty;
-            ServerPort = 999;
+            ServerPort = 8080;
             UserName = string.Empty;
             UserPassword = string.Empty;
             LastReadHash = new DateTime(2000, 1, 1);
         }
+
+        public string Id { get; }
 
         public Guid UID { get; set; }
 
@@ -40,14 +42,13 @@ namespace TLO.Info
 
         public ITorrentClient Create()
         {
-            ITorrentClient torrentClient = null;
-            if (Type == "uTorrent")
-                torrentClient = new UTorrentClient(ServerName, ServerPort, UserName, UserPassword);
-            else if (Type == "Transmission")
-                torrentClient = new TransmissionClient(ServerName, ServerPort, UserName, UserPassword);
-            else if (Type == "Vuze (Vuze Web Remote)")
-                torrentClient = new TransmissionClient(ServerName, ServerPort, UserName, UserPassword);
-            return torrentClient;
+            return Type switch
+            {
+                UTorrentClient.ClientId => new UTorrentClient(ServerName, ServerPort, UserName, UserPassword),
+                TransmissionClient.ClientId => new TransmissionClient(ServerName, ServerPort, UserName, UserPassword),
+                QBitTorrentClient.ClientId => new QBitTorrentClient(ServerName, ServerPort, UserName, UserPassword),
+                _ => throw new NotSupportedException()
+            };
         }
     }
 }

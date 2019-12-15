@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -20,17 +20,112 @@ namespace TLO.Forms
         {
             InitializeComponent();
             var current = Settings.Current;
-            _tbTorrentClientName.Enabled = false;
-            _cbTorrentClientType.Enabled = false;
-            _tbTorrentClientHostIP.Enabled = false;
-            _tbTorrentClientPort.Enabled = false;
-            _tbTorrentClientUserName.Enabled = false;
-            _tbTorrentClientUserPassword.Enabled = false;
             dgwTorrentClients.AutoGenerateColumns = false;
             dgwTorrentClients.ClearSelection();
             dgwTorrentClients.DataSource = null;
             _torrentClientsSource = new BindingSource {DataSource = ClientLocalDb.Current.GetTorrentClients()};
             dgwTorrentClients.DataSource = _torrentClientsSource;
+            dgwTorrentClients.CellClick += (sender, args) =>
+            {
+                if (args.ColumnIndex == 8)
+                {
+                    ClickButtons(dgwTorrentClients.CurrentCell, args);
+                }
+            };
+            var neededRows = new List<int>();
+            var paintedRows = new List<int>();
+            var paintedValues = new List<string>();
+
+            void CheckTorrentVersion(int row)
+            {
+                dgwTorrentClients.BeginInvoke(new Action(() =>
+                {
+                    var info = _torrentClientsSource[row] as TorrentClientInfo;
+                    try
+                    {
+                        var client = info.Create();
+                        if (client.Ping())
+                        {
+                            dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Green;
+                            dgwTorrentClients.Rows[row].Cells[7].Value = "Работает";
+                            paintedValues.Insert(row, "Работает");
+                        }
+                        else
+                        {
+                            dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Orange;
+                            dgwTorrentClients.Rows[row].Cells[7].Value = "Нет связи";
+                            paintedValues.Insert(row, "Нет связи");
+                        }
+                    }
+                    catch
+                    {
+                        dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Red;
+                        dgwTorrentClients.Rows[row].Cells[7].Value = "Ошибка";
+                        paintedValues.Insert(row, "Ошибка");
+                    }
+                }));
+            }
+
+            dgwTorrentClients.CellValueNeeded += (sender, args) =>
+            {
+                if (args.ColumnIndex == 6)
+                {
+                    args.Value = "******";
+                }
+
+                if (args.ColumnIndex == 7)
+                {
+                    if (!neededRows.Contains(args.RowIndex))
+                    {
+                        neededRows.Add(args.RowIndex);
+                        CheckTorrentVersion(args.RowIndex);
+                        args.Value = "Проверка...";
+                    }
+                    else if (!paintedRows.Contains(args.RowIndex))
+                    {
+                        paintedRows.Add(args.RowIndex);
+                        args.Value = "Проверка...";
+                    }
+                    else
+                    {
+                        paintedRows.Remove(args.RowIndex);
+                        neededRows.Remove(args.RowIndex);
+                        args.Value = paintedValues[args.RowIndex];
+                    }
+                }
+            };
+
+            dgwTorrentClients.CellValueChanged += (sender, args) =>
+            {
+                if (args.ColumnIndex != 7)
+                {
+                    neededRows.Add(args.RowIndex);
+                    CheckTorrentVersion(args.RowIndex);
+                }
+            };
+            dgwTorrentClients.EditingControlShowing += (sender, args) =>
+            {
+                if (!(args.Control is TextBox ctrl)) return;
+                ctrl.UseSystemPasswordChar = false;
+                if (dgwTorrentClients.CurrentCell.ColumnIndex != 6) return;
+
+                ctrl.TextChanged += (sender2, args2) =>
+                {
+                    var info = _torrentClientsSource[dgwTorrentClients.CurrentRow.Index] as TorrentClientInfo;
+                    info.UserPassword = ctrl.Text;
+                };
+                ctrl.UseSystemPasswordChar = true;
+            };
+            TorrentClientType.DataSource = new BindingSource
+            {
+                DataSource = new List<string>
+                {
+                    UTorrentClient.ClientId,
+                    TransmissionClient.ClientId,
+                    QBitTorrentClient.ClientId
+                }
+            };
+
             dgwCategories.AutoGenerateColumns = false;
             dgwCategories.ClearSelection();
             dgwCategories.DataSource = null;
@@ -135,49 +230,6 @@ namespace TLO.Forms
 
         private void _Focus_Enter(object sender, EventArgs e)
         {
-            if (_torrentClientsSource.Current != null)
-            {
-                var current = _torrentClientsSource.Current as TorrentClientInfo;
-                if (sender == _tbTorrentClientName)
-                {
-                    current.Name = _tbTorrentClientName.Text;
-                }
-                else if (sender == _cbTorrentClientType)
-                {
-                    current.Type = _cbTorrentClientType.Text;
-                }
-                else if (sender == _tbTorrentClientHostIP)
-                {
-                    current.ServerName = _tbTorrentClientHostIP.Text;
-                }
-                else if (sender == _tbTorrentClientPort)
-                {
-                    var result = 0;
-                    if (int.TryParse(_tbTorrentClientPort.Text, out result))
-                        current.ServerPort = result;
-                    else
-                        _tbTorrentClientPort.Text = "0";
-                }
-                else if (sender == _tbTorrentClientUserName)
-                {
-                    current.UserName = _tbTorrentClientUserName.Text;
-                }
-                else if (sender == _tbTorrentClientUserPassword)
-                {
-                    current.UserPassword = _tbTorrentClientUserPassword.Text;
-                }
-                else if (sender == _tcrbCurrent && _tcrbCurrent.Checked)
-                {
-                    current.ServerName = "127.0.0.1";
-                    _tbTorrentClientHostIP.Enabled = false;
-                }
-                else if (sender == _tcrbRemote && _tcrbRemote.Checked)
-                {
-                    current.ServerName = _tbTorrentClientHostIP.Text;
-                    _tbTorrentClientHostIP.Enabled = true;
-                }
-            }
-
             if (_categoriesSource.Current == null)
                 return;
             var current1 = _categoriesSource.Current as Category;
@@ -244,50 +296,9 @@ namespace TLO.Forms
         {
             if (sender == dgwTorrentClients)
             {
-                if (_torrentClientsSource.Current == null)
-                {
-                    _tbTorrentClientName.Enabled = false;
-                    _cbTorrentClientType.Enabled = false;
-                    _tbTorrentClientHostIP.Enabled = false;
-                    _tbTorrentClientPort.Enabled = false;
-                    _tbTorrentClientUserName.Enabled = false;
-                    _tbTorrentClientUserPassword.Enabled = false;
-                    _tbTorrentClientName.Text = string.Empty;
-                    _cbTorrentClientType.Text = string.Empty;
-                    _tbTorrentClientHostIP.Text = string.Empty;
-                    _tbTorrentClientPort.Text = string.Empty;
-                    _tbTorrentClientUserName.Text = string.Empty;
-                    _tbTorrentClientUserPassword.Text = string.Empty;
-                    _tcrbRemote.Checked = false;
-                    _tcrbCurrent.Checked = true;
-                    _tbTorrentClientHostIP.Enabled = false;
-                }
-                else
+                if (_torrentClientsSource.Current != null)
                 {
                     var current = _torrentClientsSource.Current as TorrentClientInfo;
-                    _tbTorrentClientName.Enabled = true;
-                    _cbTorrentClientType.Enabled = true;
-                    _tbTorrentClientHostIP.Enabled = true;
-                    _tbTorrentClientPort.Enabled = true;
-                    _tbTorrentClientUserName.Enabled = true;
-                    _tbTorrentClientUserPassword.Enabled = true;
-                    _tbTorrentClientName.Text = current.Name;
-                    _cbTorrentClientType.Text = current.Type;
-                    if (current.ServerName == "127.0.0.1")
-                    {
-                        _tcrbRemote.Checked = false;
-                        _tcrbCurrent.Checked = true;
-                    }
-                    else
-                    {
-                        _tbTorrentClientHostIP.Text = current.ServerName;
-                        _tcrbCurrent.Checked = false;
-                        _tcrbRemote.Checked = true;
-                    }
-
-                    _tbTorrentClientPort.Text = current.ServerPort.ToString();
-                    _tbTorrentClientUserName.Text = current.UserName;
-                    _tbTorrentClientUserPassword.Text = current.UserPassword;
                 }
             }
 
@@ -368,15 +379,16 @@ namespace TLO.Forms
                 _torrentClientsSource.Add(new TorrentClientInfo());
                 _torrentClientsSource.Position = _torrentClientsSource.Count;
             }
-            else if (sender == _btTorrentClientDelete)
+            else if (sender == _btTorrentClientDelete || sender is DataGridViewButtonCell)
             {
-                if (_torrentClientsSource.Current == null)
-                    return;
+                if (_torrentClientsSource.Current == null) return;
                 var current = _torrentClientsSource.Current as TorrentClientInfo;
-                if (MessageBox.Show("Вы хотите удалить из списка torrent-клиент \"" + current.Name + "\"?",
+                if (MessageBox.Show($"Вы хотите удалить из списка torrent-клиент \"${current.Name}\"?",
                         "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) ==
                     DialogResult.Yes)
+                {
                     _torrentClientsSource.Remove(current);
+                }
             }
 
             if (sender == _btCategoryAdd)
@@ -437,10 +449,9 @@ namespace TLO.Forms
 
             if (sender == _btSave)
             {
-                ClientLocalDb.Current.SaveTorrentClients(
-                    _torrentClientsSource.DataSource as List<TorrentClientInfo>, true);
-                ClientLocalDb.Current.CategoriesSave(
-                    _categoriesSource.DataSource as List<Category>);
+                ClientLocalDb.Current.SaveTorrentClients(_torrentClientsSource.DataSource as List<TorrentClientInfo>,
+                    true);
+                ClientLocalDb.Current.CategoriesSave(_categoriesSource.DataSource as List<Category>);
                 forumPages1.Save();
                 DialogResult = DialogResult.OK;
                 var current = setSettings();
@@ -452,30 +463,6 @@ namespace TLO.Forms
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
-            }
-            else
-            {
-                if (_btCheck != sender)
-                    return;
-                var stringList = new List<string>();
-                foreach (var torrentClientInfo in _torrentClientsSource.DataSource as List<TorrentClientInfo>)
-                    try
-                    {
-                        var torrentClient = torrentClientInfo.Create();
-                        if (torrentClient == null)
-                            stringList.Add(
-                                $"Торрент-клиент \"{torrentClientInfo.Name}\": Не удалось определить тип torrent-клиента");
-                        else
-                            torrentClient.Ping();
-                    }
-                    catch
-                    {
-                        stringList.Add($"Не удалось подключиться к торрент-клиенту \"{torrentClientInfo.Name}\"");
-                    }
-
-                foreach (var text in stringList) MessageBox.Show(text, "Проверка");
-
-                MessageBox.Show("Подключение к torrent-клиентам проверено.", "Проверка");
             }
         }
 

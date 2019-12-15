@@ -15,6 +15,23 @@
     <Deterministic>true</Deterministic>
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>false</MapFileExtensions>
+    <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
+    <ApplicationRevision>37</ApplicationRevision>
+    <ApplicationVersion>2.14.12.%2a</ApplicationVersion>
+    <UseApplicationTrust>true</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,15 +55,19 @@
   <PropertyGroup>
     <ApplicationIcon>hdd.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>70B8EDED1127918B508D94213D7C0757DF2DAEC2</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>TLO_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="MihaZupan.HttpToSocks5Proxy, Version=1.4.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\HttpToSocks5Proxy.1.4.0\lib\net45\MihaZupan.HttpToSocks5Proxy.dll</HintPath>
     </Reference>
@@ -123,7 +144,7 @@
     <Compile Include="Clients\ClientLocalDb.cs" />
     <Compile Include="Clients\DbConnectionCreator.cs" />
     <Compile Include="Clients\ITorrentClient.cs" />
-    <Compile Include="Clients\KTorrentClient.cs" />
+    <Compile Include="Clients\QBitTorrentClient.cs" />
     <Compile Include="Clients\RuTrackerOrg.cs" />
     <Compile Include="Clients\TLOWebClient.cs" />
     <Compile Include="Clients\TransmissionClient.cs" />
@@ -216,21 +237,34 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="TLO_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="hdd.ico" />
-    <Content Include="hdd.jpg" />
-    <Content Include="hdd.png" />
-    <Content Include="hdd_128x128.ico" />
-    <Content Include="hdd_16x16.ico" />
-    <Content Include="hdd_256x256.ico" />
-    <Content Include="hdd_32x32.ico" />
-    <Content Include="hdd_64x64.ico" />
-    <Content Include="hdd_old.ico" />
-    <Content Include="hdd_small.ico" />
+    <EmbeddedResource Include="hdd.ico" />
+    <None Include="hdd.jpg" />
+    <None Include="hdd.png" />
+    <None Include="hdd_128x128.ico" />
+    <None Include="hdd_16x16.ico" />
+    <None Include="hdd_256x256.ico" />
+    <None Include="hdd_32x32.ico" />
+    <None Include="hdd_64x64.ico" />
+    <None Include="hdd_old.ico" />
+    <None Include="hdd_small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 и x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
