@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
@@ -54,13 +55,10 @@ namespace TLO.Clients
             }
             catch (WebException e)
             {
-                throw;
+                Logger.Error(e);
+                Logger.Error(e.StackTrace);
             }
         }
-
-//        private Void loadPage()
-//        {
-//        }
 
         public List<TopicInfo> GetAllTorrentHash()
         {
@@ -68,31 +66,47 @@ namespace TLO.Clients
             {
                 {"section", "torrents"}, {"methodName", "info"}
             });
-            var result = _client.DownloadString(uri);
+            string result;
+            try
+            {
+                result = _client.DownloadString(uri);
+            }
+            catch (WebException e)
+            {
+                Logger.Error(e);
+                Logger.Error(e.StackTrace);
 
-            Logger.Log(LogLevel.Info, uri);
-            Logger.Log(LogLevel.Debug, result);
+                return new List<TopicInfo>();
+            }
 
-            var torrents = JsonConvert.DeserializeObject<List<JObject>>(result);
-            return torrents.ConvertAll(input =>
-                {
-                    Logger.Debug(input.GetValue("hash").ToString().ToUpper());
-                    var info = new TopicInfo();
-                    info.Hash = input.GetValue("hash").ToString().ToUpper();
-                    info.Name2 = input.GetValue("name").ToString();
-                    info.TorrentName = input.GetValue("name").ToString();
-                    info.Size = (long) input.GetValue("size").ToObject(typeof(long));
-                    info.Seeders = (int) input.GetValue("num_complete").ToObject(typeof(int));
-                    info.Leechers = (int) input.GetValue("num_incomplete").ToObject(typeof(int));
-                    info.Label = (string) input.GetValue("tags").ToObject(typeof(string));
-                    info.IsRun = input.GetValue("state").ToString() == "stalledUP";
-                    info.IsKeep = input.GetValue("state").ToString().Contains("UP");
-                    info.IsPause = input.GetValue("state").ToString() == "pausedUP" ||
-                                   input.GetValue("state").ToString() == "pausedDL";
-                    info.IsDownload = input.GetValue("state").ToString() == "pausedUP";
-                    return info;
-                }
-            );
+            try
+            {
+                var torrents = JsonConvert.DeserializeObject<List<JObject>>(result);
+                return torrents.ConvertAll(input =>
+                    {
+                        var info = new TopicInfo();
+                        info.Hash = input.GetValue("hash").ToString().ToUpper();
+                        info.Name2 = input.GetValue("name").ToString();
+                        info.TorrentName = input.GetValue("name").ToString();
+                        info.Size = (long) input.GetValue("size").ToObject(typeof(long));
+                        info.Seeders = (int) input.GetValue("num_complete").ToObject(typeof(int));
+                        info.Leechers = (int) input.GetValue("num_incomplete").ToObject(typeof(int));
+                        info.Label = (string) input.GetValue("tags").ToObject(typeof(string));
+                        info.IsRun = input.GetValue("state").ToString() == "stalledUP";
+                        info.IsKeep = input.GetValue("state").ToString().Contains("UP") || "uploading" == input.GetValue("state").ToString();
+                        info.IsPause = input.GetValue("state").ToString() == "pausedUP" ||
+                                       input.GetValue("state").ToString() == "pausedDL";
+                        info.IsDownload = input.GetValue("state").ToString() == "downloading" || input.GetValue("state").ToString().EndsWith("DL");
+                        return info;
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+                Logger.Error(e.StackTrace);
+                return new List<TopicInfo>();
+            }
         }
 
         public IEnumerable<string> GetFiles(TopicInfo topic)
@@ -190,7 +204,15 @@ namespace TLO.Clients
                 using (var requestStream = httpWebRequest.GetRequestStream())
                 {
                     requestStream.Write(array, 0, array.Length);
+                    requestStream.Flush();
+                    requestStream.Close();
                 }
+
+                var response = httpWebRequest.GetResponse();
+                var responseStream = response.GetResponseStream();
+                var reader = new StreamReader(responseStream);
+                reader.ReadToEnd();
+                reader.Close();
             }
         }
 
@@ -208,14 +230,76 @@ namespace TLO.Clients
 
         public bool SetLabel(string hash, string label)
         {
-            return true; // TODO
-            throw new NotImplementedException();
+            try
+            {
+                var uri = _uriTemplate.BindByName(_baseUri, new Dictionary<string, string>
+                {
+                    {"section", "torrents"}, {"methodName", "addTags"}
+                });
+                var data = $"hashes={hash.ToLower()}&tags={WebUtility.UrlEncode(label.Replace(",", "‚"))}";
+                var bytes = Encoding.UTF8.GetBytes(data);
+
+                var httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
+                httpWebRequest.Method = "POST";
+                httpWebRequest.ContentType = "application/x-www-form-urlencoded";
+                httpWebRequest.CookieContainer = _client.CookieContainer;
+                httpWebRequest.ContentLength = bytes.Length;
+                var stream = httpWebRequest.GetRequestStream();
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush();
+                stream.Close();
+
+                var response = httpWebRequest.GetResponse();
+                var responseStream = response.GetResponseStream();
+                var reader = new StreamReader(responseStream);
+                reader.ReadToEnd();
+                reader.Close();
+                return true;
+            }
+            catch (WebException e)
+            {
+                Logger.Error(e.Message);
+                Logger.Error(e.StackTrace);
+                return false;
+            }
         }
 
         public bool SetLabel(IEnumerable<string> hash, string label)
         {
-            return true; // TODO
-            throw new NotImplementedException();
+            try
+            {
+                var uri = _uriTemplate.BindByName(_baseUri, new Dictionary<string, string>
+                {
+                    {"section", "torrents"}, {"methodName", "addTags"}
+                });
+                var data =
+                    $"hashes={string.Join("|", hash.ToList().ConvertAll((input => input.ToLower())))}&tags={WebUtility.UrlEncode(label.Replace(",", "‚"))}";
+                var bytes = Encoding.UTF8.GetBytes(data);
+
+                var httpWebRequest = (HttpWebRequest) WebRequest.Create(uri);
+                httpWebRequest.Method = "POST";
+                httpWebRequest.ContentType = "application/x-www-form-urlencoded";
+                httpWebRequest.CookieContainer = _client.CookieContainer;
+                httpWebRequest.ContentLength = bytes.Length;
+                var stream = httpWebRequest.GetRequestStream();
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush();
+                stream.Close();
+
+                var response = httpWebRequest.GetResponse();
+                var responseStream = response.GetResponseStream();
+                var reader = new StreamReader(responseStream);
+                reader.ReadToEnd();
+                reader.Close();
+
+                return true;
+            }
+            catch (WebException e)
+            {
+                Logger.Error(e.Message);
+                Logger.Error(e.StackTrace);
+                return false;
+            }
         }
     }
 }

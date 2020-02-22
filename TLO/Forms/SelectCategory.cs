@@ -20,7 +20,7 @@ namespace TLO.Forms
             SelectedCategories = new List<Category>();
         }
 
-        public Category SelectedCategory { get; private set; }
+        public List<Category> SelectedCategory { get; private set; }
 
         public List<Category> SelectedCategories { get; private set; }
 
@@ -104,7 +104,16 @@ namespace TLO.Forms
                 }
                 else
                 {
-                    SelectedCategory = tag;
+                    SelectedCategory = new List<Category>();
+                    SelectedCategory.Add(tag);
+                    foreach (var node in selectedNode.GetAllNodes())
+                    {
+                        tag = node.Tag as Category;
+                        if (!(tag == null || tag.CategoryID > 999999))
+                        {
+                            SelectedCategory.Add((Category) node.Tag);                            
+                        }
+                    }
                     DialogResult = DialogResult.OK;
                     Close();
                 }
@@ -112,6 +121,7 @@ namespace TLO.Forms
             catch (Exception ex)
             {
                 var num = (int) MessageBox.Show("Непредвиденное исключение\r\n " + ex.Message);
+                throw ex;
             }
         }
 

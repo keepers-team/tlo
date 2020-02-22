@@ -341,6 +341,7 @@ namespace TLO.Forms
                                 break;
                             case "Не скачан торрент":
                                 isDownload = false;
+                                isKeep = false;
                                 break;
                             case "Не скачан торрент и есть хранитель":
                                 isDownload = false;
@@ -621,8 +622,16 @@ namespace TLO.Forms
                 var nullable = _dataGridTopicsList.Rows[e.RowIndex].Cells[0].Value as int?;
                 if (!nullable.HasValue)
                     return;
-                Process.Start(string.Format("https://{1}/forum/viewtopic.php?t={0}", nullable.Value,
-                    Settings.Current.HostRuTrackerOrg));
+                if (Program.IsRunningOnMono())
+                {
+                    Process.Start("xdg-open", string.Format("https://{1}/forum/viewtopic.php?t={0}", nullable.Value,
+                        Settings.Current.HostRuTrackerOrg));                    
+                }
+                else
+                {   
+                    Process.Start(string.Format("https://{1}/forum/viewtopic.php?t={0}", nullable.Value,
+                        Settings.Current.HostRuTrackerOrg));
+                }
             }
             else
             {
@@ -665,9 +674,18 @@ namespace TLO.Forms
                     }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(str2))
                     str1 = str1 + " " + str2;
-                Process.Start(string.Format(
-                    "https://{2}/forum/tracker.php?f={0}&nm={1}",
-                    topicInfo.CategoryID, str1, Settings.Current.HostRuTrackerOrg));
+                if (Program.IsRunningOnMono())
+                {
+                    Process.Start("xdg-open", string.Format(
+                        "https://{2}/forum/tracker.php?f={0}&nm={1}",
+                        topicInfo.CategoryID, str1, Settings.Current.HostRuTrackerOrg));
+                }
+                else
+                {
+                    Process.Start(string.Format(
+                        "https://{2}/forum/tracker.php?f={0}&nm={1}",
+                        topicInfo.CategoryID, str1, Settings.Current.HostRuTrackerOrg));
+                }
             }
         }
 

@@ -409,16 +409,20 @@ namespace TLO.Forms
 
                     if (dialog.SelectedCategory == null)
                         return;
-                    if ((_categoriesSource.DataSource as List<Category>).Any(
-                        x => x.CategoryID == dialog.SelectedCategory.CategoryID))
+                    foreach (var cat in dialog.SelectedCategory)
                     {
-                        var num = (int) MessageBox.Show("Выбранная категория уже присутствует");
-                    }
-                    else
-                    {
-                        dialog.SelectedCategory.IsEnable = true;
-                        _categoriesSource.Add(dialog.SelectedCategory);
-                        _categoriesSource.Position = _categoriesSource.Count;
+                       
+                        if ((_categoriesSource.DataSource as List<Category>).Any(
+                            x => x.CategoryID == cat.CategoryID))
+                        {
+                            // var num = (int) MessageBox.Show("Выбранная категория уже присутствует");
+                        }
+                        else
+                        {
+                            cat.IsEnable = true;
+                            _categoriesSource.Add(cat);
+                            _categoriesSource.Position = _categoriesSource.Count;
+                        } 
                     }
                 }
             }

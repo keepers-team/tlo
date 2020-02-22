@@ -101,7 +101,7 @@ namespace TLO.Clients
             }
             catch (WebException e)
             {
-                logResponse((HttpWebResponse) e.Response);
+                if (e.Response != null) logResponse((HttpWebResponse) e.Response);
 
                 throw;
             }
@@ -117,8 +117,11 @@ namespace TLO.Clients
                 throw;
             }
 
-            logResponse((HttpWebResponse) response);
-
+            if (response != null)
+            {
+                logResponse((HttpWebResponse) response);
+            }
+            
             return response;
         }
 
@@ -130,23 +133,23 @@ namespace TLO.Clients
             var body = "";
             try
             {
-                body = new StreamReader(request.GetRequestStream()).ReadToEnd();
+                if (request != null) body = new StreamReader(request.GetRequestStream()).ReadToEnd();
             }
             catch (Exception e)
             {
                 body = e.Message;
             }
 
-            _logger.Trace(
-                $"\r\n\r\nSENDING HTTP REQUEST {request.RequestUri}\r\n{request.Method} {request.RequestUri.PathAndQuery} HTTP/{request.ProtocolVersion}\r\n" +
-                request.Headers + "\r\n\r\n" + body
-            );
+            if (request != null)
+                _logger.Trace(
+                    $"\r\n\r\nSENDING HTTP REQUEST {request.RequestUri}\r\n{request.Method} {request.RequestUri.PathAndQuery} HTTP/{request.ProtocolVersion}\r\n" +
+                    request.Headers + "\r\n\r\n" + body
+                );
         }
 
         private static void logResponse(HttpWebResponse response)
         {
-            var webResponse = response;
-            var responseStream = webResponse.GetResponseStream();
+            var responseStream = response.GetResponseStream();
 
             if (responseStream != null)
             {
@@ -171,18 +174,18 @@ namespace TLO.Clients
 
                 streamReplace.Seek(0, SeekOrigin.Begin);
 
-                var fieldInfo = webResponse
+                var fieldInfo = response
                     .GetType()
                     .GetField(
                         "m_ConnectStream",
                         BindingFlags.Instance | BindingFlags.NonPublic
                     );
-                if (fieldInfo != null) fieldInfo.SetValue(webResponse, streamReplace);
-                var httpWebResponse = webResponse;
-                webResponse.Headers["Set-Cookie"] = "--HIDDEN FOR SECURITY REASONS--";
+                if (fieldInfo != null) fieldInfo.SetValue(response, streamReplace);
+                var httpWebResponse = response;
+                response.Headers["Set-Cookie"] = "--HIDDEN FOR SECURITY REASONS--";
                 _logger.Trace(
                     $"\r\n\r\nRECEIVED HTTP RESPONSE\r\nHTTP/{httpWebResponse.ProtocolVersion} {(int) httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
-                    webResponse.Headers +
+                    response.Headers +
                     "\r\n\r\n" +
                     text);
             }

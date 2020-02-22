@@ -109,7 +109,6 @@ namespace TLO.Info
             foreach (var prop in Type.GetType("TLO.Info.TopicInfo").GetProperties())
             {
                 ti.CategoryID = CategoryID;
-                Console.WriteLine("Property is " + prop.Name);
                 if (prop.CanWrite) prop.SetValue(ti, prop.GetValue(this));
             }
 
