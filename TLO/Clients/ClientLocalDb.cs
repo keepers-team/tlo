@@ -676,7 +676,7 @@ FROM Topic WHERE (CategoryID = @CategoryID OR @CategoryID = -1) and Hash is null
             {
                 command.CommandText = @"
 SELECT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
-COUNT(kt.TopicID) AS KeepersCount
+COUNT(kt.TopicID) + CASE WHEN IsKeep THEN 1 ELSE 0 END AS KeepersCount
 FROM Topic AS t    
 LEFT JOIN User AS u ON (t.PosterID = u.UserID)
 LEFT JOIN KeeperToTopic AS kt ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @UserName)
@@ -696,7 +696,7 @@ WHERE
       : "")
   + (isKeep.HasValue ? string.Format(" AND IsKeep = {0}", isKeep.Value ? 1 : 0) : "")
   + (isKeepers.HasValue
-      ? string.Format(" AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END AS BIT) = {0}",
+      ? string.Format(" AND CAST(CASE WHEN kt.TopicID IS NOT NULL THEN 1 ELSE 0 END " + (!isKeep.HasValue ? "OR CAST(IsKeep AS INT)" : "") + " AS BIT) = {0}",
           isKeepers.Value ? 1 : 0)
       : "")
   + (isDownload.HasValue ? string.Format(" AND IsDownload = {0}", isDownload.Value ? 1 : 0) : "")
