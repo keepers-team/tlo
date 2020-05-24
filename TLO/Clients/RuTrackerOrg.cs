@@ -363,11 +363,38 @@ namespace TLO.Clients
             string str1;
             do
             {
-                str1 = DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
-                    topicid, num == 0 ? "" : "&start=" + num, Settings.Current.HostRuTrackerOrg));
+                label_18:
+                var _url = string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
+                    topicid, num == 0 ? "" : "&start=" + num, Settings.Current.HostRuTrackerOrg);
+                str1 = DownloadWebPage(_url);
                 if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
                 {
-                    goto label_18;
+                    Thread.Sleep(500);
+                    str1 = DownloadWebPage(
+                        $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p={(object) topicid}");
+                    if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
+                    {
+                        MessageBox.Show("Тема не найдена, или неправильно указана ссылка на раздел: " + _url, "Ошибка",
+                            icon: MessageBoxIcon.Warning, buttons: MessageBoxButtons.OK);
+                        return dictionary;
+                    }
+                    var s = string.Join("\r\n", str1.Split('\r', '\n').Where(x => x.Contains("id=\"topic-title\"")))
+                        .Split(new char[4]
+                        {
+                            '"',
+                            '<',
+                            '>',
+                            ' '
+                        }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(x => x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))
+                        .Select(x =>
+                            x.Replace($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=", ""))
+                        .FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(s))
+                    {
+                        topicid = int.Parse(s);
+                        goto label_18;
+                    }
                 }
 
                 var document = parser.ParseDocument(str1);
@@ -409,7 +436,6 @@ namespace TLO.Clients
                 }
 
                 num += 30;
-                label_18: ;
             } while (str1.Contains("\">След.</a></b></p>") || num == 0);
 
             return dictionary;

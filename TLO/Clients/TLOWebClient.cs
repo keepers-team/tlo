@@ -83,10 +83,9 @@ namespace TLO.Clients
 
             if (multipart)
             {
-             
                 // webRequest.ContentType = "multipart/form-data";   
             }
-            else
+            else if(webRequest.Method == "POST" || webRequest.Method == "post")
             {
                 webRequest.ContentType = "application/x-www-form-urlencoded";
             }

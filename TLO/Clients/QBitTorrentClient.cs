@@ -80,7 +80,7 @@ namespace TLO.Clients
                 Logger.Error(e);
                 Logger.Error(e.StackTrace);
 
-                return new List<TopicInfo>();
+                throw e;
             }
 
             try
@@ -109,7 +109,8 @@ namespace TLO.Clients
             {
                 Logger.Error(e);
                 Logger.Error(e.StackTrace);
-                return new List<TopicInfo>();
+                
+                throw e;
             }
         }
 
