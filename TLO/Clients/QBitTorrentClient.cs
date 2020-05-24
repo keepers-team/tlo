@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Web.Caching;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -36,7 +37,10 @@ namespace TLO.Clients
             _client.Headers.Add("Referer", _baseUri.ToString());
             _client.UseDefaultCredentials = true;
 
-            authorize();
+            if (this.Ping())
+            {
+                authorize();   
+            }
         }
 
         private void authorize()
@@ -145,8 +149,9 @@ namespace TLO.Clients
 
                 return true;
             }
-            catch
+            catch(Exception e)
             {
+                System.Console.WriteLine(e.Message);
                 return false;
             }
         }

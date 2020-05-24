@@ -31,12 +31,9 @@ namespace TLO.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources =
-                new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 =
-                new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 =
-                new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
@@ -49,8 +46,7 @@ namespace TLO.Forms
             this.CreateReportsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.задачиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RuningStopingDistributionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem =
-                new System.Windows.Forms.ToolStripMenuItem();
+            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.UpdateAll = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateCountSeedersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -126,11 +122,7 @@ namespace TLO.Forms
             // 
             // menuStrip1
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
-            {
-                this.файлToolStripMenuItem, this.отчетыToolStripMenuItem, this.задачиToolStripMenuItem,
-                this.menuSettingsToolStripMenuItem
-            });
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {this.файлToolStripMenuItem, this.отчетыToolStripMenuItem, this.задачиToolStripMenuItem, this.menuSettingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(984, 24);
@@ -139,11 +131,7 @@ namespace TLO.Forms
             // 
             // файлToolStripMenuItem
             // 
-            this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
-            {
-                this.toolStripSeparator4, this._btSaveToFile, this._btLoadSettingsFromFile, this.toolStripSeparator3,
-                this.ExitToolStripMenuItem
-            });
+            this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {this.toolStripSeparator4, this._btSaveToFile, this._btLoadSettingsFromFile, this.toolStripSeparator3, this.ExitToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.файлToolStripMenuItem.Text = "Файл";
@@ -181,8 +169,7 @@ namespace TLO.Forms
             // 
             // отчетыToolStripMenuItem
             // 
-            this.отчетыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
-                {this.SendReportsToForumToolStripMenuItem, this.CreateReportsToolStripMenuItem});
+            this.отчетыToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {this.SendReportsToForumToolStripMenuItem, this.CreateReportsToolStripMenuItem});
             this.отчетыToolStripMenuItem.Name = "отчетыToolStripMenuItem";
             this.отчетыToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
             this.отчетыToolStripMenuItem.Text = "Отчеты";
@@ -203,15 +190,7 @@ namespace TLO.Forms
             // 
             // задачиToolStripMenuItem
             // 
-            this.задачиToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
-            {
-                this.RuningStopingDistributionToolStripMenuItem,
-                this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem, this.toolStripSeparator1,
-                this.UpdateAll, this.UpdateCountSeedersToolStripMenuItem, this.UpdateListTopicsToolStripMenuItem,
-                this.UpdateKeepTopicsToolStripMenuItem, this.LoadListKeepersToolStripMenuItem, this.toolStripSeparator2,
-                this.ClearKeeperListsToolStripMenuItem, this.ClearDatabaseToolStripMenuItem, this.toolStripSeparator5,
-                this.menuTimerSetting
-            });
+            this.задачиToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {this.RuningStopingDistributionToolStripMenuItem, this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem, this.toolStripSeparator1, this.UpdateAll, this.UpdateCountSeedersToolStripMenuItem, this.UpdateListTopicsToolStripMenuItem, this.UpdateKeepTopicsToolStripMenuItem, this.LoadListKeepersToolStripMenuItem, this.toolStripSeparator2, this.ClearKeeperListsToolStripMenuItem, this.ClearDatabaseToolStripMenuItem, this.toolStripSeparator5, this.menuTimerSetting});
             this.задачиToolStripMenuItem.Name = "задачиToolStripMenuItem";
             this.задачиToolStripMenuItem.Size = new System.Drawing.Size(58, 20);
             this.задачиToolStripMenuItem.Text = "Задачи";
@@ -225,13 +204,10 @@ namespace TLO.Forms
             // 
             // CreateConsolidatedReportByTorrentClientsToolStripMenuItem
             // 
-            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Name =
-                "CreateConsolidatedReportByTorrentClientsToolStripMenuItem";
+            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Name = "CreateConsolidatedReportByTorrentClientsToolStripMenuItem";
             this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Size = new System.Drawing.Size(379, 22);
-            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Text =
-                "Построить сводный отчет по торрент-клиентам";
-            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Click +=
-                new System.EventHandler(this.MenuClick);
+            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Text = "Построить сводный отчет по торрент-клиентам";
+            this.CreateConsolidatedReportByTorrentClientsToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
             // 
             // toolStripSeparator1
             // 
@@ -308,8 +284,7 @@ namespace TLO.Forms
             // 
             // menuSettingsToolStripMenuItem
             // 
-            this.menuSettingsToolStripMenuItem.Image =
-                ((System.Drawing.Image) (resources.GetObject("menuSettingsToolStripMenuItem.Image")));
+            this.menuSettingsToolStripMenuItem.Image = ((System.Drawing.Image) (resources.GetObject("menuSettingsToolStripMenuItem.Image")));
             this.menuSettingsToolStripMenuItem.Name = "menuSettingsToolStripMenuItem";
             this.menuSettingsToolStripMenuItem.Size = new System.Drawing.Size(95, 20);
             this.menuSettingsToolStripMenuItem.Text = "Настройки";
@@ -317,15 +292,12 @@ namespace TLO.Forms
             // 
             // _cbCategory
             // 
-            this._cbCategory.Anchor =
-                ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._cbCategory.Anchor = ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this._cbCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cbCategory.FormattingEnabled = true;
             this._cbCategory.Location = new System.Drawing.Point(117, 27);
             this._cbCategory.Name = "_cbCategory";
-            this._cbCategory.Size = new System.Drawing.Size(855, 23);
+            this._cbCategory.Size = new System.Drawing.Size(855, 21);
             this._cbCategory.TabIndex = 1;
             this._cbCategory.SelectionChangeCommitted += new System.EventHandler(this.SelectionChanged);
             // 
@@ -334,17 +306,13 @@ namespace TLO.Forms
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 30);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(104, 15);
+            this.label1.Size = new System.Drawing.Size(99, 13);
             this.label1.TabIndex = 2;
             this.label1.Text = "Выберите раздел:";
             // 
             // tabControl1
             // 
-            this.tabControl1.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top |
-                                                         System.Windows.Forms.AnchorStyles.Bottom) |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this._tpReportDownloads);
             this.tabControl1.Controls.Add(this.tabReports);
             this.tabControl1.Controls.Add(this.tabConsolidatedReport);
@@ -380,44 +348,38 @@ namespace TLO.Forms
             this._tpReportDownloads.Controls.Add(this._cbCategoryFilters);
             this._tpReportDownloads.Controls.Add(this.label3);
             this._tpReportDownloads.Controls.Add(this._dataGridTopicsList);
-            this._tpReportDownloads.Location = new System.Drawing.Point(4, 24);
+            this._tpReportDownloads.Location = new System.Drawing.Point(4, 22);
             this._tpReportDownloads.Name = "_tpReportDownloads";
             this._tpReportDownloads.Padding = new System.Windows.Forms.Padding(3);
-            this._tpReportDownloads.Size = new System.Drawing.Size(976, 455);
+            this._tpReportDownloads.Size = new System.Drawing.Size(976, 457);
             this._tpReportDownloads.TabIndex = 2;
             this._tpReportDownloads.Text = "Обработка раздела";
             this._tpReportDownloads.UseVisualStyleBackColor = true;
             // 
             // label7
             // 
-            this.label7.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(780, 412);
+            this.label7.Location = new System.Drawing.Point(780, 414);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(49, 15);
+            this.label7.Size = new System.Drawing.Size(44, 13);
             this.label7.TabIndex = 35;
             this.label7.Text = "Прочее";
             // 
             // label6
             // 
-            this.label6.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(780, 202);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(121, 15);
+            this.label6.Size = new System.Drawing.Size(116, 13);
             this.label6.TabIndex = 34;
             this.label6.Text = "Действия по разделу";
             // 
             // button1
             // 
-            this.button1.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(780, 428);
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button1.Location = new System.Drawing.Point(780, 430);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(128, 23);
             this.button1.TabIndex = 33;
@@ -430,7 +392,7 @@ namespace TLO.Forms
             this._DateRegistration.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this._DateRegistration.Location = new System.Drawing.Point(63, 6);
             this._DateRegistration.Name = "_DateRegistration";
-            this._DateRegistration.Size = new System.Drawing.Size(93, 23);
+            this._DateRegistration.Size = new System.Drawing.Size(93, 20);
             this._DateRegistration.TabIndex = 32;
             this._DateRegistration.ValueChanged += new System.EventHandler(this.SelectionChanged);
             // 
@@ -439,7 +401,7 @@ namespace TLO.Forms
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(5, 9);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(51, 15);
+            this.label5.Size = new System.Drawing.Size(51, 13);
             this.label5.TabIndex = 31;
             this.label5.Text = "Дата до:";
             // 
@@ -448,7 +410,7 @@ namespace TLO.Forms
             this._cbCountSeeders.Location = new System.Drawing.Point(245, 6);
             this._cbCountSeeders.Minimum = new decimal(new int[] {1, 0, 0, -2147483648});
             this._cbCountSeeders.Name = "_cbCountSeeders";
-            this._cbCountSeeders.Size = new System.Drawing.Size(40, 23);
+            this._cbCountSeeders.Size = new System.Drawing.Size(40, 20);
             this._cbCountSeeders.TabIndex = 30;
             this._cbCountSeeders.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this._cbCountSeeders.ValueChanged += new System.EventHandler(this.SelectionChanged);
@@ -458,19 +420,17 @@ namespace TLO.Forms
             this._lbTotal.AutoSize = true;
             this._lbTotal.Location = new System.Drawing.Point(5, 30);
             this._lbTotal.Name = "_lbTotal";
-            this._lbTotal.Size = new System.Drawing.Size(43, 15);
+            this._lbTotal.Size = new System.Drawing.Size(40, 13);
             this._lbTotal.TabIndex = 29;
             this._lbTotal.Text = "Итого:";
             // 
             // _llUpdateTopicsByCategory
             // 
-            this._llUpdateTopicsByCategory.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llUpdateTopicsByCategory.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateTopicsByCategory.AutoSize = true;
-            this._llUpdateTopicsByCategory.Location = new System.Drawing.Point(780, 267);
+            this._llUpdateTopicsByCategory.Location = new System.Drawing.Point(780, 269);
             this._llUpdateTopicsByCategory.Name = "_llUpdateTopicsByCategory";
-            this._llUpdateTopicsByCategory.Size = new System.Drawing.Size(166, 15);
+            this._llUpdateTopicsByCategory.Size = new System.Drawing.Size(154, 13);
             this._llUpdateTopicsByCategory.TabIndex = 28;
             this._llUpdateTopicsByCategory.TabStop = true;
             this._llUpdateTopicsByCategory.Text = "Обновить список по разделу";
@@ -478,13 +438,11 @@ namespace TLO.Forms
             // 
             // _llUpdateCountSeedersByCategory
             // 
-            this._llUpdateCountSeedersByCategory.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llUpdateCountSeedersByCategory.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateCountSeedersByCategory.AutoSize = true;
-            this._llUpdateCountSeedersByCategory.Location = new System.Drawing.Point(780, 244);
+            this._llUpdateCountSeedersByCategory.Location = new System.Drawing.Point(780, 246);
             this._llUpdateCountSeedersByCategory.Name = "_llUpdateCountSeedersByCategory";
-            this._llUpdateCountSeedersByCategory.Size = new System.Drawing.Size(200, 15);
+            this._llUpdateCountSeedersByCategory.Size = new System.Drawing.Size(184, 13);
             this._llUpdateCountSeedersByCategory.TabIndex = 27;
             this._llUpdateCountSeedersByCategory.TabStop = true;
             this._llUpdateCountSeedersByCategory.Text = "Обновить кол-во сидов по разделу";
@@ -492,13 +450,11 @@ namespace TLO.Forms
             // 
             // _llUpdateDataDromTorrentClient
             // 
-            this._llUpdateDataDromTorrentClient.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llUpdateDataDromTorrentClient.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this._llUpdateDataDromTorrentClient.AutoSize = true;
-            this._llUpdateDataDromTorrentClient.Location = new System.Drawing.Point(780, 290);
+            this._llUpdateDataDromTorrentClient.Location = new System.Drawing.Point(780, 292);
             this._llUpdateDataDromTorrentClient.Name = "_llUpdateDataDromTorrentClient";
-            this._llUpdateDataDromTorrentClient.Size = new System.Drawing.Size(201, 15);
+            this._llUpdateDataDromTorrentClient.Size = new System.Drawing.Size(184, 13);
             this._llUpdateDataDromTorrentClient.TabIndex = 26;
             this._llUpdateDataDromTorrentClient.TabStop = true;
             this._llUpdateDataDromTorrentClient.Text = "Обновить инф. из торрент-клиента";
@@ -506,25 +462,21 @@ namespace TLO.Forms
             // 
             // label4
             // 
-            this.label4.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(780, 35);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(149, 15);
+            this.label4.Size = new System.Drawing.Size(141, 13);
             this.label4.TabIndex = 23;
             this.label4.Text = "Действия с выделенными";
             // 
             // linkLabel5
             // 
-            this.linkLabel5.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabel5.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkLabel5.AutoSize = true;
             this.linkLabel5.Location = new System.Drawing.Point(780, 126);
             this.linkLabel5.Name = "linkLabel5";
-            this.linkLabel5.Size = new System.Drawing.Size(201, 15);
+            this.linkLabel5.Size = new System.Drawing.Size(186, 13);
             this.linkLabel5.TabIndex = 22;
             this.linkLabel5.TabStop = true;
             this.linkLabel5.Text = "Удалить из Torrent-клиента+файлы";
@@ -532,13 +484,11 @@ namespace TLO.Forms
             // 
             // linkSetNewLabel
             // 
-            this.linkSetNewLabel.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this.linkSetNewLabel.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkSetNewLabel.AutoSize = true;
             this.linkSetNewLabel.Location = new System.Drawing.Point(780, 104);
             this.linkSetNewLabel.Name = "linkSetNewLabel";
-            this.linkSetNewLabel.Size = new System.Drawing.Size(104, 15);
+            this.linkSetNewLabel.Size = new System.Drawing.Size(100, 13);
             this.linkSetNewLabel.TabIndex = 21;
             this.linkSetNewLabel.TabStop = true;
             this.linkSetNewLabel.Text = "Установить метку";
@@ -546,13 +496,11 @@ namespace TLO.Forms
             // 
             // _llSelectedTopicsDeleteFromBlackList
             // 
-            this._llSelectedTopicsDeleteFromBlackList.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llSelectedTopicsDeleteFromBlackList.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsDeleteFromBlackList.AutoSize = true;
             this._llSelectedTopicsDeleteFromBlackList.Location = new System.Drawing.Point(780, 170);
             this._llSelectedTopicsDeleteFromBlackList.Name = "_llSelectedTopicsDeleteFromBlackList";
-            this._llSelectedTopicsDeleteFromBlackList.Size = new System.Drawing.Size(156, 15);
+            this._llSelectedTopicsDeleteFromBlackList.Size = new System.Drawing.Size(147, 13);
             this._llSelectedTopicsDeleteFromBlackList.TabIndex = 20;
             this._llSelectedTopicsDeleteFromBlackList.TabStop = true;
             this._llSelectedTopicsDeleteFromBlackList.Text = "Удалить из черного списка";
@@ -560,13 +508,11 @@ namespace TLO.Forms
             // 
             // _llSelectedTopicsToTorrentClient
             // 
-            this._llSelectedTopicsToTorrentClient.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llSelectedTopicsToTorrentClient.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsToTorrentClient.AutoSize = true;
             this._llSelectedTopicsToTorrentClient.Location = new System.Drawing.Point(780, 81);
             this._llSelectedTopicsToTorrentClient.Name = "_llSelectedTopicsToTorrentClient";
-            this._llSelectedTopicsToTorrentClient.Size = new System.Drawing.Size(151, 15);
+            this._llSelectedTopicsToTorrentClient.Size = new System.Drawing.Size(141, 13);
             this._llSelectedTopicsToTorrentClient.TabIndex = 19;
             this._llSelectedTopicsToTorrentClient.TabStop = true;
             this._llSelectedTopicsToTorrentClient.Text = "Добавить в Torrent-клиент";
@@ -574,13 +520,11 @@ namespace TLO.Forms
             // 
             // _llDownloadSelectTopics
             // 
-            this._llDownloadSelectTopics.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llDownloadSelectTopics.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llDownloadSelectTopics.AutoSize = true;
             this._llDownloadSelectTopics.Location = new System.Drawing.Point(780, 58);
             this._llDownloadSelectTopics.Name = "_llDownloadSelectTopics";
-            this._llDownloadSelectTopics.Size = new System.Drawing.Size(134, 15);
+            this._llDownloadSelectTopics.Size = new System.Drawing.Size(122, 13);
             this._llDownloadSelectTopics.TabIndex = 18;
             this._llDownloadSelectTopics.TabStop = true;
             this._llDownloadSelectTopics.Text = "Скачать Torrent-файлы";
@@ -588,13 +532,11 @@ namespace TLO.Forms
             // 
             // _llSelectedTopicsToBlackList
             // 
-            this._llSelectedTopicsToBlackList.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._llSelectedTopicsToBlackList.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this._llSelectedTopicsToBlackList.AutoSize = true;
             this._llSelectedTopicsToBlackList.Location = new System.Drawing.Point(780, 148);
             this._llSelectedTopicsToBlackList.Name = "_llSelectedTopicsToBlackList";
-            this._llSelectedTopicsToBlackList.Size = new System.Drawing.Size(156, 15);
+            this._llSelectedTopicsToBlackList.Size = new System.Drawing.Size(145, 13);
             this._llSelectedTopicsToBlackList.TabIndex = 17;
             this._llSelectedTopicsToBlackList.TabStop = true;
             this._llSelectedTopicsToBlackList.Text = "Добавить в черный список";
@@ -605,7 +547,7 @@ namespace TLO.Forms
             this._cbBlackList.AutoSize = true;
             this._cbBlackList.Location = new System.Drawing.Point(522, 9);
             this._cbBlackList.Name = "_cbBlackList";
-            this._cbBlackList.Size = new System.Drawing.Size(112, 19);
+            this._cbBlackList.Size = new System.Drawing.Size(105, 17);
             this._cbBlackList.TabIndex = 14;
             this._cbBlackList.Text = "Черный список";
             this._cbBlackList.UseVisualStyleBackColor = true;
@@ -616,7 +558,7 @@ namespace TLO.Forms
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(290, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(51, 15);
+            this.label2.Size = new System.Drawing.Size(50, 13);
             this.label2.TabIndex = 12;
             this.label2.Text = "Фильтр:";
             // 
@@ -624,14 +566,10 @@ namespace TLO.Forms
             // 
             this._cbCategoryFilters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cbCategoryFilters.FormattingEnabled = true;
-            this._cbCategoryFilters.Items.AddRange(new object[]
-            {
-                "Все", "Не скачан торрент и нет хранителя", "Не скачан торрент", "Храню", "Храню и есть хранитель",
-                "Не храню", "Скачиваю раздачу", "Я релизер", "Не скачано"
-            });
+            this._cbCategoryFilters.Items.AddRange(new object[] {"Все", "Не скачан торрент и нет хранителя", "Не скачан торрент", "Храню", "Храню и есть хранитель", "Не храню", "Скачиваю раздачу", "Я релизер", "Не скачано"});
             this._cbCategoryFilters.Location = new System.Drawing.Point(346, 5);
             this._cbCategoryFilters.Name = "_cbCategoryFilters";
-            this._cbCategoryFilters.Size = new System.Drawing.Size(170, 23);
+            this._cbCategoryFilters.Size = new System.Drawing.Size(170, 21);
             this._cbCategoryFilters.TabIndex = 11;
             this._cbCategoryFilters.SelectionChangeCommitted += new System.EventHandler(this.SelectionChanged);
             // 
@@ -640,7 +578,7 @@ namespace TLO.Forms
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(162, 9);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(84, 15);
+            this.label3.Size = new System.Drawing.Size(77, 13);
             this.label3.TabIndex = 9;
             this.label3.Text = "Кол-во сидов:";
             // 
@@ -649,30 +587,17 @@ namespace TLO.Forms
             this._dataGridTopicsList.AllowUserToAddRows = false;
             this._dataGridTopicsList.AllowUserToDeleteRows = false;
             this._dataGridTopicsList.AllowUserToResizeRows = false;
-            this._dataGridTopicsList.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top |
-                                                         System.Windows.Forms.AnchorStyles.Bottom) |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
-            this._dataGridTopicsList.ColumnHeadersHeightSizeMode =
-                System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this._dataGridTopicsList.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[]
-            {
-                this.ColumnReport1DgvTopicID, this.ColumnReport1DgvSelect, this.ColumnReport1DgvStatus,
-                this.ColumnReport1DgvSize, this.ColumnReport1DgvName, this.ColumnReport1DgvAlternative,
-                this.ColumnReport1DgvSeeders, this.ColumnReport1DgvAvgSeeders, this.ColumnReport1DgvRegTime,
-                this.ColumnReport1DgvKeeperCount, this.ColumnReport1DgvBlack
-            });
+            this._dataGridTopicsList.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            this._dataGridTopicsList.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this._dataGridTopicsList.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {this.ColumnReport1DgvTopicID, this.ColumnReport1DgvSelect, this.ColumnReport1DgvStatus, this.ColumnReport1DgvSize, this.ColumnReport1DgvName, this.ColumnReport1DgvAlternative, this.ColumnReport1DgvSeeders, this.ColumnReport1DgvAvgSeeders, this.ColumnReport1DgvRegTime, this.ColumnReport1DgvKeeperCount, this.ColumnReport1DgvBlack});
             this._dataGridTopicsList.Location = new System.Drawing.Point(8, 48);
             this._dataGridTopicsList.MultiSelect = false;
             this._dataGridTopicsList.Name = "_dataGridTopicsList";
             this._dataGridTopicsList.RowHeadersVisible = false;
-            this._dataGridTopicsList.Size = new System.Drawing.Size(766, 401);
+            this._dataGridTopicsList.Size = new System.Drawing.Size(766, 403);
             this._dataGridTopicsList.TabIndex = 0;
-            this._dataGridTopicsList.CellContentClick +=
-                new System.Windows.Forms.DataGridViewCellEventHandler(this.ContentClick);
-            this._dataGridTopicsList.CellDoubleClick +=
-                new System.Windows.Forms.DataGridViewCellEventHandler(this._dgvReportDownloads_CellDoubleClick);
+            this._dataGridTopicsList.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ContentClick);
+            this._dataGridTopicsList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this._dgvReportDownloads_CellDoubleClick);
             this._dataGridTopicsList.Click += new System.EventHandler(this._dgvReportDownloads_Click);
             // 
             // ColumnReport1DgvTopicID
@@ -712,7 +637,7 @@ namespace TLO.Forms
             this.ColumnReport1DgvSize.HeaderText = "Размер";
             this.ColumnReport1DgvSize.Name = "ColumnReport1DgvSize";
             this.ColumnReport1DgvSize.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
-            this.ColumnReport1DgvSize.Width = 72;
+            this.ColumnReport1DgvSize.Width = 71;
             // 
             // ColumnReport1DgvName
             // 
@@ -735,13 +660,12 @@ namespace TLO.Forms
             // 
             // ColumnReport1DgvSeeders
             // 
-            this.ColumnReport1DgvSeeders.AutoSizeMode =
-                System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.ColumnReport1DgvSeeders.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
             this.ColumnReport1DgvSeeders.DataPropertyName = "Seeders";
             this.ColumnReport1DgvSeeders.HeaderText = "Сиды";
             this.ColumnReport1DgvSeeders.Name = "ColumnReport1DgvSeeders";
             this.ColumnReport1DgvSeeders.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
-            this.ColumnReport1DgvSeeders.Width = 62;
+            this.ColumnReport1DgvSeeders.Width = 59;
             // 
             // ColumnReport1DgvAvgSeeders
             // 
@@ -810,11 +734,7 @@ namespace TLO.Forms
             // 
             // _txtConsolidatedReport
             // 
-            this._txtConsolidatedReport.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top |
-                                                         System.Windows.Forms.AnchorStyles.Bottom) |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._txtConsolidatedReport.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this._txtConsolidatedReport.Location = new System.Drawing.Point(0, 0);
             this._txtConsolidatedReport.Multiline = true;
             this._txtConsolidatedReport.Name = "_txtConsolidatedReport";
@@ -834,11 +754,7 @@ namespace TLO.Forms
             // 
             // _tbConsolidatedTorrentClientsReport
             // 
-            this._tbConsolidatedTorrentClientsReport.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top |
-                                                         System.Windows.Forms.AnchorStyles.Bottom) |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._tbConsolidatedTorrentClientsReport.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this._tbConsolidatedTorrentClientsReport.Location = new System.Drawing.Point(0, 0);
             this._tbConsolidatedTorrentClientsReport.Multiline = true;
             this._tbConsolidatedTorrentClientsReport.Name = "_tbConsolidatedTorrentClientsReport";
@@ -860,11 +776,7 @@ namespace TLO.Forms
             // 
             // _tcCetegoriesRootReports
             // 
-            this._tcCetegoriesRootReports.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top |
-                                                         System.Windows.Forms.AnchorStyles.Bottom) |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
+            this._tcCetegoriesRootReports.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this._tcCetegoriesRootReports.Controls.Add(this.tabPage2);
             this._tcCetegoriesRootReports.Controls.Add(this.tabPage3);
             this._tcCetegoriesRootReports.Location = new System.Drawing.Point(1, 1);
@@ -875,10 +787,10 @@ namespace TLO.Forms
             // 
             // tabPage2
             // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 24);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(967, 431);
+            this.tabPage2.Size = new System.Drawing.Size(967, 433);
             this.tabPage2.TabIndex = 0;
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -895,8 +807,7 @@ namespace TLO.Forms
             // 
             // statusStrip1
             // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
-                {this.toolStripStatusLabel1, this.toolStripProgressBar1});
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {this.toolStripStatusLabel1, this.toolStripProgressBar1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 539);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(984, 22);
@@ -950,81 +861,81 @@ namespace TLO.Forms
             this.PerformLayout();
         }
 
-        #endregion
-
-        private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem файлToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menuSettingsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem отчетыToolStripMenuItem;
-        private System.Windows.Forms.ComboBox _cbCategory;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage _tpReportDownloads;
+        private System.Windows.Forms.ToolStripMenuItem _btLoadSettingsFromFile;
+        private System.Windows.Forms.ToolStripMenuItem _btSaveToFile;
         private System.Windows.Forms.CheckBox _cbBlackList;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox _cbCategory;
         private System.Windows.Forms.ComboBox _cbCategoryFilters;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.LinkLabel _llSelectedTopicsToTorrentClient;
+        private System.Windows.Forms.NumericUpDown _cbCountSeeders;
+        private System.Windows.Forms.DataGridView _dataGridTopicsList;
+        private System.Windows.Forms.DateTimePicker _DateRegistration;
+        private System.Windows.Forms.Label _lbTotal;
         private System.Windows.Forms.LinkLabel _llDownloadSelectTopics;
-        private System.Windows.Forms.LinkLabel _llSelectedTopicsToBlackList;
         private System.Windows.Forms.LinkLabel _llSelectedTopicsDeleteFromBlackList;
-        private System.Windows.Forms.LinkLabel linkSetNewLabel;
-        private System.Windows.Forms.LinkLabel linkLabel5;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.LinkLabel _llUpdateTopicsByCategory;
+        private System.Windows.Forms.LinkLabel _llSelectedTopicsToBlackList;
+        private System.Windows.Forms.LinkLabel _llSelectedTopicsToTorrentClient;
         private System.Windows.Forms.LinkLabel _llUpdateCountSeedersByCategory;
         private System.Windows.Forms.LinkLabel _llUpdateDataDromTorrentClient;
-        private System.Windows.Forms.ToolStripMenuItem задачиToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem UpdateCountSeedersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem UpdateListTopicsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem UpdateKeepTopicsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ClearDatabaseToolStripMenuItem;
-        private System.Windows.Forms.Label _lbTotal;
-        private System.Windows.Forms.ToolStripMenuItem SendReportsToForumToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem CreateReportsToolStripMenuItem;
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
-        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
-        private System.Windows.Forms.ToolStripMenuItem RuningStopingDistributionToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.NumericUpDown _cbCountSeeders;
-        private System.Windows.Forms.TabPage tabReports;
-        private System.Windows.Forms.ToolStripMenuItem ClearKeeperListsToolStripMenuItem;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabConsolidatedReport;
-        private System.Windows.Forms.TextBox _txtConsolidatedReport;
-        private System.Windows.Forms.TabPage ConsolidatedTorrentClientsReport;
+        private System.Windows.Forms.LinkLabel _llUpdateTopicsByCategory;
         private System.Windows.Forms.TextBox _tbConsolidatedTorrentClientsReport;
-        private System.Windows.Forms.ToolStripMenuItem CreateConsolidatedReportByTorrentClientsToolStripMenuItem;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvTopicID;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn ColumnReport1DgvSelect;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvStatus;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvSize;
-        private System.Windows.Forms.DataGridViewLinkColumn ColumnReport1DgvName;
-        private System.Windows.Forms.DataGridViewLinkColumn ColumnReport1DgvAlternative;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvSeeders;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvAvgSeeders;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvRegTime;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn ColumnReport1DgvBlack;
-        private System.Windows.Forms.DateTimePicker _DateRegistration;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TabControl _tcCetegoriesRootReports;
+        private System.Windows.Forms.TabPage _tpReportDownloads;
+        private System.Windows.Forms.TextBox _txtConsolidatedReport;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.ToolStripMenuItem ClearDatabaseToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearKeeperListsToolStripMenuItem;
+        private System.Windows.Forms.DataGridViewLinkColumn ColumnReport1DgvAlternative;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvAvgSeeders;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ColumnReport1DgvBlack;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvKeeperCount;
+        private System.Windows.Forms.DataGridViewLinkColumn ColumnReport1DgvName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvRegTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvSeeders;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ColumnReport1DgvSelect;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvSize;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvTopicID;
+        private System.Windows.Forms.TabPage ConsolidatedTorrentClientsReport;
+        private System.Windows.Forms.ToolStripMenuItem CreateConsolidatedReportByTorrentClientsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CreateReportsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.LinkLabel linkLabel5;
+        private System.Windows.Forms.LinkLabel linkSetNewLabel;
+        private System.Windows.Forms.ToolStripMenuItem LoadListKeepersToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuSettingsToolStripMenuItem;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem menuTimerSetting;
+        private System.Windows.Forms.ToolStripMenuItem RuningStopingDistributionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SendReportsToForumToolStripMenuItem;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.TabPage tabConsolidatedReport;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.ToolStripMenuItem LoadListKeepersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem _btSaveToFile;
-        private System.Windows.Forms.ToolStripMenuItem _btLoadSettingsFromFile;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.TabPage tabReports;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.DataGridView _dataGridTopicsList;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripMenuItem UpdateAll;
-        private System.Windows.Forms.ToolStripMenuItem menuTimerSetting;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ColumnReport1DgvKeeperCount;
+        private System.Windows.Forms.ToolStripMenuItem UpdateCountSeedersToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem UpdateKeepTopicsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem UpdateListTopicsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem задачиToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem отчетыToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem файлToolStripMenuItem;
+
+        #endregion
     }
 }

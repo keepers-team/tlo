@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
+using System.Windows.Forms;
 using AngleSharp.Dom;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -589,9 +592,8 @@ namespace TLO.Clients
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e.Message);
-                    _logger.Error(e.StackTrace);
                     _logger.Error(e);
+                    _logger.Error(e.StackTrace);
                     continue;
                 }
 
@@ -691,33 +693,24 @@ namespace TLO.Clients
                 if (str5.Split('"').Length < 12)
                     throw new ArgumentException("Массив с параметром 'subject' меньше предполагаемого: " + str5);
 
-            var format = "mode=editpost&t={0}&p={1}&submit_mode=submit&form_token={3}{4}&message={2}";
-            var objArray = new object[5]
-            {
-                str4.Split('"')[5],
-                str1,
-                HttpUtility.UrlEncode(message, Encoding.GetEncoding(1251)),
-                str3.Split('\'')[1],
-                null
-            };
-            var index1 = 4;
-            string str6;
+            var _params = new NameValueCollection();
+            _params.Add("t", str4.Split('"')[5]);
+            _params.Add("submit_mode", "submit");
+            _params.Add("form_token", str3.Split('\'')[1]);
+            _params.Add("message", message);
             if (!string.IsNullOrWhiteSpace(str5))
-                str6 = string.Format("&subject={0}",
-                    HttpUtility.UrlEncode(str5.Split('"')[11], Encoding.GetEncoding(1251)));
-            else
-                str6 = string.Empty;
-            objArray[index1] = str6;
-            var s = string.Format(format, objArray);
+                _params.Add("subject", str5.Split('"')[11]);
             for (var index2 = 0; index2 < 1;)
                 try
                 {
+                    var _url = string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}",
+                        Settings.Current.HostRuTrackerOrg, str1);
                     if (_webClient == null)
-                        DownloadWebPage(string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}",
-                            Settings.Current.HostRuTrackerOrg, str1));
-                    _webClient.UploadData(
-                        string.Format("https://{0}/forum/posting.php?mode=editpost&p={1}",
-                            Settings.Current.HostRuTrackerOrg, str1), "POST", Encoding.GetEncoding(1251).GetBytes(s));
+                        DownloadWebPage(_url);
+                    var headers = new NameValueCollection();
+                    _webClient.multipart = true;
+                    _webClient.Upload(_url, headers, _params);
+                    _webClient.multipart = false;
                     break;
                 }
                 catch (Exception ex)

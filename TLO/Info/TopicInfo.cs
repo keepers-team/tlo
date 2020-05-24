@@ -94,6 +94,42 @@ namespace TLO.Info
             }
         }
 
+        public string StatusToHtml
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case 0:
+                        return "*";
+                    case 1:
+                        return "x";
+                    case 2:
+                        return "&radic;";
+                    case 3:
+                        return "?";
+                    case 4:
+                        return "!";
+                    case 5:
+                        return "D";
+                    case 6:
+                        return "&copy;";
+                    case 7:
+                        return "&sum;";
+                    case 8:
+                        return "#";
+                    case 9:
+                        return "%";
+                    case 10:
+                        return "T";
+                    case 11:
+                        return "&prod;";
+                    default:
+                        return "-";
+                }
+            }
+        }
+
         public string RegTimeToString => RegTime.ToString("dd.MM.yyyy");
 
         public int PosterID { get; set; }

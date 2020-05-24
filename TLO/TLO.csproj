@@ -27,8 +27,8 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>false</MapFileExtensions>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>38</ApplicationRevision>
-    <ApplicationVersion>2.15.13.%2a</ApplicationVersion>
+    <ApplicationRevision>39</ApplicationRevision>
+    <ApplicationVersion>2.16.0.%2a</ApplicationVersion>
     <UseApplicationTrust>true</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -45,12 +45,13 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>hdd.ico</ApplicationIcon>
@@ -58,9 +59,9 @@
   <PropertyGroup>
     <ManifestCertificateThumbprint>70B8EDED1127918B508D94213D7C0757DF2DAEC2</ManifestCertificateThumbprint>
   </PropertyGroup>
-<!--  <PropertyGroup>-->
-<!--    <ManifestKeyFile>TLO_TemporaryKey.pfx</ManifestKeyFile>-->
-<!--  </PropertyGroup>-->
+  <!--  <PropertyGroup>-->
+  <!--    <ManifestKeyFile>TLO_TemporaryKey.pfx</ManifestKeyFile>-->
+  <!--  </PropertyGroup>-->
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
@@ -154,7 +155,9 @@
     <Compile Include="Clients\ITorrentClient.cs" />
     <Compile Include="Clients\QBitTorrentClient.cs" />
     <Compile Include="Clients\RuTrackerOrg.cs" />
-    <Compile Include="Clients\TLOWebClient.cs" />
+    <Compile Include="Clients\TLOWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Clients\TransmissionClient.cs" />
     <Compile Include="Clients\UTorrentClient.cs" />
     <Compile Include="Forms\FolderNameDialog.cs">
@@ -164,7 +167,7 @@
       <DependentUpon>FolderNameDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\ForumPages.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Forms\ForumPages.Designer.cs">
       <DependentUpon>ForumPages.cs</DependentUpon>
@@ -245,7 +248,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-<!--    <None Include="TLO_TemporaryKey.pfx" />-->
+    <!--    <None Include="TLO_TemporaryKey.pfx" />-->
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

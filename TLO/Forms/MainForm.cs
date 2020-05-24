@@ -178,7 +178,7 @@ namespace TLO.Forms
                 else if (sender == SendReportsToForumToolStripMenuItem)
                 {
                     if (MessageBox.Show(
-                            "Отправка отчетов на форум может продолжаться продолжительное время.\r\n Продолжить?",
+                            "Отправка отчетов на форум может продолжаться продолжительное время.\r\nПродолжить?",
                             "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk,
                             MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                         return;
@@ -189,7 +189,7 @@ namespace TLO.Forms
                 else if (sender == CreateReportsToolStripMenuItem)
                 {
                     if (MessageBox.Show(
-                            "Сборка отчетов может продолжаться продолжительное время и потребуется обновить список раздач и информацию из торрент-клиентов.\r\n Продолжит?",
+                            "Сборка отчетов может продолжаться продолжительное время и потребуется обновить список раздач и информацию из торрент-клиентов.\r\n Продолжить?",
                             "Запрос подтверждения", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk,
                             MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                         return;

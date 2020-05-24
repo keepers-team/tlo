@@ -194,7 +194,7 @@ namespace TLO
                     {
                         stringBuilder3.AppendLine(string.Format(format3, (object) topicInfo.TopicID,
                             (object) topicInfo.Name2, (object) topicInfo.SizeToString,
-                            (object) topicInfo.StatusToString, (object) topicInfo.Seeders,
+                            (object) topicInfo.StatusToHtml, (object) topicInfo.Seeders,
                             (object) topicInfo.RegTimeToString));
                         ++num2;
                         ++num3;

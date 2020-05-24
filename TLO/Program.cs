@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Web;
 using System.Windows.Forms;
 using MihaZupan;
 using TLO.Forms;
@@ -9,10 +12,22 @@ using TLO.Forms;
 namespace TLO
 {
     internal static class Program
-    {
+    {   
+        [DllImport("kernel32.dll")]
+        static extern bool AttachConsole(int dwProcessId);
+        private const int ATTACH_PARENT_PROCESS = -1;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern int FreeConsole();
         [STAThread]
         private static void Main()
         {
+            AttachConsole(ATTACH_PARENT_PROCESS);
+            // Console.WriteLine(HttpUtility.UrlEncode("говно ебать", Encoding.UTF8));
+            // Console.WriteLine(HttpUtility.UrlEncode("говно ебать √"));
+            // Console.Error.WriteLine(HttpUtility.UrlEncode("говно ебать √"));
+            // Console.Out.Flush();
+            // Console.Out.Close();
             if (Settings.Current.DontRunCopy)
             {
                 var currentProcess = Process.GetCurrentProcess();
@@ -59,6 +74,7 @@ namespace TLO
             {
                 MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
             }
+            FreeConsole();
         }
         
         
