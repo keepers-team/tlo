@@ -227,7 +227,7 @@ namespace TLO.Clients
         {
             if (id == null || !id.Any())
                 return null;
-            var bulkSize = 100;
+            var bulkSize = 50;
             var userInfoList = new List<UserInfo>();
             var intListArray = new List<int>[id.Count() % bulkSize == 0 ? id.Count() / bulkSize : id.Count() / bulkSize + 1];
             for (var index1 = 0; index1 < id.Count(); ++index1)
