@@ -172,7 +172,7 @@ namespace TLO.Clients
             var dictionary =
                 JsonConvert.DeserializeObject<JObject>(DownloadArchivePage(
                         string.Format("https://{1}/v1/static/pvc/f/{0}", forumId, Settings.Current.ApiHost)))["result"]
-                    .ToObject<Dictionary<int, long[]>>();
+                    .ToObject<Dictionary<int, object[]>>();
             var numArray1 = new int[dictionary.Count][];
             var index = 0;
             foreach (var keyValuePair in dictionary)
@@ -181,7 +181,7 @@ namespace TLO.Clients
                 numArray1[index] = new int[2]
                 {
                     keyValuePair.Key,
-                    numArray2.Length > 1 ? (int) numArray2[1] : -1
+                    numArray2.Length > 1 ? Convert.ToInt32(numArray2[1]) : -1
                 };
                 ++index;
             }
