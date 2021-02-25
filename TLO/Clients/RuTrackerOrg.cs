@@ -227,11 +227,12 @@ namespace TLO.Clients
         {
             if (id == null || !id.Any())
                 return null;
+            var bulkSize = 50;
             var userInfoList = new List<UserInfo>();
-            var intListArray = new List<int>[id.Count() % 100 == 0 ? id.Count() / 100 : id.Count() / 100 + 1];
+            var intListArray = new List<int>[id.Count() % bulkSize == 0 ? id.Count() / bulkSize : id.Count() / bulkSize + 1];
             for (var index1 = 0; index1 < id.Count(); ++index1)
             {
-                var index2 = index1 / 100;
+                var index2 = index1 / bulkSize;
                 if (intListArray[index2] == null)
                     intListArray[index2] = new List<int>();
                 intListArray[index2].Add(id[index1]);
