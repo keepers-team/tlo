@@ -179,11 +179,11 @@ namespace TLO.Clients
 
                 _logger.Trace($"Charset {response.CharacterSet}");
 
-                // var text = response.CharacterSet != null && response.CharacterSet.ToLower().Contains("1251")
-                    // ? Encoding.GetEncoding(1251).GetString(buffer)
-                    // : Encoding.GetEncoding("UTF-8").GetString(buffer);
+                var text = response.CharacterSet != null && response.CharacterSet.ToLower().Contains("1251")
+                    ? Encoding.GetEncoding(1251).GetString(buffer)
+                    : Encoding.GetEncoding("UTF-8").GetString(buffer);
 
-                    var text = "";
+                    // var text = "";
                 streamReplace.Seek(0, SeekOrigin.Begin);
 
                 var fieldInfo = response

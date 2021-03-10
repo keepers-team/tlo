@@ -23,11 +23,6 @@ namespace TLO
         private static void Main()
         {
             AttachConsole(ATTACH_PARENT_PROCESS);
-            // Console.WriteLine(HttpUtility.UrlEncode("говно ебать", Encoding.UTF8));
-            // Console.WriteLine(HttpUtility.UrlEncode("говно ебать √"));
-            // Console.Error.WriteLine(HttpUtility.UrlEncode("говно ебать √"));
-            // Console.Out.Flush();
-            // Console.Out.Close();
             if (Settings.Current.DontRunCopy)
             {
                 var currentProcess = Process.GetCurrentProcess();

@@ -161,5 +161,10 @@ namespace TLO.Info
                 return Math.Round(size / new decimal(10240, 0, 0, false, 1), 2) + " KB";
             return Math.Round((decimal) size, 2) + " B";
         }
+
+        // public override string ToString()
+        // {
+        //     return $"[{Hash}]: {Name}";
+        // }
     }
 }
