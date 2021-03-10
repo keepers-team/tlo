@@ -47,6 +47,7 @@ namespace TLO.Info
                 UTorrentClient.ClientId => new UTorrentClient(ServerName, ServerPort, UserName, UserPassword),
                 TransmissionClient.ClientId => new TransmissionClient(ServerName, ServerPort, UserName, UserPassword),
                 QBitTorrentClient.ClientId => new QBitTorrentClient(ServerName, ServerPort, UserName, UserPassword),
+                TixatiClient.ClientId => new TixatiClient(ServerName, ServerPort, UserName, UserPassword),
                 _ => throw new NotSupportedException()
             };
         }

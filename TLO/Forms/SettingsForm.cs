@@ -40,29 +40,46 @@ namespace TLO.Forms
             {
                 dgwTorrentClients.BeginInvoke(new Action(() =>
                 {
-                    var info = _torrentClientsSource[row] as TorrentClientInfo;
-                    try
-                    {
-                        var client = info.Create();
-                        if (client.Ping())
+                    new Thread(o =>
                         {
-                            dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Green;
-                            dgwTorrentClients.Rows[row].Cells[7].Value = "Работает";
-                            paintedValues.Insert(row, "Работает");
+                            var info = _torrentClientsSource[row] as TorrentClientInfo;
+                            try
+                            {
+                                var client = info.Create();
+                                if (client.Ping())
+                                {
+
+                                    lock (neededRows)
+                                    {
+                                        neededRows.Add(row);
+                                        paintedValues.Insert(row, "Работает");
+                                        dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Green;
+                                        dgwTorrentClients.Rows[row].Cells[7].Value = "Работает";
+                                    }
+                                }
+                                else
+                                {
+                                    lock (neededRows)
+                                    {
+                                        neededRows.Add(row);
+                                        paintedValues.Insert(row, "Нет связи");
+                                        dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Orange;
+                                        dgwTorrentClients.Rows[row].Cells[7].Value = "Нет связи";
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                lock (neededRows)
+                                {
+                                    neededRows.Add(row);
+                                    paintedValues.Insert(row, "Ошибка");
+                                    dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Red;
+                                    dgwTorrentClients.Rows[row].Cells[7].Value = "Ошибка";
+                                }
+                            }
                         }
-                        else
-                        {
-                            dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Orange;
-                            dgwTorrentClients.Rows[row].Cells[7].Value = "Нет связи";
-                            paintedValues.Insert(row, "Нет связи");
-                        }
-                    }
-                    catch
-                    {
-                        dgwTorrentClients.Rows[row].Cells[7].Style.BackColor = Color.Red;
-                        dgwTorrentClients.Rows[row].Cells[7].Value = "Ошибка";
-                        paintedValues.Insert(row, "Ошибка");
-                    }
+                    ).Start();
                 }));
             }
 
@@ -75,22 +92,24 @@ namespace TLO.Forms
 
                 if (args.ColumnIndex == 7)
                 {
-                    if (!neededRows.Contains(args.RowIndex))
+                    lock (neededRows)
                     {
-                        neededRows.Add(args.RowIndex);
-                        CheckTorrentVersion(args.RowIndex);
-                        args.Value = "Проверка...";
-                    }
-                    else if (!paintedRows.Contains(args.RowIndex))
-                    {
-                        paintedRows.Add(args.RowIndex);
-                        args.Value = "Проверка...";
-                    }
-                    else
-                    {
-                        paintedRows.Remove(args.RowIndex);
-                        neededRows.Remove(args.RowIndex);
-                        args.Value = paintedValues[args.RowIndex];
+                        if (!neededRows.Contains(args.RowIndex))
+                        {
+                            args.Value = "Проверка...";
+                            CheckTorrentVersion(args.RowIndex);
+                        }
+                        else if (!paintedRows.Contains(args.RowIndex))
+                        {
+                            args.Value = "Проверка...";
+                            paintedRows.Add(args.RowIndex);
+                        }
+                        else
+                        {
+                            paintedRows.Remove(args.RowIndex);
+                            neededRows.Remove(args.RowIndex);
+                            args.Value = paintedValues[args.RowIndex];
+                        }
                     }
                 }
             };
@@ -99,7 +118,6 @@ namespace TLO.Forms
             {
                 if (args.ColumnIndex != 7)
                 {
-                    neededRows.Add(args.RowIndex);
                     CheckTorrentVersion(args.RowIndex);
                 }
             };
@@ -122,7 +140,8 @@ namespace TLO.Forms
                 {
                     UTorrentClient.ClientId,
                     TransmissionClient.ClientId,
-                    QBitTorrentClient.ClientId
+                    QBitTorrentClient.ClientId,
+                    TixatiClient.ClientId,
                 }
             };
 
@@ -411,7 +430,6 @@ namespace TLO.Forms
                         return;
                     foreach (var cat in dialog.SelectedCategory)
                     {
-                       
                         if ((_categoriesSource.DataSource as List<Category>).Any(
                             x => x.CategoryID == cat.CategoryID))
                         {
@@ -422,7 +440,7 @@ namespace TLO.Forms
                             cat.IsEnable = true;
                             _categoriesSource.Add(cat);
                             _categoriesSource.Position = _categoriesSource.Count;
-                        } 
+                        }
                     }
                 }
             }
@@ -432,7 +450,7 @@ namespace TLO.Forms
                     return;
                 var current = _categoriesSource.Current as Category;
                 if (MessageBox.Show("Удалить из обработки раздел \"" + current.Name + "\"?", "Подтверждение",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
                     _categoriesSource.Remove(current);
             }
             else if (sender == _CategoriesBtSelectFolder)

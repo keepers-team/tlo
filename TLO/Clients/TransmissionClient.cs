@@ -29,15 +29,15 @@ namespace TLO.Clients
             var svcCredentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(userName + ":" + userPass));
             _webClient.Headers.Add("Authorization", "Basic " + svcCredentials);
             _url = string.Format("http://{0}:{1}/transmission/rpc", serverName, port);
-            try
-            {
-                Ping();
-            }
-            catch
-            {
-                _logger.Debug(string.Format("Имя сервера: {0}; Порт сервера: {1}", serverName, port));
-                throw;
-            }
+            // try
+            // {
+            //     Ping();
+            // }
+            // catch
+            // {
+            //     _logger.Debug(string.Format("Имя сервера: {0}; Порт сервера: {1}", serverName, port));
+            //     throw;
+            // }
         }
 
         public List<TopicInfo> GetAllTorrentHash()

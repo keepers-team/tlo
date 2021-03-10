@@ -34,15 +34,15 @@ namespace TLO.Clients
             _webClient.Headers.Add("Authorization", "Basic " + svcCredentials);
             _serverName = serverName;
             _serverPort = port;
-            try
-            {
-                Ping();
-            }
-            catch
-            {
-                _logger.Debug(string.Format("Имя сервера: {0}; Порт сервера: {1}", _serverName, _serverPort));
-                throw;
-            }
+            // try
+            // {
+            //     Ping();
+            // }
+            // catch
+            // {
+            //     _logger.Debug(string.Format("Имя сервера: {0}; Порт сервера: {1}", _serverName, _serverPort));
+            //     throw;
+            // }
         }
 
         public bool Ping()
